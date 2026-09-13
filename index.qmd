@@ -42,20 +42,20 @@ format:
   heterogeneous and panel designs, then use and defend the evidence. Every
   lecture ships with a replication lab, a Stata problem set, and a browser lab
   that form one practicum.</p>
-  <div class="nw-row"><span class="n">01</span><span class="t"><a href="lectures/01-question-to-projection/notes.html">From an Economic Question to a Local Projection</a></span><span class="p">P01 — shock-to-response explorer</span></div>
-  <div class="nw-row"><span class="n">02</span><span class="t"><a href="lectures/02-transformations-and-units/notes.html">Levels, Differences, Cumulative Responses &amp; Units</a></span><span class="p">P02 — transformation workbench</span></div>
-  <div class="nw-row"><span class="n">03</span><span class="t"><a href="lectures/03-identification-and-controls/notes.html">Identification, Controls &amp; the Pre-Shock Information Set</a></span><span class="p">P03 — identification sandbox</span></div>
-  <div class="nw-row"><span class="n">04</span><span class="t"><a href="lectures/04-lp-iv-and-multipliers/notes.html">LP-IV &amp; Cumulative Multipliers</a></span><span class="p">P04 — instrument &amp; multiplier lab</span></div>
-  <div class="nw-row"><span class="n">05</span><span class="t"><a href="lectures/05-pointwise-inference/notes.html">Pointwise Inference, Persistence &amp; Lag Augmentation</a></span><span class="p">P05 — coverage simulator</span></div>
-  <div class="nw-row"><span class="n">06</span><span class="t"><a href="lectures/06-path-inference/notes.html">Inference About the Response Path</a></span><span class="p">P06 — claims about a curve</span></div>
-  <div class="nw-row"><span class="n">07</span><span class="t"><a href="lectures/07-lp-versus-var/notes.html">LPs versus VARs: Estimands, Bias &amp; Variance</a></span><span class="p">P07 — bias–variance lab</span></div>
-  <div class="nw-row"><span class="n">08</span><span class="t"><a href="lectures/08-smoothing-and-restrictions/notes.html">Smoothing &amp; Restrictions Across Horizons</a></span><span class="p">P08 — smoothing workbench</span></div>
-  <div class="nw-row"><span class="n">09</span><span class="t"><a href="lectures/09-state-dependence/notes.html">State Dependence &amp; Asymmetric Responses</a></span><span class="p">P09 — state-dependence lab</span></div>
-  <div class="nw-row"><span class="n">10</span><span class="t"><a href="lectures/10-nonlinear-interpretation/notes.html">What Linear LPs Mean in Nonlinear Economies</a></span><span class="p">P10 — causal-weight explorer</span></div>
-  <div class="nw-row"><span class="n">11</span><span class="t"><a href="lectures/11-panel-lps/notes.html">Panel LPs &amp; Common Macroeconomic Shocks</a></span><span class="p">P11 — where identification comes from</span></div>
-  <div class="nw-row"><span class="n">12</span><span class="t"><a href="lectures/12-lp-did/notes.html">LP Difference-in-Differences</a></span><span class="p">P12 — clean-control builder</span></div>
-  <div class="nw-row"><span class="n">13</span><span class="t"><a href="lectures/13-sensitivity-and-counterfactuals/notes.html">Sensitivity Analysis &amp; Policy Counterfactuals</a></span><span class="p">P13 — counterfactual workbench</span></div>
-  <div class="nw-row"><span class="n">14</span><span class="t"><a href="lectures/14-synthesis-and-audit/notes.html">Research Synthesis, Replication Audit &amp; Defense</a></span><span class="p">P14 — replication referee desk</span></div>
+  <div class="nw-row"><span class="n">01</span><span class="t">From an Economic Question to a Local Projection</span><span class="p">P01 — shock-to-response explorer</span></div>
+  <div class="nw-row"><span class="n">02</span><span class="t">Levels, Differences, Cumulative Responses &amp; Units</span><span class="p">P02 — transformation workbench</span></div>
+  <div class="nw-row"><span class="n">03</span><span class="t">Identification, Controls &amp; the Pre-Shock Information Set</span><span class="p">P03 — identification sandbox</span></div>
+  <div class="nw-row"><span class="n">04</span><span class="t">LP-IV &amp; Cumulative Multipliers</span><span class="p">P04 — instrument &amp; multiplier lab</span></div>
+  <div class="nw-row"><span class="n">05</span><span class="t">Pointwise Inference, Persistence &amp; Lag Augmentation</span><span class="p">P05 — coverage simulator</span></div>
+  <div class="nw-row"><span class="n">06</span><span class="t">Inference About the Response Path</span><span class="p">P06 — claims about a curve</span></div>
+  <div class="nw-row"><span class="n">07</span><span class="t">LPs versus VARs: Estimands, Bias &amp; Variance</span><span class="p">P07 — bias–variance lab</span></div>
+  <div class="nw-row"><span class="n">08</span><span class="t">Smoothing &amp; Restrictions Across Horizons</span><span class="p">P08 — smoothing workbench</span></div>
+  <div class="nw-row"><span class="n">09</span><span class="t">State Dependence &amp; Asymmetric Responses</span><span class="p">P09 — state-dependence lab</span></div>
+  <div class="nw-row"><span class="n">10</span><span class="t">What Linear LPs Mean in Nonlinear Economies</span><span class="p">P10 — causal-weight explorer</span></div>
+  <div class="nw-row"><span class="n">11</span><span class="t">Panel LPs &amp; Common Macroeconomic Shocks</span><span class="p">P11 — where identification comes from</span></div>
+  <div class="nw-row"><span class="n">12</span><span class="t">LP Difference-in-Differences</span><span class="p">P12 — clean-control builder</span></div>
+  <div class="nw-row"><span class="n">13</span><span class="t">Sensitivity Analysis &amp; Policy Counterfactuals</span><span class="p">P13 — counterfactual workbench</span></div>
+  <div class="nw-row"><span class="n">14</span><span class="t">Research Synthesis, Replication Audit &amp; Defense</span><span class="p">P14 — replication referee desk</span></div>
 </div>
 
 <div class="nw-cap">
