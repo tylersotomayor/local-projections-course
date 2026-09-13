@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  APA author-date with small-capital surnames in the bibliography.
+
+  Matches the working-paper template, which runs biblatex `style=apa` with
+
+      \AtBeginBibliography{\renewcommand*{\mkbibnamefamily}[1]{\textsc{\lowercase{#1}}}}
+
+  The same effect here comes from lowercasing the family name-part and setting
+  font-variant="small-caps", which citeproc renders as <span class="smallcaps">
+  for HTML and \textsc{} for LaTeX — so the web and PDF bibliographies are
+  identical. As in the template, small caps apply to the bibliography only;
+  in-text citations stay in ordinary case.
+-->
+<style xmlns="http://purl.org/net/xbiblio/csl" class="in-text" version="1.0"
+       default-locale="en-US" page-range-format="expanded">
+  <info>
+    <title>APA (small-capital surnames)</title>
+    <id>https://tylersotomayor.com/csl/apa-smallcaps</id>
+    <link href="https://tylersotomayor.com/csl/apa-smallcaps" rel="self"/>
+    <category citation-format="author-date"/>
+    <category field="social_science"/>
+    <updated>2026-08-02T00:00:00+00:00</updated>
+  </info>
+
+  <!-- ————— names ————— -->
+
+  <macro name="author-cite">
+    <names variable="author">
+      <name form="short" and="text" delimiter=", "/>
+      <substitute>
+        <names variable="editor"/>
+        <text variable="title"/>
+      </substitute>
+    </names>
+  </macro>
+
+  <macro name="author-bib">
+    <names variable="author">
+      <name and="symbol" delimiter=", " delimiter-precedes-last="always"
+            initialize-with=". " name-as-sort-order="all" sort-separator=", ">
+        <name-part name="family" font-variant="small-caps" text-case="lowercase"/>
+      </name>
+      <substitute>
+        <names variable="editor"/>
+        <text variable="title"/>
+      </substitute>
+    </names>
+  </macro>
+
+  <macro name="author-sort">
+    <names variable="author">
+      <name form="long" name-as-sort-order="all"/>
+      <substitute>
+        <names variable="editor"/>
+        <text variable="title"/>
+      </substitute>
+    </names>
+  </macro>
+
+  <macro name="editor-in">
+    <names variable="editor" delimiter=", ">
+      <name and="symbol" initialize-with=". " delimiter=", "/>
+      <label form="short" prefix=" (" suffix=")"/>
+    </names>
+  </macro>
+
+  <!-- ————— dates ————— -->
+
+  <macro name="issued-bib">
+    <choose>
+      <if variable="issued">
+        <date variable="issued" prefix="(" suffix=").">
+          <date-part name="year"/>
+        </date>
+      </if>
+      <else>
+        <text term="no date" prefix="(" suffix=")." form="short"/>
+      </else>
+    </choose>
+  </macro>
+
+  <!-- ————— containers ————— -->
+
+  <macro name="journal-locators">
+    <group delimiter=", ">
+      <text variable="container-title" font-style="italic"/>
+      <group>
+        <text variable="volume" font-style="italic"/>
+        <text variable="issue" prefix="(" suffix=")"/>
+      </group>
+      <text variable="page"/>
+    </group>
+  </macro>
+
+  <macro name="book-locators">
+    <group delimiter=" ">
+      <text variable="edition" prefix="(" suffix=" ed.)"/>
+    </group>
+  </macro>
+
+  <!-- ————— citations ————— -->
+
+  <citation et-al-min="3" et-al-use-first="1"
+            disambiguate-add-year-suffix="true"
+            disambiguate-add-names="true"
+            collapse="year">
+    <sort>
+      <key macro="author-sort"/>
+      <key variable="issued"/>
+    </sort>
+    <layout prefix="(" suffix=")" delimiter="; ">
+      <group delimiter=", ">
+        <text macro="author-cite"/>
+        <date variable="issued">
+          <date-part name="year"/>
+        </date>
+      </group>
+      <group prefix=", " delimiter=" ">
+        <label variable="locator" form="short"/>
+        <text variable="locator"/>
+      </group>
+    </layout>
+  </citation>
+
+  <!-- ————— bibliography ————— -->
+
+  <bibliography hanging-indent="true" entry-spacing="1" line-spacing="1"
+                et-al-min="21" et-al-use-first="19">
+    <sort>
+      <key macro="author-sort"/>
+      <key variable="issued"/>
+    </sort>
+    <layout suffix=".">
+      <group delimiter=" ">
+        <text macro="author-bib" suffix="."/>
+        <text macro="issued-bib"/>
+        <choose>
+
+          <!-- journal article -->
+          <if type="article-journal article-magazine article-newspaper">
+            <group delimiter=". ">
+              <text variable="title"/>
+              <text macro="journal-locators"/>
+            </group>
+          </if>
+
+          <!-- chapter in an edited volume -->
+          <else-if type="chapter paper-conference entry-encyclopedia">
+            <group delimiter=". ">
+              <text variable="title"/>
+              <group delimiter=" ">
+                <text term="in" text-case="capitalize-first"/>
+                <text macro="editor-in"/>
+                <group delimiter=" ">
+                  <text variable="container-title" font-style="italic"/>
+                  <group prefix="(" suffix=")" delimiter=" ">
+                    <label variable="page" form="short"/>
+                    <text variable="page"/>
+                  </group>
+                </group>
+              </group>
+              <text variable="publisher"/>
+            </group>
+          </else-if>
+
+          <!-- book and everything else -->
+          <else>
+            <group delimiter=". ">
+              <group delimiter=" ">
+                <text variable="title" font-style="italic"/>
+                <text macro="book-locators"/>
+              </group>
+              <text variable="publisher"/>
+            </group>
+          </else>
+
+        </choose>
+      </group>
+    </layout>
+  </bibliography>
+</style>

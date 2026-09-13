@@ -1,0 +1,35 @@
+% ————— Shared preamble for the course figures —————
+% Each figure is a standalone TikZ document. build.sh compiles it to a PDF (for
+% the LaTeX build) and converts that to an SVG (for the web build).
+%
+% Nothing is drawn in pure black: the chrome sits at a mid grey that stays
+% legible on white paper and on the site's dark theme alike. Data colours are
+% the course palette, the same blue and orange used in the practicum.
+
+\usepackage{amsmath}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usepgfplotslibrary{fillbetween,groupplots}
+\usetikzlibrary{arrows.meta,positioning,calc,backgrounds}
+
+\definecolor{nwBlue}{HTML}{2A78D6}
+\definecolor{nwOrange}{HTML}{D9601F}
+\definecolor{nwMut}{HTML}{898781}
+\definecolor{nwInk}{HTML}{6B6965}
+
+\pgfplotsset{
+  nwaxis/.style={
+    axis lines=left,
+    axis line style={nwMut, line width=0.5pt},
+    tick align=outside,
+    tick style={nwMut, line width=0.5pt},
+    label style={text=nwInk, font=\small},
+    tick label style={text=nwMut, font=\footnotesize},
+    legend cell align=left,
+    legend style={draw=none, fill=none, font=\footnotesize, text=nwInk,
+                  row sep=1pt, inner sep=1pt},
+    every axis plot post/.append style={line join=round},
+    clip mode=individual,
+  },
+}

@@ -1,0 +1,190 @@
+% ————— House style for the session notes (PDF) —————
+% A port of the MATH S4061 handbook's analysisnotes.sty to Quarto's article
+% class: the chapter opener, the ruled contents strip, small-caps running heads,
+% bold upright headings, and small indented figure captions. Lengths and rules
+% are copied from the handbook so the two documents set identically.
+%
+% Loaded via `include-in-header`; the opener itself is emitted by the
+% before-body.tex partial, which calls \nwopener.
+
+\usepackage{etoolbox}
+\usepackage{setspace}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{caption}
+\usepackage{etoc}
+\usepackage{makeidx}
+\makeindex
+
+\doublespacing
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.5em}
+
+% The index is reference apparatus rather than continuous prose. Set it more
+% compactly and open the gutter between its two columns; otherwise long entries
+% can appear to run into the entry opposite them.
+\makeatletter
+\patchcmd{\theindex}{\columnsep 35\p@}{\columnsep 52\p@}{}{}
+\patchcmd{\theindex}{\let\item\@idxitem}%
+  {\small\setstretch{1.0}\let\item\@idxitem}{}{}
+\renewcommand\indexspace{\par\vskip 3\p@ \@plus1\p@ \@minus1\p@\relax}
+\makeatother
+
+% ---------- running heads: section recto, page outer, hairline ----------
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\footnotesize\scshape\nouppercase{\rightmark}}
+\fancyhead[R]{\footnotesize\scshape\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\sectionmark}[1]{\markright{\thesection\quad #1}}
+% the opener page carries no running head, only a folio at the foot
+\fancypagestyle{plain}{\fancyhf{}\fancyfoot[C]{\footnotesize\thepage}%
+  \renewcommand{\headrulewidth}{0pt}}
+
+% ---------- headings: bold roman, number then \quad, never italic ----------
+\titleformat{\section}[hang]
+  {\normalfont\LARGE\bfseries\raggedright}{\thesection}{1em}{}
+\titlespacing*{\section}{0pt}{1.9\baselineskip}{0.45\baselineskip}
+% Unnumbered sections (Exercises, Further reading, References) are emitted as
+% \section*, which never runs \sectionmark — without this the running head on
+% those pages still names the last numbered section. Wrap the starred form so
+% it sets the mark, then hand off to the section \titleformat above (which
+% drops the label of its own accord when there is no number).
+\makeatletter
+\let\nw@section\section
+\newcommand{\nw@starsection}[1]{\markright{#1}\nw@section*{#1}}
+\renewcommand{\section}{\@ifstar{\nw@starsection}{\nw@section}}
+\makeatother
+\titleformat{\subsection}[hang]
+  {\normalfont\large\bfseries\raggedright}{\thesubsection}{0.85em}{}
+\titlespacing*{\subsection}{0pt}{1.2\baselineskip}{0.3\baselineskip}
+\titleformat{\subsubsection}[hang]
+  {\normalfont\normalsize\bfseries\raggedright}{\thesubsubsection}{0.7em}{}
+\titlespacing*{\subsubsection}{0pt}{1\baselineskip}{0.25\baselineskip}
+
+% ---------- float placement ----------
+% Let figures share a page with text rather than being banished to a float page
+% of their own, and start any float page that is unavoidable at the top instead
+% of vertically centred.
+\makeatletter
+\setlength{\@fptop}{0pt}
+\setlength{\@fpsep}{14pt}
+\makeatother
+\renewcommand{\topfraction}{0.92}
+\renewcommand{\bottomfraction}{0.65}
+\renewcommand{\textfraction}{0.07}
+\renewcommand{\floatpagefraction}{0.72}
+
+% ---------- captions: \textbf{Figure 1.} + small text, 86% of the measure ----------
+\captionsetup{font=small,labelfont=bf,labelsep=period,
+  justification=raggedright,singlelinecheck=false,width=0.86\linewidth}
+
+% ---------- links: fully functional, visually quiet ----------
+\definecolor{nwaccent}{HTML}{002FA7}
+\definecolor{nwmuted}{HTML}{5B6168}
+\AtBeginDocument{\hypersetup{colorlinks=true,
+  linkcolor=black,citecolor=black,urlcolor=black,filecolor=black,
+  menucolor=black}}
+
+% ---------- callouts: no tinted panel, no frame ----------
+% Quarto emits callouts as a tcolorbox whose options are fixed inline, so the
+% only way through is the colours: white frame and white title band leave the
+% title bold in black over an indented body — apparatus, not a box. Redefined
+% at \begin{document} so this wins over Quarto's own \definecolor injection.
+\AtBeginDocument{%
+  \definecolor{quarto-callout-note-color}{HTML}{FFFFFF}%
+  \definecolor{quarto-callout-note-color-frame}{HTML}{FFFFFF}%
+  \definecolor{quarto-callout-tip-color}{HTML}{FFFFFF}%
+  \definecolor{quarto-callout-tip-color-frame}{HTML}{FFFFFF}}
+
+% ---------- opener furniture ----------
+
+% thin vertical rule dividing course name from strand
+\newcommand{\midbar}{\hspace{0.6em}\rule[-0.18ex]{0.4pt}{1.75ex}\hspace{0.6em}}
+
+% epigraph: right-hand block, italic, small-caps attribution
+\newcommand{\nwepigraph}[2]{%
+  \par\nopagebreak\vspace{0.55em}%
+  {\noindent\hfill\begin{minipage}{0.66\linewidth}%
+    \itshape\small #1\par\vspace{0.5em}%
+    {\normalfont\footnotesize\scshape\raggedleft #2\par}%
+  \end{minipage}}\par\vspace{1.5em}}
+
+% contents panel: a quiet number/title/page grid between two hairlines.
+% Section titles and page numbers remain live links, but print in black.
+\newlength{\nwtocnumw}\setlength{\nwtocnumw}{2.35em}
+\newlength{\nwtocpagew}\setlength{\nwtocpagew}{2.1em}
+\newlength{\nwtocsubindent}\setlength{\nwtocsubindent}{1.15em}
+\etocsetstyle{section}{}{}
+  {\noindent
+   \makebox[\nwtocnumw][l]{\footnotesize\bfseries\color{nwmuted}\etocnumber}%
+   \parbox[t]{\dimexpr\linewidth-\nwtocnumw-\nwtocpagew-0.8em\relax}{%
+     \raggedright\small\etocname}%
+   \hfill\makebox[\nwtocpagew][r]{\footnotesize\color{nwmuted}\etocpage}%
+   \par\vspace{0.38em}}{}
+\etocsetstyle{subsection}{}{}
+  {\noindent
+   \makebox[\dimexpr\nwtocnumw+\nwtocsubindent\relax][l]{%
+     \scriptsize\bfseries\color{nwmuted}\etocnumber}%
+   \parbox[t]{\dimexpr\linewidth-\nwtocnumw-\nwtocsubindent-\nwtocpagew-0.8em\relax}{%
+     \raggedright\footnotesize\etocname}%
+   \hfill\makebox[\nwtocpagew][r]{\scriptsize\color{nwmuted}\etocpage}%
+   \par\vspace{0.24em}}{}
+\etocsetstyle{subsubsection}{}{}
+  {\noindent
+   \makebox[\dimexpr\nwtocnumw+2\nwtocsubindent\relax][l]{%
+     \scriptsize\bfseries\color{nwmuted}\etocnumber}%
+   \parbox[t]{\dimexpr\linewidth-\nwtocnumw-2\nwtocsubindent-\nwtocpagew-0.8em\relax}{%
+     \raggedright\footnotesize\etocname}%
+   \hfill\makebox[\nwtocpagew][r]{\scriptsize\color{nwmuted}\etocpage}%
+   \par\vspace{0.2em}}{}
+\newcommand{\nwcontents}[1]{%
+  \par\nobreak
+  \begingroup
+    \setlength{\parskip}{0pt}\setstretch{1.0}%
+    {\noindent\normalfont\bfseries\scshape\small #1\par}%
+    \vspace{0.4em}\noindent\rule{\linewidth}{0.55pt}\par
+    \vspace{0.45em}%
+    {\noindent\scriptsize\scshape\color{nwmuted}%
+      \makebox[\nwtocnumw][l]{No.}%
+      \makebox[\dimexpr\linewidth-\nwtocnumw-\nwtocpagew\relax][l]{Topic}%
+      \makebox[\nwtocpagew][r]{Page}\par}%
+    \vspace{0.45em}%
+    \hypersetup{linkcolor=black}%
+    \etocsetnexttocdepth{\nwContentsDepth}%
+    \etocsettocstyle{}{}\tableofcontents
+    \ifdefempty{\nwHasIndex}{}{%
+      \noindent\makebox[\nwtocnumw][l]{}%
+      \parbox[t]{\dimexpr\linewidth-\nwtocnumw-\nwtocpagew-0.8em\relax}{%
+        \raggedright\small\hyperref[course-index]{Index}}%
+      \hfill\makebox[\nwtocpagew][r]{%
+        \footnotesize\color{nwmuted}\pageref{course-index}}%
+      \par\vspace{0.38em}}%
+    \vspace{0.05em}\noindent\rule{\linewidth}{0.4pt}\par
+  \endgroup}
+
+% ---------- the chapter opener ----------
+% Values are captured from document metadata by the title.tex partial.
+\providecommand{\nwKicker}{}
+\providecommand{\nwTitle}{}
+\providecommand{\nwCourse}{}
+\providecommand{\nwStrand}{}
+\providecommand{\nwDate}{}
+\providecommand{\nwEpigraph}{}
+\providecommand{\nwEpigraphSource}{}
+\providecommand{\nwContentsLabel}{Contents of this session}
+\providecommand{\nwHasIndex}{}
+\providecommand{\nwContentsDepth}{1}
+
+\newcommand{\nwopener}{%
+  \thispagestyle{plain}%
+  \ifdefempty{\nwKicker}{}{{\Large\bfseries\MakeUppercase{\nwKicker}}\par\vspace{0.95em}}%
+  {\huge\bfseries\raggedright\hyphenpenalty=10000\exhyphenpenalty=10000
+   \linespread{1.08}\selectfont \nwTitle\par}%
+  \ifdefempty{\nwCourse}{}{\vspace{1.05em}{\large \nwCourse
+     \ifdefempty{\nwStrand}{}{\midbar\nwStrand}}\par}%
+  \ifdefempty{\nwDate}{}{\vspace{0.5em}{\normalsize \nwDate}\par}%
+  \vspace{1.25em}%
+  \ifdefempty{\nwEpigraph}{}{\nwepigraph{\nwEpigraph}{\nwEpigraphSource}}%
+  \nwcontents{\nwContentsLabel}%
+  \vspace{1.2em}}

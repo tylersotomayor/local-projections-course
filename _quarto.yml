@@ -1,0 +1,59 @@
+project:
+  type: website
+  output-dir: _site
+  resources:
+    - CNAME
+    - handbook.pdf
+    - "practica/**/*.zip"
+  render:
+    # The handbook binds the lecture bodies into one PDF; it is built on demand
+    # with `quarto render handbook.qmd`, not on every site render.
+    - "**/*.qmd"
+    - "!handbook.qmd"
+    # Shared chapter fragments are included by notes/solutions and should not
+    # appear as standalone pages in the published site.
+    - "!lectures/**/exercises.qmd"
+    - "!lectures/**/glossary.qmd"
+    - "!lectures/_template/**"
+    # Downloadable lab projects are distributed as archives, not rendered as
+    # parallel pages in the course site.
+    - "!practica/**/lab-project/**"
+
+website:
+  title: "Local Projections"
+  description: "From first principles to empirical research: a fourteen-lecture course on local projections, with Stata practica and browser labs."
+  site-url: https://local-projections.tylersotomayor.com
+  navbar:
+    background: light
+    left:
+      - href: index.qmd
+        text: Home
+      - href: lectures/index.qmd
+        text: Lectures
+      - href: practica/index.qmd
+        text: Practicum
+      - href: interactives/index.qmd
+        text: Labs
+      - href: capstone/index.qmd
+        text: Capstone
+      - href: setup/index.qmd
+        text: Setup
+    right:
+      - href: https://nowcasting.tylersotomayor.com
+        text: nowcasting
+      - href: https://tylersotomayor.com
+        text: tylersotomayor.com
+  page-footer:
+    center: "Local Projections: From First Principles to Empirical Research — Tyler Sotomayor, Columbia University"
+
+format:
+  html:
+    theme:
+      light: [flatly, theme.scss]
+      dark: [flatly, theme.scss, theme-dark.scss]
+    toc: true
+    html-math-method: katex
+    include-in-header:
+      text: |
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">

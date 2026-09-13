@@ -1,0 +1,16 @@
+$-- Session notes: the handbook chapter opener replaces \maketitle.
+$-- \nwopener sets the kicker, title, course line, optional date/epigraph and
+$-- the ruled contents strip; it is defined in _pdf/handbook.tex. The opener
+$-- owns the first page, so the notes always begin on a fresh page.
+$if(has-frontmatter)$
+\frontmatter
+$endif$
+$if(title)$
+\nwopener
+\clearpage
+$if(abstract)$
+\begin{abstract}
+$abstract$
+\end{abstract}
+$endif$
+$endif$

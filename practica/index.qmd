@@ -1,0 +1,53 @@
+---
+title: "Practicum"
+toc: false
+---
+
+Every lecture has one practicum with three coordinated parts. The
+**replication lab** reproduces a bounded published result from its original
+package and traces the decisions behind it. The **Stata problem set** asks you
+to construct, estimate, diagnose, and interpret the method yourself. The
+**browser lab** exposes a misconception through a prediction you commit to
+before moving a control, and ends by handing an object to Stata.
+
+Each practicum page contains the replication target, the problem set, the lab
+handoff, and the submission package. The **lab project** is a self-contained
+folder with starter do-files, data with provenance, automated checks, and a
+README; the **instructor build** is the executed version with its Stata output.
+
+| # | Practicum | Replication target | Lecture |
+|---|-----------|--------------------|---------|
+| P01 | [Recover the basic LP estimator](p01-question-to-projection/index.qmd) | Levels-LP component of Jordà–Taylor's Example 1 simulation | 1 |
+| P02 | [Complete the levels / long-differences comparison](p02-transformations-and-units/index.qmd) | Both persistence settings of Example 1 | 2 |
+| P03 | [Reconstruct an empirical specification](p03-identification-and-controls/index.qmd) | Shelter-inflation response, Inoue–Jordà–Kuersteiner Figure 4 | 3 |
+| P04 | [A baseline fiscal multiplier](p04-lp-iv-and-multipliers/index.qmd) | Ramey–Zubairy linear cumulative multipliers | 4 |
+| P05 | [Compare coverage procedures](p05-pointwise-inference/index.qmd) | Newey–West versus lag-augmented bands, Inoue–Jordà–Kuersteiner Figure 2 | 5 |
+| P06 | [Pointwise versus simultaneous bands](p06-path-inference/index.qmd) | Inoue–Jordà–Kuersteiner Figure 3 | 6 |
+| P07 | [A bounded bias–variance study](p07-lp-versus-var/index.qmd) | Selected Li–Plagborg-Møller–Wolf designs, ported to Stata | 7 |
+| P08 | [Raw versus restricted responses](p08-smoothing-and-restrictions/index.qmd) | Jordà–Taylor Figure 6 unrestricted versus Gaussian-basis | 8 |
+| P09 | [Fiscal responses across states](p09-state-dependence/index.qmd) | Ramey–Zubairy slack versus non-slack multipliers | 9 |
+| P10 | [Recover causal weights](p10-nonlinear-interpretation/index.qmd) | Kolesár–Plagborg-Møller shock-weight figure | 10 |
+| P11 | [Reconstruct historical response paths](p11-panel-lps/index.qmd) | Normal versus financial recessions, *When Credit Bites Back* | 11 |
+| P12 | [Banking deregulation and the labor share](p12-lp-did/index.qmd) | Dube–Girardi–Jordà–Taylor application | 12 |
+| P13 | [Reproduce and scrutinize a counterfactual](p13-sensitivity-and-counterfactuals/index.qmd) | Jordà–Taylor Example 8 | 13 |
+| P14 | [Independent reproduction audit](p14-synthesis-and-audit/index.qmd) | Another team's capstone package | 14 |
+| ★ | [Capstone](../capstone/index.qmd) | A published result, one extension, a peer audit | 4–14 |
+
+: {tbl-colwidths="[6,34,48,12]"}
+
+**Fixed conventions across all practica.**
+
+- **Stata 19.5 (StataNow/SE).** Core tasks use transparent commands:
+  `regress`, `newey`, `ivregress 2sls`, `gmm`. Packaged commands (`lpirf`,
+  `lpdid`) are checks, not prerequisites. See the [setup page](../setup/index.qmd).
+- **One entry point.** Each lab project has a `master.do` that rebuilds every
+  output from the documented starting data, with relative paths and a log.
+- **Provenance travels with the data.** Every dataset carries its source,
+  version, vintage, and redistribution terms in a `PROVENANCE.md`.
+- **Three labels, never confused.** An *exact replication* matches published
+  numbers to a stated tolerance; a *statistical reproduction* reruns a
+  simulation at reduced replications; a *conceptual reproduction* rebuilds the
+  design with different inputs. Every practicum says which it is.
+- **Seeds are recorded.** Randomized exercises fix and report their seeds;
+  browser and Stata comparisons share the same input observations, not just
+  the same seed.

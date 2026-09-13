@@ -1,0 +1,11 @@
+/_site/
+/.quarto/
+*_files/
+.DS_Store
+*.log
+tmp/
+
+**/*.quarto_ipynb
+# Stata scratch
+*.smcl
+practica/**/lab-project/output/

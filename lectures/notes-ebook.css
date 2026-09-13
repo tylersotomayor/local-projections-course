@@ -1,0 +1,533 @@
+/* ————— The session notes, set as a typeset chapter —————
+   Modelled on the MATH S4061 handbook (analysisnotes.sty): a bold kicker over a
+   large roman title, a course line divided by a thin rule, an optional epigraph,
+   a ruled "Contents of this session" strip, and an "Overview." run-in — then a
+   justified reading column with bold upright headings and small, indented
+   captions.
+
+   The site chrome (navbar, sidebar, TOC) stays in the house sans/mono; only the
+   reading column becomes a book page. Two serifs are offered — Latin Modern
+   Roman (default; matches the KaTeX math and the PDF) and Palatino — switched by
+   the reader via the type toggle, which stamps data-notes-font on <html>.
+
+   Every colour is a theme token (--ink, --hairline, --graphite, --accent), so
+   the page follows the site's light and dark themes. */
+
+@font-face {
+  font-family: "Latin Modern Roman";
+  src: url("fonts/lmroman10-regular.otf") format("opentype");
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Latin Modern Roman";
+  src: url("fonts/lmroman10-bold.otf") format("opentype");
+  font-weight: 700; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "Latin Modern Roman";
+  src: url("fonts/lmroman10-italic.otf") format("opentype");
+  font-weight: 400; font-style: italic; font-display: swap;
+}
+@font-face {
+  font-family: "Latin Modern Roman";
+  src: url("fonts/lmroman10-bolditalic.otf") format("opentype");
+  font-weight: 700; font-style: italic; font-display: swap;
+}
+
+:root {
+  --notes-serif: "Latin Modern Roman", "Computer Modern", Georgia, serif;
+  --notes-measure: 46rem;
+  --notes-indent: 1.6em;   /* the handbook's \adjustwidth{1.6em}{0pt} */
+}
+:root[data-notes-font="palatino"] {
+  --notes-serif: "Palatino", "Palatino Linotype", "Book Antiqua", "URW Palladio L", "P052", Georgia, serif;
+}
+
+/* ————— the reading column ————— */
+
+main.content,
+#title-block-header {
+  font-family: var(--notes-serif, Georgia, serif);
+  max-width: var(--notes-measure);
+}
+
+main.content {
+  font-size: 1.14rem;
+  line-height: 2;      /* double-spaced, matching the PDF */
+}
+
+main.content p {
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}
+
+/* ————— chapter opener —————
+   Built by notes-chapter-opener.html from metadata Quarto already emits;
+   the stock Author / Published grid is replaced by the course line. */
+
+#title-block-header.quarto-title-block {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+/* The stock Author / Published grid and the raw subtitle are folded into the
+   kicker and course line instead. Quarto's own rule for .quarto-title-meta is
+   more specific than this one, hence !important; both are scoped to the flag
+   the opener script sets, so a page without JS still shows Quarto's title
+   block rather than a title with no metadata at all. */
+:root[data-notes-opener] #title-block-header .quarto-title-meta,
+:root[data-notes-opener] #title-block-header .subtitle {
+  display: none !important;
+}
+
+#title-block-header .nw-kicker {
+  font-size: 1.3rem;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.015em;
+  text-transform: uppercase;
+  color: var(--ink, #14161a);
+  margin: 0 0 0.95rem;
+}
+
+#title-block-header .title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: 0;
+  hyphens: none;
+  -webkit-hyphens: none;
+  margin: 0;
+}
+
+/* course name ▏ strand — the handbook's \midbar metadata line */
+#title-block-header .nw-course {
+  font-size: 1.16rem;
+  text-align: left;
+  margin: 1.05rem 0 0;
+  color: var(--ink, #14161a);
+}
+#title-block-header .nw-course .midbar {
+  display: inline-block;
+  width: 1px;
+  height: 1.05em;
+  background: currentColor;
+  opacity: 0.7;
+  margin: 0 0.6em;
+  vertical-align: -0.16em;
+}
+
+#title-block-header .nw-date {
+  font-size: 1rem;
+  text-align: left;
+  margin: 0.5rem 0 0;
+  color: var(--ink, #14161a);
+}
+
+/* epigraph: right-hand block, italic, small-caps attribution */
+.nw-epigraph {
+  width: 66%;
+  margin: 1.4rem 0 1.6rem auto;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+.nw-epigraph p {
+  font-style: italic;
+  text-align: left;
+  margin: 0;
+}
+.nw-epigraph cite {
+  display: block;
+  margin-top: 0.5em;
+  text-align: right;
+  font-style: normal;
+  font-size: 0.86rem;
+  font-variant-caps: small-caps;
+  letter-spacing: 0.035em;
+}
+
+/* "Contents of this session": small-caps label between two hairlines */
+.nw-contents {
+  margin: 1.5rem 0 0;
+  font-size: 0.97rem;
+}
+.nw-contents .lab {
+  display: block;
+  font-variant-caps: small-caps;
+  letter-spacing: 0.045em;
+  margin-bottom: 0.3rem;
+  color: var(--ink, #14161a);
+}
+.nw-contents ol {
+  list-style: none;
+  margin: 0;
+  padding: 0.6rem 0 0.65rem var(--notes-indent);
+  border-top: 1px solid var(--ink, #14161a);
+  border-bottom: 1px solid var(--ink, #14161a);
+}
+.nw-contents li {
+  display: flex;
+  gap: 1.1em;
+  margin: 0 0 0.2rem;
+}
+.nw-contents li:last-child { margin-bottom: 0; }
+.nw-contents .n {
+  flex: 0 0 auto;
+  min-width: 2.1em;
+}
+.nw-contents-plain .n { display: none; }
+.nw-contents a {
+  color: inherit;
+  text-decoration: none;
+}
+.nw-contents a:hover {
+  color: var(--accent, #002fa7);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* the type toggle sits under the contents strip, as page apparatus */
+.notes-font-toggle {
+  display: flex;
+  gap: 0.45rem;
+  align-items: baseline;
+  font-family: var(--font-mono, "IBM Plex Mono", ui-monospace, monospace);
+  font-size: 0.72rem;
+  color: var(--graphite, #575b64);
+  margin-top: 0.75rem;
+}
+.notes-font-toggle .lab { letter-spacing: 0.1em; text-transform: uppercase; }
+.notes-font-toggle button {
+  font: inherit;
+  background: none;
+  border: 1px solid var(--hairline, #e7e8eb);
+  border-radius: 999px;
+  padding: 0.1rem 0.6rem;
+  color: var(--graphite, #575b64);
+  cursor: pointer;
+}
+.notes-font-toggle button[aria-pressed="true"] {
+  border-color: var(--accent, #002fa7);
+  color: var(--accent, #002fa7);
+}
+
+/* ————— headings: bold, upright, black numbers —————
+   The handbook sets every heading in bold roman and hangs the wrapped line
+   under the title, never under the number. Nothing is italic, nothing tinted. */
+
+main.content :is(h1, h2, h3, h4) {
+  font-family: var(--notes-serif, Georgia, serif);
+  font-weight: 700;
+  font-style: normal;
+  letter-spacing: 0;
+  hyphens: none;
+  -webkit-hyphens: none;
+}
+
+main.content h2 {
+  font-size: 1.6rem;
+  line-height: 1.18;
+  margin: 2.7rem 0 0.55rem;
+  padding-left: 1.75em;
+  text-indent: -1.75em;
+  border-bottom: none;
+}
+
+main.content h3 {
+  font-size: 1.24rem;
+  line-height: 1.25;
+  margin: 1.9rem 0 0.4rem;
+  font-style: normal;
+  font-weight: 700;
+  padding-left: 2.1em;
+  text-indent: -2.1em;
+}
+
+main.content h4 {
+  font-size: 1.08rem;
+  margin: 1.4rem 0 0.3rem;
+}
+
+main.content .header-section-number {
+  color: inherit;
+  font-weight: 700;
+  margin-right: 0.85em;
+}
+
+/* ————— figures and captions —————
+   \textbf{Figure 1.} then the caption text, footnote-size, in a block 86% of
+   the measure — the handbook's Fig environment. */
+
+main.content figure,
+main.content .quarto-float {
+  margin: 1.9rem 0;
+}
+
+main.content figure img,
+main.content .quarto-float img {
+  display: block;
+  margin-inline: auto;
+  max-width: 100%;
+}
+
+/* The TikZ figures are drawn to the width of the printed measure, so their
+   intrinsic size is in points and the browser would otherwise render them at
+   roughly half the reading column. They are vector, so scaling is free. */
+main.content figure img[src$=".svg"],
+main.content .quarto-float img[src$=".svg"] {
+  width: 100%;
+  height: auto;
+}
+
+main.content figcaption,
+main.content .quarto-float-caption {
+  font-family: var(--notes-serif, Georgia, serif);
+  font-size: 0.87rem;
+  line-height: 1.45;
+  width: 86%;
+  margin-inline: auto;
+  text-align: left;
+  color: var(--ink, #14161a);
+}
+main.content .quarto-float-caption-top { margin-bottom: 0.55rem; }
+main.content .quarto-float-caption-bottom { margin-top: 0.6rem; }
+
+main.content .nw-caplabel { font-weight: 700; }
+
+/* the caption's opening title, authored as [Title]{.smallcaps} */
+main.content .smallcaps,
+main.content figcaption .smallcaps {
+  font-variant-caps: small-caps;
+  letter-spacing: 0.03em;
+}
+
+/* bibliography: surnames in small caps, matching the working-paper template */
+main.content #refs .csl-entry { margin-bottom: 0.6rem; }
+main.content #refs .smallcaps { letter-spacing: 0.04em; }
+
+/* ————— tables: roman, like the handbook's truth tables ————— */
+
+main.content table {
+  font-family: var(--notes-serif, Georgia, serif);
+  font-size: 0.95rem;
+  margin-inline: auto;
+}
+
+/* Preserve a narrow reading viewport when an exact-value table is wider than
+   the phone. The table itself remains scrollable; it must not widen the whole
+   chapter or push the navigation off canvas. */
+@media (max-width: 768px) {
+  main.content table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+}
+
+/* code stays in the utility face — it is apparatus, not prose */
+main.content :is(code, pre, .sourceCode) {
+  font-size: 0.88em;
+}
+
+/* ————— links: coloured, not underlined, as in a colorlinks PDF ————— */
+
+main.content a {
+  text-decoration: none;
+}
+main.content a:hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* ————— glossary and explanatory-footnote terms —————
+   A dotted underline signals that the word itself carries supplementary
+   material. Glossary terms remain bold, as they are in the printed notes;
+   footnoted terms stay roman so the two kinds of apparatus are distinct. */
+
+main.content .glossary-term,
+main.content .footnote-term {
+  text-decoration-line: underline;
+  text-decoration-style: dotted;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+  cursor: help;
+}
+main.content .glossary-term { font-weight: 700; }
+main.content .glossary-term:focus-visible,
+main.content .footnote-term:focus-visible {
+  outline: 2px solid var(--accent, #002fa7);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.tippy-box[data-theme~="nw-term-popover"] {
+  font-family: var(--notes-serif, Georgia, serif);
+  font-size: 0.93rem;
+  line-height: 1.45;
+  text-align: left;
+  color: var(--ink, #14161a);
+  background: var(--bs-body-bg, #fff);
+  border: 1px solid var(--hairline, #d8dadd);
+  border-radius: 0.2rem;
+  box-shadow: 0 0.4rem 1.2rem rgb(0 0 0 / 14%);
+}
+.tippy-box[data-theme~="nw-term-popover"] .tippy-content { padding: 0.7rem 0.8rem; }
+.tippy-box[data-theme~="nw-term-popover"] > .tippy-arrow { color: var(--bs-body-bg, #fff); }
+.tippy-box[data-theme~="nw-term-popover"] .nw-popover-label {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-weight: 700;
+}
+.tippy-box[data-theme~="nw-term-popover"] .nw-popover-body > :last-child {
+  margin-bottom: 0;
+}
+
+main.content .session-glossary dl { margin-top: 1rem; }
+main.content .session-glossary dt {
+  float: none;
+  margin-top: 0.72rem;
+  font-weight: 700;
+}
+main.content .session-glossary dd {
+  margin-left: var(--notes-indent);
+  margin-bottom: 0.5rem;
+}
+main.content .session-glossary dd > p { margin: 0; }
+
+/* wide display math scrolls inside its own box, never under the sidebar */
+main.content .katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.2rem 0;
+}
+
+/* ————— block apparatus —————
+   Lemmas, assumption lists and the algorithm are set the way the handbook sets
+   any displayed body: indented 1.6em, plain roman, no rules, no small caps, no
+   tinted panels. They are apparatus, not theorem environments. */
+
+main.content .theorem,
+main.content .assumptions,
+main.content .callout.callout-titled {
+  margin: 1.3rem 0;
+  padding: 0 0 0 var(--notes-indent);
+  border: none;
+  border-radius: 0;
+  background: none;
+  font-size: 1em;
+}
+
+main.content .theorem .theorem-title,
+main.content .assumptions > p:first-child strong:first-child,
+main.content .callout.callout-titled .callout-title-container {
+  font-variant-caps: normal;
+  font-style: normal;
+  font-weight: 700;
+  letter-spacing: 0;
+  background: none;
+  padding: 0;
+  margin: 0;
+  font-size: 1em;
+}
+
+main.content .callout.callout-titled :is(.callout-body,
+  .callout-body-container, .callout-header) {
+  padding: 0;
+  background: none;
+  border: none;
+}
+main.content .callout .callout-icon-container { display: none; }
+
+/* Quarto sets callout bodies a size down and in a muted grey; inside the
+   reading column they are ordinary prose and must match it. */
+main.content .callout.callout-titled :is(.callout-header,
+  .callout-title-container, .callout-body, .callout-body-container,
+  p, li, ol, ul) {
+  color: var(--ink, #14161a);
+  font-size: 1em;
+  line-height: inherit;
+}
+main.content .assumptions p { margin: 0.35rem 0; }
+
+/* the standing web-only note at the head of the notes: quiet, and clearly not
+   part of the typeset chapter */
+main.content .callout:not(.callout-titled) {
+  margin: 0 0 2.1rem;
+  padding: 0 0 0.9rem;
+  border: none;
+  border-bottom: 1px solid var(--hairline, #e7e8eb);
+  border-radius: 0;
+  background: none;
+  font-size: 0.93rem;
+  color: var(--graphite, #575b64);
+}
+main.content .callout:not(.callout-titled) .callout-body,
+main.content .callout:not(.callout-titled) .callout-body-container {
+  padding: 0;
+  background: none;
+}
+main.content .callout:not(.callout-titled) p { margin-bottom: 0; }
+
+/* ————— exercises: the number hangs in the margin ————— */
+
+main.content .exercise {
+  margin: 0.95rem 0;
+  padding-left: var(--notes-indent);
+  border-left: none;
+}
+main.content .exercise > p:first-child {
+  text-indent: calc(-1 * var(--notes-indent));
+}
+
+main.content h3.exercise-title {
+  margin-top: 1.55rem;
+  margin-bottom: 0.35rem;
+  font-size: 1.12rem;
+  line-height: 1.3;
+}
+
+main.content h3.exercise-title + .exercise {
+  margin-top: 0;
+}
+
+/* On the web these are Quarto's native collapsible callouts. The main notes
+   PDF removes the wrapper in the Lua filter; the companion PDF prints the same
+   authored material in full. */
+main.content .solution-material {
+  margin: 0.35rem 0 1.55rem var(--notes-indent);
+}
+
+main.content .solution-material .callout.callout-titled {
+  margin: 0.48rem 0;
+  padding: 0.3rem 0 0.4rem 0.9rem;
+  border-left: 1px solid var(--hairline, #d8dadd);
+}
+
+main.content .solution-material .callout.callout-titled .callout-header {
+  padding: 0.08rem 0;
+  cursor: pointer;
+}
+
+main.content .solution-material .callout.callout-titled .callout-body-container {
+  padding-top: 0.45rem;
+}
+
+main.content .solution-material .exercise-hint {
+  border-left-style: dotted;
+}
+
+main.content .solution-material .exercise-solution {
+  border-left-width: 2px;
+}
+
+/* ————— quotations ————— */
+
+main.content blockquote {
+  font-style: italic;
+  border-left: none;
+  padding-left: var(--notes-indent);
+  color: inherit;
+}

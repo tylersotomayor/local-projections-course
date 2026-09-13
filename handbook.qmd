@@ -1,0 +1,255 @@
+---
+title: "Local Projections: From First Principles to Empirical Research"
+subtitle: "Course handbook · Lectures 1–14"
+author: "Tyler Sotomayor"
+date: 2026-09-13
+date-format: "dddd, D MMMM YYYY"
+
+# ————— chapter opener ————— (see lectures/_pdf/handbook.tex)
+kicker: "Course handbook"
+course: "Local Projections: From First Principles to Empirical Research"
+strand: "Collected lectures"
+contents-label: "Contents of this handbook"
+contents-index: true
+course-handbook: true
+
+# Each lecture is a part; sections restart at 1 inside each one, so a lecture
+# numbers the same here as it does in its standalone PDF. The part dividers are
+# emitted as raw LaTeX rather than as `#` headings: with a level-1 heading
+# present, pandoc would demote the bodies' `##` to \subsection and number them
+# 1.1 / 1.1.1. Leaving `##` as the highest markdown level keeps it \section.
+number-sections: true
+toc-depth: 3
+
+fig-cap-location: top
+link-citations: true
+
+filters:
+  - filters/course-apparatus.lua
+
+format:
+  pdf:
+    documentclass: article
+    geometry:
+      - letterpaper
+      - top=1in
+      - bottom=1in
+      - left=1.15in
+      - right=1in
+      - headheight=14pt
+    toc: false          # the contents strip is part of the opener instead
+    colorlinks: true
+    number-sections: true
+    template-partials:
+      - lectures/_pdf/title.tex
+      - lectures/_pdf/before-body.tex
+    include-in-header:
+      - lectures/_pdf/handbook.tex
+      - lectures/_pdf/handbook-parts.tex
+
+bibliography:
+  - lectures/01-question-to-projection/references.bib
+  - lectures/02-transformations-and-units/references.bib
+  - lectures/03-identification-and-controls/references.bib
+  - lectures/04-lp-iv-and-multipliers/references.bib
+  - lectures/05-pointwise-inference/references.bib
+  - lectures/06-path-inference/references.bib
+  - lectures/07-lp-versus-var/references.bib
+  - lectures/08-smoothing-and-restrictions/references.bib
+  - lectures/09-state-dependence/references.bib
+  - lectures/10-nonlinear-interpretation/references.bib
+  - lectures/11-panel-lps/references.bib
+  - lectures/12-lp-did/references.bib
+  - lectures/13-sensitivity-and-counterfactuals/references.bib
+  - lectures/14-synthesis-and-audit/references.bib
+csl: lectures/lp-apa.csl
+---
+
+```{=latex}
+\part{Lecture 1 · From an Economic Question to a Local Projection}
+```
+
+{{< include /lectures/01-question-to-projection/_body.qmd >}}
+
+```{=latex}
+\part{Lecture 2 · Levels, Differences, Cumulative Responses, and Units}
+```
+
+{{< include /lectures/02-transformations-and-units/_body.qmd >}}
+
+```{=latex}
+\part{Lecture 3 · Identification, Controls, and the Pre-Shock Information Set}
+```
+
+{{< include /lectures/03-identification-and-controls/_body.qmd >}}
+
+```{=latex}
+\part{Lecture 4 · LP-IV and Cumulative Multipliers}
+```
+
+{{< include /lectures/04-lp-iv-and-multipliers/_body.qmd >}}
+
+```{=latex}
+\part{Lecture 5 · Pointwise Inference, Persistence, and Lag Augmentation}
+```
+
+{{< include /lectures/05-pointwise-inference/_body.qmd >}}
+
+```{=latex}
+\part{Lecture 6 · Inference About the Response Path}
+```
+
+{{< include /lectures/06-path-inference/_body.qmd >}}
+
+```{=latex}
+\part{Lecture 7 · LPs versus VARs: Estimands, Bias, and Variance}
+```
+
+{{< include /lectures/07-lp-versus-var/_body.qmd >}}
+
+```{=latex}
+\part{Lecture 8 · Smoothing and Restrictions Across Horizons}
+```
+
+{{< include /lectures/08-smoothing-and-restrictions/_body.qmd >}}
+
+```{=latex}
+\part{Lecture 9 · State Dependence and Asymmetric Responses}
+```
+
+{{< include /lectures/09-state-dependence/_body.qmd >}}
+
+```{=latex}
+\part{Lecture 10 · What Linear LPs Mean in Nonlinear Economies}
+```
+
+{{< include /lectures/10-nonlinear-interpretation/_body.qmd >}}
+
+```{=latex}
+\part{Lecture 11 · Panel LPs and Common Macroeconomic Shocks}
+```
+
+{{< include /lectures/11-panel-lps/_body.qmd >}}
+
+```{=latex}
+\part{Lecture 12 · LP Difference-in-Differences}
+```
+
+{{< include /lectures/12-lp-did/_body.qmd >}}
+
+```{=latex}
+\part{Lecture 13 · Sensitivity Analysis and Policy Counterfactuals}
+```
+
+{{< include /lectures/13-sensitivity-and-counterfactuals/_body.qmd >}}
+
+```{=latex}
+\part{Lecture 14 · Research Synthesis, Replication Audit, and Defense}
+```
+
+{{< include /lectures/14-synthesis-and-audit/_body.qmd >}}
+
+```{=latex}
+\clearpage
+\section*{References}
+\addcontentsline{toc}{section}{References}
+```
+
+::: {#refs}
+:::
+
+```{=latex}
+\clearpage
+\section*{Course Glossary}
+\addcontentsline{toc}{section}{Course Glossary}
+\markright{Course Glossary}
+\subsection*{Lecture 1 terms}
+```
+
+{{< include /lectures/01-question-to-projection/glossary.qmd >}}
+
+```{=latex}
+\subsection*{Terms introduced in Lecture 2}
+```
+
+{{< include /lectures/02-transformations-and-units/glossary.qmd >}}
+
+```{=latex}
+\subsection*{Terms introduced in Lecture 3}
+```
+
+{{< include /lectures/03-identification-and-controls/glossary.qmd >}}
+
+```{=latex}
+\subsection*{Terms introduced in Lecture 4}
+```
+
+{{< include /lectures/04-lp-iv-and-multipliers/glossary.qmd >}}
+
+```{=latex}
+\subsection*{Terms introduced in Lecture 5}
+```
+
+{{< include /lectures/05-pointwise-inference/glossary.qmd >}}
+
+```{=latex}
+\subsection*{Terms introduced in Lecture 6}
+```
+
+{{< include /lectures/06-path-inference/glossary.qmd >}}
+
+```{=latex}
+\subsection*{Terms introduced in Lecture 7}
+```
+
+{{< include /lectures/07-lp-versus-var/glossary.qmd >}}
+
+```{=latex}
+\subsection*{Terms introduced in Lecture 8}
+```
+
+{{< include /lectures/08-smoothing-and-restrictions/glossary.qmd >}}
+
+```{=latex}
+\subsection*{Terms introduced in Lecture 9}
+```
+
+{{< include /lectures/09-state-dependence/glossary.qmd >}}
+
+```{=latex}
+\subsection*{Terms introduced in Lecture 10}
+```
+
+{{< include /lectures/10-nonlinear-interpretation/glossary.qmd >}}
+
+```{=latex}
+\subsection*{Terms introduced in Lecture 11}
+```
+
+{{< include /lectures/11-panel-lps/glossary.qmd >}}
+
+```{=latex}
+\subsection*{Terms introduced in Lecture 12}
+```
+
+{{< include /lectures/12-lp-did/glossary.qmd >}}
+
+```{=latex}
+\subsection*{Terms introduced in Lecture 13}
+```
+
+{{< include /lectures/13-sensitivity-and-counterfactuals/glossary.qmd >}}
+
+```{=latex}
+\subsection*{Terms introduced in Lecture 14}
+```
+
+{{< include /lectures/14-synthesis-and-audit/glossary.qmd >}}
+
+```{=latex}
+\clearpage
+\markright{Index}
+\phantomsection
+\label{course-index}
+\printindex
+```

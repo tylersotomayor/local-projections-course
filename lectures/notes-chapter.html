@@ -1,0 +1,235 @@
+<script>
+// ————— Session notes: chapter opener + book apparatus —————
+// Rebuilds Quarto's stock title block into the MATH S4061 handbook opener —
+// kicker, title, course line, date, epigraph, ruled contents strip — and
+// relabels float captions as "Figure 1." rather than "Figure 1:". Everything
+// here is presentational: it reads metadata Quarto already emits and rearranges
+// it. Styling lives in notes-ebook.css.
+(function () {
+  var header = document.getElementById("title-block-header");
+  var main = document.querySelector("main.content");
+  if (!header) return;
+
+  // ---------- 1. the type toggle (Latin Modern / Palatino) ----------
+  var KEY = "nw-notes-font";
+  var root = document.documentElement;
+
+  function applyFont(choice) {
+    if (choice === "palatino") root.setAttribute("data-notes-font", "palatino");
+    else root.removeAttribute("data-notes-font");
+    document.querySelectorAll(".notes-font-toggle button").forEach(function (b) {
+      b.setAttribute("aria-pressed", String(b.dataset.font === choice));
+    });
+  }
+
+  var saved = null;
+  try { saved = localStorage.getItem(KEY); } catch (e) {}
+  var current = saved === "palatino" ? "palatino" : "lm";
+  applyFont(current);
+
+  // ---------- 2. read the metadata Quarto rendered ----------
+  var titleEl = header.querySelector(".title");
+  if (!titleEl) return;
+  var titleParent = titleEl.parentNode;
+
+  // Set synchronously, before the browser paints: it is what lets the CSS hide
+  // the stock subtitle and Author/Published grid, so they never flash.
+  root.setAttribute("data-notes-opener", "");
+
+  // A plain "Session N" subtitle becomes the kicker. A paired subtitle such as
+  // "Session N · Supplement" uses the left half as the kicker and the right
+  // half as a strand on the course line. Other plain subtitles remain strands.
+  var subEl = header.querySelector(".subtitle");
+  var kicker = "", strand = "";
+  if (subEl) {
+    var sub = subEl.textContent.trim();
+    var i = sub.indexOf("·");
+    if (i > -1) {
+      kicker = sub.slice(0, i).trim();
+      strand = sub.slice(i + 1).trim();
+    } else if (/^(Session|Lecture)\s+\d+$/i.test(sub)) {
+      kicker = sub;
+    } else {
+      strand = sub;
+    }
+  }
+
+  var brand = document.querySelector(".navbar-brand");
+  var course = brand ? brand.textContent.replace(/^[▮\s]+/, "").trim() : "";
+
+  var dateEl = header.querySelector(".quarto-title-meta .date");
+  var date = dateEl ? dateEl.textContent.trim() : "";
+
+  function el(tag, cls, text) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = text;
+    return n;
+  }
+
+  // ---------- 3. kicker above the title ----------
+  if (kicker) titleParent.insertBefore(el("p", "nw-kicker", kicker), titleEl);
+
+  // ---------- 4. course line and date below it ----------
+  var after = titleEl.nextSibling;
+  if (course || strand) {
+    var line = el("p", "nw-course");
+    line.appendChild(document.createTextNode(course));
+    if (course && strand) line.appendChild(el("span", "midbar"));
+    if (strand) line.appendChild(document.createTextNode(strand));
+    titleParent.insertBefore(line, after);
+    after = line.nextSibling;
+  }
+  if (date) {
+    var d = el("p", "nw-date", date);
+    titleParent.insertBefore(d, after);
+  }
+
+  // ---------- 5. epigraph, if the notes authored one ----------
+  // Authored in the .qmd as:  ::: {.nw-epigraph} … :::  with the attribution
+  // in a <cite>. Moved up into the opener, where the handbook puts it.
+  var epi = main && main.querySelector(":scope > .nw-epigraph");
+  if (epi) titleParent.appendChild(epi);
+
+  // ---------- 6. "Contents of this session" strip ----------
+  if (main) {
+    var heads = Array.prototype.filter.call(
+      main.querySelectorAll("h2"),
+      function (h) { return !h.closest(".callout, .quarto-float, figure"); }
+    );
+
+    if (heads.length) {
+      // "Contents of this session" / "…practicum" / "…companion". The
+      // solutions manual keeps "Session 1" as its kicker, so its title supplies
+      // the more useful unit label.
+      var unit = /solutions?/i.test(titleEl.textContent)
+        ? "companion"
+        : (kicker ? kicker.split(/\s+/)[0].toLowerCase() : "");
+      var nav = el("nav", "nw-contents");
+      nav.appendChild(el("span", "lab",
+        unit ? "Contents of this " + unit : "Contents"));
+      var ol = document.createElement("ol");
+      var numbered = false;
+
+      heads.forEach(function (h, i) {
+        var numEl = h.querySelector(".header-section-number");
+        var num = numEl ? numEl.textContent.trim() : "";
+        if (num) numbered = true;
+
+        // the heading text without its number or the anchor-link glyph
+        var clone = h.cloneNode(true);
+        clone.querySelectorAll(".header-section-number, .anchorjs-link, .anchor-section")
+          .forEach(function (n) { n.remove(); });
+        var text = clone.textContent.trim();
+
+        if (!h.id) h.id = "nw-sec-" + i;
+
+        var li = document.createElement("li");
+        li.appendChild(el("span", "n", num));
+        var a = el("a", null, text);
+        a.href = "#" + h.id;
+        li.appendChild(a);
+        ol.appendChild(li);
+      });
+
+      // unnumbered pages don't need the number column
+      if (!numbered) nav.classList.add("nw-contents-plain");
+      nav.appendChild(ol);
+      titleParent.appendChild(nav);
+    }
+  }
+
+  // ---------- 7. the toggle, under the contents strip ----------
+  var bar = el("div", "notes-font-toggle");
+  bar.innerHTML =
+    '<span class="lab">type</span>' +
+    '<button type="button" data-font="lm">Latin Modern</button>' +
+    '<button type="button" data-font="palatino">Palatino</button>';
+  titleParent.appendChild(bar);
+
+  bar.addEventListener("click", function (e) {
+    var btn = e.target.closest("button[data-font]");
+    if (!btn) return;
+    current = btn.dataset.font;
+    try { localStorage.setItem(KEY, current); } catch (e2) {}
+    applyFont(current);
+  });
+  applyFont(current);
+
+  // ---------- 8. captions: "Figure 1." in bold, as in the handbook ----------
+  if (main) {
+    main.querySelectorAll("figcaption").forEach(function (fc) {
+      fc.innerHTML = fc.innerHTML.replace(
+        /^(\s*)(Figure|Table|Listing)((?:&nbsp;|&#160;|\s| )+)([\d.]+)\s*:\s*/,
+        '$1<span class="nw-caplabel">$2$3$4.</span> '
+      );
+    });
+  }
+
+  // ---------- 9. glossary and explanatory-footnote popovers ----------
+  // Glossary definitions are read from the definition list at the end of the
+  // session. A term and its popup therefore share one authored definition.
+  // Standard footnotes remain standard footnotes; the same note is also
+  // attached to its marked word for readers who hover or focus that word.
+  function cleanClone(node) {
+    var clone = el("div", "nw-popover-body");
+    clone.innerHTML = node.innerHTML;
+    clone.querySelectorAll(".footnote-back, a[role='doc-backlink']")
+      .forEach(function (n) { n.remove(); });
+    return clone;
+  }
+
+  function popover(label, body) {
+    var wrap = el("div", "nw-popover");
+    wrap.appendChild(el("span", "nw-popover-label", label));
+    wrap.appendChild(body);
+    return wrap;
+  }
+
+  function attachTip(target, label, bodyFn) {
+    if (!window.tippy) return;
+    target.setAttribute("tabindex", "0");
+    window.tippy(target, {
+      content: function () { return popover(label, bodyFn()); },
+      allowHTML: true,
+      interactive: true,
+      appendTo: function () { return document.body; },
+      placement: "bottom-start",
+      maxWidth: 390,
+      trigger: "mouseenter focus click",
+      theme: "nw-term-popover"
+    });
+  }
+
+  if (main) {
+    var glossary = {};
+    main.querySelectorAll(".glossary-head[data-term]").forEach(function (head) {
+      var dt = head.closest("dt");
+      var dd = dt && dt.nextElementSibling;
+      if (!dd || dd.tagName !== "DD") return;
+      glossary[head.dataset.term] = {
+        label: head.textContent.trim(),
+        body: dd
+      };
+    });
+
+    main.querySelectorAll(".glossary-term[data-term]").forEach(function (term) {
+      var entry = glossary[term.dataset.term];
+      if (!entry) return;
+      attachTip(term, entry.label, function () { return cleanClone(entry.body); });
+    });
+
+    main.querySelectorAll(".footnote-term").forEach(function (term) {
+      var ref = term.nextElementSibling;
+      while (ref && !(ref.matches && ref.matches("a[role='doc-noteref']"))) {
+        if (ref.nodeType === 1) break;
+        ref = ref.nextSibling;
+      }
+      if (!ref || !ref.matches || !ref.matches("a[role='doc-noteref']")) return;
+      var note = document.querySelector(ref.getAttribute("href"));
+      if (!note) return;
+      attachTip(term, "Note", function () { return cleanClone(note); });
+    });
+  }
+})();
+</script>

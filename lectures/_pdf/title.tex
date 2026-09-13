@@ -1,0 +1,45 @@
+$-- Session notes: capture the metadata the chapter opener needs.
+$-- \title/\author/\date are still set so hyperref writes correct PDF info; the
+$-- visible opener is emitted by before-body.tex, which calls \nwopener (defined
+$-- in _pdf/handbook.tex).
+$--
+$-- \def, not \newcommand: Quarto injects include-in-header — and therefore
+$-- handbook.tex's \providecommand defaults — earlier in the preamble than this
+$-- partial, so these names are already taken by the time we get here.
+$if(title)$
+\title{$title$$if(thanks)$\thanks{$thanks$}$endif$}
+\def\nwTitle{$title$}
+$endif$
+$if(subtitle)$
+\def\nwSubtitle{$subtitle$}
+$endif$
+$if(kicker)$
+\def\nwKicker{$kicker$}
+$endif$
+$if(course)$
+\def\nwCourse{$course$}
+$endif$
+$if(strand)$
+\def\nwStrand{$strand$}
+$endif$
+$if(contents-label)$
+\def\nwContentsLabel{$contents-label$}
+$endif$
+$if(contents-index)$
+\def\nwHasIndex{1}
+$endif$
+$if(contents-depth)$
+\def\nwContentsDepth{$contents-depth$}
+$endif$
+$if(epigraph)$
+\def\nwEpigraph{$epigraph$}
+$endif$
+$if(epigraph-source)$
+\def\nwEpigraphSource{$epigraph-source$}
+$endif$
+$-- This supports Quarto's authors normalization
+\author{$for(authors)$$it.name.literal$$sep$ \and $endfor$}
+\date{$date$}
+$if(date)$
+\def\nwDate{$date$}
+$endif$

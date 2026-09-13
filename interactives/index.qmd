@@ -1,0 +1,33 @@
+---
+title: "Labs"
+toc: false
+---
+
+Browser labs for the course's hardest ideas. Everything runs in your browser;
+no installs, no server. Each lab follows one loop: **predict** before moving a
+control, **manipulate** one quantity at a time, **observe** the exact
+consequence, **explain** it in ordinary language, and **transfer** an object to
+Stata for the problem set.
+
+Every output says whether it is a live calculation, a stored simulation result,
+or a conceptual illustration. Illustrative bands are never presented as
+estimated uncertainty.
+
+| Lab | Misconception it exposes | Lecture |
+|-----|--------------------------|---------|
+| [Shock-to-Response Explorer](01-shock-to-response-explorer.qmd) | That a response is estimated from one episode | 1 |
+| [Transformation Workbench](02-transformation-workbench.qmd) | That an accumulated change is an accumulated level | 2 |
+| [Identification and Controls Sandbox](03-identification-sandbox.qmd) | That "I included controls" is an identification argument | 3 |
+| [Instrument and Multiplier Laboratory](04-instrument-multiplier-lab.qmd) | That a strong first stage establishes causality | 4 |
+| [Confidence-Interval Coverage Simulator](05-coverage-simulator.qmd) | That a narrower interval is a more reliable one | 5 |
+| [Claims About a Curve](06-claims-about-a-curve.qmd) | That "significant here, insignificant there" tests a difference | 6 |
+| [Bias–Variance Laboratory](07-bias-variance-lab.qmd) | That a smoother curve is a better estimate | 7 |
+| [Smoothing Workbench](08-smoothing-workbench.qmd) | That the fitted shape came from the data | 8 |
+| [State-Dependence Laboratory](09-state-dependence-lab.qmd) | That an interaction identifies a fixed-state experiment | 9 |
+| [Causal-Weight Explorer](10-causal-weight-explorer.qmd) | That a moved coefficient means a moved response function | 10 |
+| [Where Does Identification Come From?](11-panel-identification.qmd) | That more rows mean more identifying information | 11 |
+| [Clean-Control Builder](12-clean-control-builder.qmd) | That already-treated units are valid controls | 12 |
+| [Counterfactual and Sensitivity Workbench](13-counterfactual-workbench.qmd) | That a reproduced calculation is a policy experiment | 13 |
+| [Replication Referee Desk](14-replication-referee-desk.qmd) | That a matching figure means a sound analysis | 14 |
+
+: {tbl-colwidths="[36,52,12]"}

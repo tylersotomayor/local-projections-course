@@ -1,0 +1,36 @@
+% ————— Handbook: sessions as parts, section numbering restarting —————
+% Loaded only by handbook.qmd, on top of handbook.tex. Each session becomes a
+% \part with its own divider page, and the section counter resets at every part
+% so a session numbers identically whether it is read standalone or bound into
+% the Handbook.
+
+\makeatletter
+\@addtoreset{section}{part}
+\makeatother
+
+% a part occupies its own page, as in analysisnotes.sty's \bookpart
+\titleclass{\part}{page}
+\titleformat{\part}[display]
+  {\normalfont\raggedright}
+  {\Large\bfseries PART \thepart}
+  {0.95em}
+  {\huge\bfseries\hyphenpenalty=10000\exhyphenpenalty=10000
+   \linespread{1.08}\selectfont}
+  [\vspace{1.05em}\noindent\rule{0.72\linewidth}{0.4pt}]
+\titlespacing*{\part}{0pt}{0.16\textheight}{1.4em}
+
+% the part opener carries no running head, and the part name becomes the
+% verso-style head for the pages that follow
+\makeatletter
+\let\nw@origpart\part
+\renewcommand{\part}[1]{%
+  \nw@origpart{#1}%
+  \thispagestyle{plain}%
+  \markright{#1}}
+\makeatother
+
+% contents strip: parts, then their sections indented beneath
+\etocsetstyle{part}{}{}
+  {\par\vspace{7pt}\noindent
+   {\normalfont\bfseries\small PART \etocnumber\hspace{0.75em}\etocname}\par
+   \vspace{3.5pt}}{}

@@ -1,0 +1,242 @@
+/*-- scss:defaults --*/
+
+$font-family-sans-serif: "Archivo", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+$font-family-monospace: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+$body-bg: #ffffff !default;
+$body-color: #101113 !default;
+$link-color: #002fa7 !default;
+$navbar-bg: #ffffff !default;
+$navbar-fg: #575b64 !default;
+$footer-bg: #ffffff !default;
+
+$toc-font-size: 0.82rem;
+$font-size-root: 17px;
+
+/*-- scss:rules --*/
+
+// ————— House Swiss tokens (light) —————
+:root {
+  --paper: #ffffff;
+  --ink: #101113;
+  --graphite: #575b64;
+  --hairline: #e7e8eb;
+  --wash: #f6f7f9;
+  --accent: #002fa7;
+  --accent-deep: #001f70;
+  --band: rgba(0, 47, 167, 0.09);
+  --dotcol: #b9bdc6;
+  --pos: #006300;
+  --neg: #b3261e;
+  --cap-bg: #002fa7;
+  --cap-ink: #ffffff;
+  --cap-muted: #8fa5e0;
+}
+
+body {
+  font-weight: 420;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4 {
+  font-weight: 640;
+  letter-spacing: -0.022em;
+}
+
+// ————— navbar: hairline masthead, mono nav —————
+.navbar {
+  border-bottom: 1px solid var(--hairline);
+  padding-top: 0.9rem;
+  padding-bottom: 0.9rem;
+
+  .navbar-brand {
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    font-size: 1.02rem;
+    color: var(--ink);
+    &::before {
+      content: "▮ ";
+      color: var(--accent);
+    }
+  }
+
+  .nav-link {
+    font-family: $font-family-monospace;
+    font-size: 0.78rem;
+    letter-spacing: 0.02em;
+    color: var(--graphite) !important;
+    &:hover, &.active { color: var(--accent) !important; }
+  }
+}
+
+// ————— generic page furniture —————
+.eyebrow {
+  font-family: $font-family-monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+#title-block-header {
+  .title { letter-spacing: -0.028em; }
+  .subtitle { color: var(--graphite); }
+}
+
+.chip {
+  display: inline-block;
+  font-family: $font-family-monospace;
+  font-size: 0.7rem;
+  padding: 0.08rem 0.5rem;
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  color: var(--graphite);
+  white-space: nowrap;
+}
+.chip-live { border-color: var(--pos); color: var(--pos); }
+
+table { font-size: 0.94rem; }
+
+@media (max-width: 768px) {
+  main.content table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+}
+
+// ————— homepage: hero —————
+.nw-hero {
+  padding-top: 3.2rem;
+  h1 {
+    font-size: clamp(2.6rem, 6vw, 4.2rem);
+    line-height: 1.04;
+    margin: 0.9rem 0 1.2rem;
+    max-width: 17ch;
+  }
+  .lede {
+    max-width: 44rem;
+    color: var(--graphite);
+    font-size: 1.14rem;
+    strong { color: var(--ink); }
+  }
+}
+
+// ————— homepage: the instrument —————
+.nw-instrument {
+  margin-top: 2.4rem;
+  border-top: 1px solid var(--hairline);
+  svg { display: block; width: 100%; height: 300px; }
+
+  .i-band  { fill: var(--band); }
+  .i-obs   { fill: none; stroke: var(--dotcol); stroke-width: 1.2; }
+  .i-filt  { fill: none; stroke: var(--accent); stroke-width: 2.2; }
+  .i-today { stroke: var(--ink); stroke-width: 1; stroke-dasharray: 3 4; }
+  .i-lab   { font-family: $font-family-monospace; font-size: 0.68rem; fill: var(--graphite); }
+  .i-lab-accent { font-family: $font-family-monospace; font-size: 0.68rem; font-weight: 600; fill: var(--accent); }
+}
+
+.nw-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.6rem;
+  padding: 0.7rem 0 0.9rem;
+  border-bottom: 1px solid var(--hairline);
+  font-family: $font-family-monospace;
+  font-size: 0.72rem;
+  color: var(--graphite);
+
+  span::before {
+    content: "";
+    display: inline-block;
+    width: 0.85em;
+    height: 0.28em;
+    margin-right: 0.5em;
+    vertical-align: middle;
+  }
+  .l-obs::before  { height: 0.5em; width: 0.5em; border-radius: 50%; background: var(--dotcol); }
+  .l-filt::before { background: var(--accent); }
+  .l-band::before { background: var(--band); height: 0.75em; }
+}
+
+.nw-ticker {
+  overflow: hidden;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--hairline);
+  padding: 0.55rem 0;
+  font-family: $font-family-monospace;
+  font-size: 0.74rem;
+  color: var(--graphite);
+  b { color: var(--ink); font-weight: 600; }
+  .up { color: var(--pos); }
+  .down { color: var(--neg); }
+}
+
+// ————— homepage: session rows —————
+.nw-sessions {
+  margin-top: 3.2rem;
+  h2 {
+    font-family: $font-family-monospace;
+    font-size: 0.76rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--graphite);
+    border: 0;
+    margin-bottom: 1.2rem;
+  }
+}
+.nw-row {
+  display: grid;
+  grid-template-columns: 3.2rem 1fr 19rem;
+  gap: 1rem;
+  align-items: baseline;
+  padding: 0.95rem 0;
+  border-bottom: 1px solid var(--hairline);
+  &:first-of-type { border-top: 1px solid var(--hairline); }
+  &:hover { background: var(--wash); }
+
+  .n { font-family: $font-family-monospace; font-size: 0.8rem; color: var(--accent); }
+  .t { font-weight: 600; letter-spacing: -0.01em; a { color: var(--ink); text-decoration: none; } a:hover { color: var(--accent); } }
+  .p { font-family: $font-family-monospace; font-size: 0.74rem; color: var(--graphite); }
+}
+@media (max-width: 760px) {
+  .nw-row { grid-template-columns: 2.4rem 1fr; }
+  .nw-row .p { grid-column: 2; }
+}
+
+// ————— homepage: capstone band —————
+.nw-cap {
+  margin: 3.4rem 0 1rem;
+  background: var(--cap-bg);
+  color: var(--cap-ink);
+  padding: 2.4rem 2.2rem;
+
+  .kick {
+    font-family: $font-family-monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--cap-muted);
+  }
+  h3 { color: var(--cap-ink); font-size: 1.6rem; margin: 0.5rem 0 0.6rem; border: 0; }
+  p { color: #c9d4f2; max-width: 38rem; margin-bottom: 0; }
+  a { color: var(--cap-ink); text-decoration: underline; text-underline-offset: 3px; }
+
+  .stat {
+    font-family: $font-family-monospace;
+    text-align: right;
+    .big { font-size: 3rem; font-weight: 600; letter-spacing: -0.02em; }
+    .sub { font-size: 0.72rem; color: var(--cap-muted); }
+  }
+  .grid2 { display: grid; grid-template-columns: 1.4fr 1fr; gap: 2rem; align-items: center; }
+  @media (max-width: 760px) { .grid2 { grid-template-columns: 1fr; } .stat { text-align: left; } }
+}
+
+.nav-footer {
+  border-top: 1px solid var(--hairline);
+  font-family: $font-family-monospace;
+  font-size: 0.72rem;
+  color: var(--graphite);
+}

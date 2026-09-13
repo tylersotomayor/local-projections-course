@@ -1,0 +1,45 @@
+---
+title: "Lectures"
+toc: false
+---
+
+Each lecture ships in three formats compiled from one source: web notes with
+glossary and footnote popovers, a LaTeX-compiled PDF, and reveal.js slides.
+Exercises appear in the notes with collapsible hints and worked solutions; the
+solutions companion prints them in full.
+
+The [course handbook](../handbook.pdf) binds every lecture into one PDF,
+followed by the course glossary and index.
+
+| # | Lecture | Materials | Practicum |
+|---|---------|-----------|-----------|
+| 1 | From an Economic Question to a Local Projection | [notes](01-question-to-projection/notes.qmd) · [solutions](01-question-to-projection/solutions.qmd) · [slides](01-question-to-projection/slides.qmd) · [lab](../interactives/01-shock-to-response-explorer.qmd) | [P01](../practica/p01-question-to-projection/index.qmd) |
+| 2 | Levels, Differences, Cumulative Responses, and Units | [notes](02-transformations-and-units/notes.qmd) · [solutions](02-transformations-and-units/solutions.qmd) · [slides](02-transformations-and-units/slides.qmd) · [lab](../interactives/02-transformation-workbench.qmd) | [P02](../practica/p02-transformations-and-units/index.qmd) |
+| 3 | Identification, Controls, and the Pre-Shock Information Set | [notes](03-identification-and-controls/notes.qmd) · [solutions](03-identification-and-controls/solutions.qmd) · [slides](03-identification-and-controls/slides.qmd) · [lab](../interactives/03-identification-sandbox.qmd) | [P03](../practica/p03-identification-and-controls/index.qmd) |
+| 4 | LP-IV and Cumulative Multipliers | [notes](04-lp-iv-and-multipliers/notes.qmd) · [solutions](04-lp-iv-and-multipliers/solutions.qmd) · [slides](04-lp-iv-and-multipliers/slides.qmd) · [lab](../interactives/04-instrument-multiplier-lab.qmd) | [P04](../practica/p04-lp-iv-and-multipliers/index.qmd) |
+| 5 | Pointwise Inference, Persistence, and Lag Augmentation | [notes](05-pointwise-inference/notes.qmd) · [solutions](05-pointwise-inference/solutions.qmd) · [slides](05-pointwise-inference/slides.qmd) · [lab](../interactives/05-coverage-simulator.qmd) | [P05](../practica/p05-pointwise-inference/index.qmd) |
+| 6 | Inference About the Response Path | [notes](06-path-inference/notes.qmd) · [solutions](06-path-inference/solutions.qmd) · [slides](06-path-inference/slides.qmd) · [lab](../interactives/06-claims-about-a-curve.qmd) | [P06](../practica/p06-path-inference/index.qmd) |
+| 7 | LPs versus VARs: Estimands, Bias, and Variance | [notes](07-lp-versus-var/notes.qmd) · [solutions](07-lp-versus-var/solutions.qmd) · [slides](07-lp-versus-var/slides.qmd) · [lab](../interactives/07-bias-variance-lab.qmd) | [P07](../practica/p07-lp-versus-var/index.qmd) |
+| 8 | Smoothing and Restrictions Across Horizons | [notes](08-smoothing-and-restrictions/notes.qmd) · [solutions](08-smoothing-and-restrictions/solutions.qmd) · [slides](08-smoothing-and-restrictions/slides.qmd) · [lab](../interactives/08-smoothing-workbench.qmd) | [P08](../practica/p08-smoothing-and-restrictions/index.qmd) |
+| 9 | State Dependence and Asymmetric Responses | [notes](09-state-dependence/notes.qmd) · [solutions](09-state-dependence/solutions.qmd) · [slides](09-state-dependence/slides.qmd) · [lab](../interactives/09-state-dependence-lab.qmd) | [P09](../practica/p09-state-dependence/index.qmd) |
+| 10 | What Linear LPs Mean in Nonlinear Economies | [notes](10-nonlinear-interpretation/notes.qmd) · [solutions](10-nonlinear-interpretation/solutions.qmd) · [slides](10-nonlinear-interpretation/slides.qmd) · [lab](../interactives/10-causal-weight-explorer.qmd) | [P10](../practica/p10-nonlinear-interpretation/index.qmd) |
+| 11 | Panel LPs and Common Macroeconomic Shocks | [notes](11-panel-lps/notes.qmd) · [solutions](11-panel-lps/solutions.qmd) · [slides](11-panel-lps/slides.qmd) · [lab](../interactives/11-panel-identification.qmd) | [P11](../practica/p11-panel-lps/index.qmd) |
+| 12 | LP Difference-in-Differences | [notes](12-lp-did/notes.qmd) · [solutions](12-lp-did/solutions.qmd) · [slides](12-lp-did/slides.qmd) · [lab](../interactives/12-clean-control-builder.qmd) | [P12](../practica/p12-lp-did/index.qmd) |
+| 13 | Sensitivity Analysis and Policy Counterfactuals | [notes](13-sensitivity-and-counterfactuals/notes.qmd) · [solutions](13-sensitivity-and-counterfactuals/solutions.qmd) · [slides](13-sensitivity-and-counterfactuals/slides.qmd) · [lab](../interactives/13-counterfactual-workbench.qmd) | [P13](../practica/p13-sensitivity-and-counterfactuals/index.qmd) |
+| 14 | Research Synthesis, Replication Audit, and Defense | [notes](14-synthesis-and-audit/notes.qmd) · [solutions](14-synthesis-and-audit/solutions.qmd) · [slides](14-synthesis-and-audit/slides.qmd) · [lab](../interactives/14-replication-referee-desk.qmd) | [P14](../practica/p14-synthesis-and-audit/index.qmd) |
+
+: {tbl-colwidths="[4,40,44,12]"}
+
+## The four parts {.unnumbered}
+
+| Part | Lectures | What you can do afterwards |
+|---|---|---|
+| I. Define and identify the dynamic effect | 1–4 | State an estimand, build the regression, argue identification, use an instrument |
+| II. Evaluate estimation and uncertainty | 5–8 | Choose and defend an inference procedure, compare estimators, restrict responsibly |
+| III. Heterogeneity, nonlinearity, and panels | 9–12 | Interpret interacted, nonlinear, panel, and staggered-treatment designs |
+| IV. Use and defend LP evidence | 13–14 | Bound the conclusions, reproduce someone else's work, survive an audit |
+
+Two references accompany the whole course: Jordà and Taylor's *Local
+Projections* (Journal of Economic Literature, 2025) and Inoue, Jordà, and
+Kuersteiner's *Inference for Local Projections* (Econometrics Journal, 2026).
+Each lecture's reading guide names the sections that matter for that week.

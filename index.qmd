@@ -1,0 +1,124 @@
+---
+pagetitle: "Local Projections: From First Principles to Empirical Research"
+toc: false
+format:
+  html:
+    page-layout: article
+---
+
+```{=html}
+<div class="nw-hero">
+  <div class="eyebrow">Columbia University · Course · 2026–2027</div>
+  <h1>What a shock does, one horizon at a time.</h1>
+  <p class="lede">A local projection turns a causal question about a shock into a
+  sequence of regressions, one for each horizon after it. This course builds the
+  method from the first regression to a defended empirical result: <strong>the
+  estimand, the identification, the inference, and the replication that lets
+  someone else check the work</strong>. Fourteen lectures, each with a Stata
+  practicum and a browser lab.</p>
+</div>
+
+<div class="nw-instrument" aria-label="Local-projection estimates at each horizon after a shock, with a pointwise confidence band around the true hump-shaped response">
+  <svg id="lp-irf" viewBox="0 0 1000 300" preserveAspectRatio="none" role="img"></svg>
+</div>
+<div class="nw-legend">
+  <span class="l-obs">LP estimates β̂<sub>h</sub>, one regression each</span>
+  <span class="l-filt">true response θ<sub>h</sub></span>
+  <span class="l-band">95% pointwise band — a claim about repeated samples</span>
+</div>
+<div class="nw-ticker" aria-hidden="true">
+  <b>h = 0</b> β̂ +0.31 (0.11) &nbsp;·&nbsp;
+  <b>h = 4</b> β̂ +1.02 (0.19) <span class="up">▲ peak</span> &nbsp;·&nbsp;
+  <b>h = 8</b> β̂ +0.64 (0.24) &nbsp;·&nbsp;
+  <b>h = 12</b> β̂ +0.21 (0.28) &nbsp;·&nbsp;
+  <b>h = 16</b> β̂ −0.05 (0.31) <span class="down">▼ crosses zero</span> &nbsp;·&nbsp;
+  <b>T<sub>h</sub></b> 412 → 396 rows
+</div>
+
+<div class="nw-sessions">
+  <h2>Course schedule</h2>
+  <p>The sequence follows the research workflow: define the dynamic estimand,
+  argue identification, evaluate estimation and uncertainty, extend to
+  heterogeneous and panel designs, then use and defend the evidence. Every
+  lecture ships with a replication lab, a Stata problem set, and a browser lab
+  that form one practicum.</p>
+  <div class="nw-row"><span class="n">01</span><span class="t"><a href="lectures/01-question-to-projection/notes.html">From an Economic Question to a Local Projection</a></span><span class="p">P01 — shock-to-response explorer</span></div>
+  <div class="nw-row"><span class="n">02</span><span class="t"><a href="lectures/02-transformations-and-units/notes.html">Levels, Differences, Cumulative Responses &amp; Units</a></span><span class="p">P02 — transformation workbench</span></div>
+  <div class="nw-row"><span class="n">03</span><span class="t"><a href="lectures/03-identification-and-controls/notes.html">Identification, Controls &amp; the Pre-Shock Information Set</a></span><span class="p">P03 — identification sandbox</span></div>
+  <div class="nw-row"><span class="n">04</span><span class="t"><a href="lectures/04-lp-iv-and-multipliers/notes.html">LP-IV &amp; Cumulative Multipliers</a></span><span class="p">P04 — instrument &amp; multiplier lab</span></div>
+  <div class="nw-row"><span class="n">05</span><span class="t"><a href="lectures/05-pointwise-inference/notes.html">Pointwise Inference, Persistence &amp; Lag Augmentation</a></span><span class="p">P05 — coverage simulator</span></div>
+  <div class="nw-row"><span class="n">06</span><span class="t"><a href="lectures/06-path-inference/notes.html">Inference About the Response Path</a></span><span class="p">P06 — claims about a curve</span></div>
+  <div class="nw-row"><span class="n">07</span><span class="t"><a href="lectures/07-lp-versus-var/notes.html">LPs versus VARs: Estimands, Bias &amp; Variance</a></span><span class="p">P07 — bias–variance lab</span></div>
+  <div class="nw-row"><span class="n">08</span><span class="t"><a href="lectures/08-smoothing-and-restrictions/notes.html">Smoothing &amp; Restrictions Across Horizons</a></span><span class="p">P08 — smoothing workbench</span></div>
+  <div class="nw-row"><span class="n">09</span><span class="t"><a href="lectures/09-state-dependence/notes.html">State Dependence &amp; Asymmetric Responses</a></span><span class="p">P09 — state-dependence lab</span></div>
+  <div class="nw-row"><span class="n">10</span><span class="t"><a href="lectures/10-nonlinear-interpretation/notes.html">What Linear LPs Mean in Nonlinear Economies</a></span><span class="p">P10 — causal-weight explorer</span></div>
+  <div class="nw-row"><span class="n">11</span><span class="t"><a href="lectures/11-panel-lps/notes.html">Panel LPs &amp; Common Macroeconomic Shocks</a></span><span class="p">P11 — where identification comes from</span></div>
+  <div class="nw-row"><span class="n">12</span><span class="t"><a href="lectures/12-lp-did/notes.html">LP Difference-in-Differences</a></span><span class="p">P12 — clean-control builder</span></div>
+  <div class="nw-row"><span class="n">13</span><span class="t"><a href="lectures/13-sensitivity-and-counterfactuals/notes.html">Sensitivity Analysis &amp; Policy Counterfactuals</a></span><span class="p">P13 — counterfactual workbench</span></div>
+  <div class="nw-row"><span class="n">14</span><span class="t"><a href="lectures/14-synthesis-and-audit/notes.html">Research Synthesis, Replication Audit &amp; Defense</a></span><span class="p">P14 — replication referee desk</span></div>
+</div>
+
+<div class="nw-cap">
+  <div class="grid2">
+    <div>
+      <div class="kick">The capstone</div>
+      <h3>Replicate a published response. Extend it. Survive the audit.</h3>
+      <p>Every student reproduces one published local-projection result from
+      its replication package, adds one motivated extension with its
+      identifying assumptions stated, and hands the whole package to a peer
+      who tries to reproduce it in a clean directory. <a href="capstone/index.html">A null
+      result can earn full credit; an unsupported causal claim cannot.</a></p>
+    </div>
+    <div class="stat">
+      <div class="big">14 × 3</div>
+      <div class="sub">replication labs · Stata problem sets · browser labs</div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  // A hump-shaped true response, LP point estimates with sampling noise that
+  // grows with the horizon, and a pointwise band. Deterministic seed so the
+  // page is identical on every load.
+  const svg=document.getElementById('lp-irf');const W=1000,H=300,HMAX=20;
+  let s=7;const rng=()=>{s|=0;s=(s+0x6D2B79F5)|0;let t=Math.imul(s^(s>>>15),1|s);t=(t+Math.imul(t^(t>>>7),61|t))^t;return((t^(t>>>14))>>>0)/4294967296};
+  let sp=null;const rn=()=>{if(sp!==null){const v=sp;sp=null;return v}let u=0;while(!u)u=rng();const r=Math.sqrt(-2*Math.log(u)),th=2*Math.PI*rng();sp=r*Math.sin(th);return r*Math.cos(th)};
+  const d=[];
+  for(let h=0;h<=HMAX;h++){
+    const theta=1.05*(h/4)*Math.exp(1-h/4)+0.31*Math.exp(-h/1.5);   // hump, peak near h=4
+    const se=0.11+0.0125*h;
+    d.push({h,theta,se,b:theta+se*0.9*rn()});
+  }
+  const ys=d.flatMap(p=>[p.theta-1.96*p.se,p.theta+1.96*p.se,p.b]);
+  const lo=Math.min(...ys,-0.2),hi=Math.max(...ys);
+  const X=h=>40+h/HMAX*(W-80), Y=v=>H-24-(v-lo)/(hi-lo)*(H-52);
+  let g='';
+  g+=`<path class="i-band" d="M${d.map(p=>`${X(p.h)},${Y(p.theta-1.96*p.se)}`).join('L')}L${d.slice().reverse().map(p=>`${X(p.h)},${Y(p.theta+1.96*p.se)}`).join('L')}Z"/>`;
+  g+=`<line class="i-today" x1="${X(0)}" y1="${Y(0)}" x2="${X(HMAX)}" y2="${Y(0)}"/>`;
+  g+=`<path class="i-filt" d="M${d.map(p=>`${X(p.h)},${Y(p.theta)}`).join('L')}"/>`;
+  g+=d.map(p=>`<circle class="i-obs" cx="${X(p.h)}" cy="${Y(p.b)}" r="3.2"/>`).join('');
+  for(const h of [0,4,8,12,16,20]){g+=`<text class="i-lab" x="${X(h)}" y="${H-6}" text-anchor="middle">h = ${h}</text>`;}
+  g+=`<text class="i-lab-accent" x="${X(0)+8}" y="22">shock at t</text>`;
+  g+=`<text class="i-lab" x="${X(0)+8}" y="38">one regression per horizon →</text>`;
+  svg.innerHTML=g;
+})();
+</script>
+```
+
+## About {.unnumbered}
+
+I built this for students and research assistants who need to use local
+projections in their own work and to read other people's. The method is
+simple to run and easy to misread: the same regression can be a causal
+response or a correlation, a level or a cumulative effect, a reliable band or a
+decorative one. The course keeps those distinctions in front of the student at
+every step.
+
+Fourteen lectures follow one research sequence, from the economic question to
+the defended result. Each pairs a chapter of notes with a replication of a
+published figure, a Stata problem set, and a browser lab built around a
+prediction the student must commit to before touching the controls. Ordinary
+least squares, basic instrumental variables, confidence intervals, and a little
+Stata are enough to begin. The [setup page](setup/index.qmd) has a readiness
+exercise for the rest.
