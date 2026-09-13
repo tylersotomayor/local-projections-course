@@ -27,7 +27,10 @@ so students can move between the notes and the readings without translation.
 | $\theta_h$ | Causal (structural) impulse response at horizon $h$ | The difference between the outcome path with and without the intervention. $\beta_h=\theta_h$ only under the identifying assumptions stated in Lecture 3. In nonlinear settings (Lecture 10) $\theta_h$ is a function of the shock size. |
 | $\mu_h$ | Intercept of the horizon-$h$ regression | The blueprint's $\alpha_h$; renamed so that $\alpha$ can denote a significance level. |
 | $\boldsymbol\gamma_h$ | Coefficient vector on $\mathbf w_t$ at horizon $h$ | Nuisance coefficients; never interpreted as responses. |
-| $u_{t,h}$ | Horizon-$h$ projection residual in row $t$ | Contains the shocks dated $t+1,\dots,t+h$ and therefore follows an MA($h$) process by construction. Written with two subscripts to remind the reader that it belongs to row $t$ of the horizon-$h$ regression. |
+| $u_{t,h}$ | Horizon-$h$ projection residual in row $t$ | Contains the disturbances dated $t,\dots,t+h$ that the regressors do not absorb and the shocks dated $t+1,\dots,t+h$, so it is at most MA($h$) (D36). Written with two subscripts to remind the reader that it belongs to row $t$ of the horizon-$h$ regression. |
+| $v_t,\ \sigma_v$ | Outcome disturbance in a simulated model and its standard deviation | Lecture 1 onward (D36). |
+| $\theta_0$ | Impact response | $\theta_h$ at $h=0$. |
+| $y^{c}_t$ | Counterfactual outcome path | The path without the intervention; $\theta_h$ compares $y_{t+h}$ with $y^{c}_{t+h}$. |
 | $\mathcal T_h$, $T_h$ | Estimation sample for horizon $h$ and its size | $T_h=T-h-p$ when leads and lags are the only source of missingness. A *common sample* uses $\mathcal T_H$ at every horizon. |
 
 The canonical horizon-$h$ regression is therefore
@@ -47,7 +50,9 @@ and the impulse response is the sequence $\{\hat\beta_h\}_{h=0}^{H}$.
 | $B_h$ | Cumulative response through horizon $h$, $B_h=\sum_{j=0}^{h}\beta_j$ | "Accumulated response." Capital $B$; its estimate is $\hat B_h$. |
 | $\beta^{Y}_h,\ \beta^{G}_h$ | Responses of two different outcomes to the same intervention | Superscripts name the outcome (e.g. output $Y$, government spending $G$). |
 | $M_H$ | Cumulative multiplier through horizon $H$, $M_H=B^{Y}_H/B^{G}_H$ | A ratio of two accumulated responses; requires both in the same units. |
-| $\sigma_s$ | Standard deviation of the intervention variable | Used when responses are normalized to a one-standard-deviation shock. |
+| $\sigma_s$ | Standard deviation of the intervention variable | Used when responses are normalized to a one-standard-deviation shock; available from Lecture 1. |
+| $\beta^{\mathrm{LD}}_h,\ \beta^{\Delta}_h,\ \beta^{\Sigma}_h,\ \beta^{\mathrm{lag}}_h$ | Coefficients for transformations of one outcome: long difference, period change, accumulated level, and $y_{t-1}$ on $s_t$ | Distinct from outcome superscripts such as $\beta^{Y}_h$ (D36). |
+| $\Xi_s$ | Constant by which a shock is rescaled | Lecture 2 (D36). |
 
 Units vocabulary: *percent* changes come from logs × 100; *percentage points* are differences of rates; "a 1 percent of GDP shock" means the intervention is measured as a ratio to (trend) GDP.
 
@@ -107,6 +112,7 @@ Coverage vocabulary: *nominal* coverage is $1-\alpha$; *achieved* (or *actual*) 
 | $\beta^{A}_h,\ \beta^{B}_h$ | Responses in state $A$ ($I=1$) and state $B$ ($I=0$) | Reported with the direct difference $\beta^{A}_h-\beta^{B}_h$ and its standard error. |
 | $s^{+}_t,\ s^{-}_t$ | Positive and negative parts of the intervention, $s^{+}_t=\max(s_t,0)$, $s^{-}_t=\min(s_t,0)$ | Sign asymmetry. |
 | $\theta_h(e)$ | Marginal response at horizon $h$ when the shock equals $e$ | Lecture 10; a function, not a number. |
+| $\varpi$ | State-feedback parameter in the Lecture 9 simulation | $\lambda$ stays the smoothing penalty (D36). |
 | $\omega_h(e)$ | Weight the linear LP places on $\theta_h(e)$ | Nonnegative, integrates to one under the Kolesár–Plagborg-Møller conditions; $\beta_h=\int\omega_h(e)\,\theta_h(e)\,de$. |
 | $f_s$ | Density of the shock | Changing $f_s$ changes $\omega_h$ and hence $\beta_h$ even when $\theta_h(\cdot)$ is fixed. |
 
@@ -123,7 +129,7 @@ Coverage vocabulary: *nominal* coverage is $1-\alpha$; *achieved* (or *actual*) 
 | $g_i$ | Treatment date (cohort) of unit $i$; $g_i=\infty$ if never treated | |
 | $\Delta D_{i,t}$ | Treatment switch, equal to one in the period unit $i$ enters treatment | The LP-DiD regressor. |
 | $k$ | Event time, $k=t-g_i$ | |
-| $\theta^{\mathrm{ATE}}_h$, $\theta^{\mathrm{VW}}_h$ | Equally weighted and variance-weighted average treatment effects at horizon $h$ | Which one an LP-DiD regression targets depends on the weighting scheme. |
+| $\theta^{\mathrm{EW}}_h$, $\theta^{\mathrm{VW}}_h$ | Equally weighted and variance-weighted average effects on the treated at horizon $h$ | Averages over treated cohorts (D37); which one an LP-DiD regression targets depends on the weighting scheme. |
 
 Inference vocabulary for panels: *clustered by unit*, *Driscoll–Kraay*, and *two-way clustered* are named explicitly; "robust" alone is never sufficient.
 
@@ -131,6 +137,7 @@ Inference vocabulary for panels: *clustered by unit*, *Driscoll–Kraay*, and *t
 
 | Symbol | Meaning | Notes |
 |---|---|---|
+| $M^{0}$ | Hypothesized multiplier in an Anderson–Rubin inversion | Lectures 4 and 13; $m$ stays the HAC bandwidth (D36). |
 | $\{s^{c}_{t+j}\}_{j\ge 0}$ | A proposed counterfactual path of the intervention | Superscript $c$ marks counterfactual objects. |
 | $y^{0}_{t+h}$, $y^{c}_{t+h}$ | Baseline and counterfactual outcome paths | The counterfactual path is $y^{c}_{t+h}=y^{0}_{t+h}+\sum_{j=0}^{h}\theta_{h-j}\,(s^{c}_{t+j}-s^{0}_{t+j})$ under linearity and policy invariance of $\theta$. |
 | $\mathcal S$ | A pre-specified set of specifications | A sensitivity grid is a list of elements of $\mathcal S$ together with the sample used for each. |

@@ -18,10 +18,18 @@ syntax the later practica use.
 Install the user-written commands the practica call:
 
 ```stata
-ssc install lpdid, replace     // Lecture 12: LP difference-in-differences
 ssc install coefplot, replace  // response graphs from stored estimates
 ssc install estout, replace    // tables of stored estimates
+
+* Lecture 12: LP difference-in-differences and the authors' figure code
+foreach p in lpdid reghdfe ftools require boottest egenmore listreg blindschemes {
+    ssc install `p', replace
+}
 ```
+
+Some practica also run an author's original script as a cross-check. Those
+steps say which optional package they need (`ivreg2`, `ranktest`, `xtscc`,
+`weakivtest`, and a few others); the core tasks never do.
 
 Everything else the course uses is built in: `regress`, `newey`,
 `ivregress 2sls`, `gmm`, `simulate`, `lpirf`, `tsset`, `xtset`.

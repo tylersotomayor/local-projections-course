@@ -34,9 +34,9 @@ Rules for later lectures:
 | 09 | state-dependence, state-indicator, interacted-lp, main-effect, state-specific-control, support, threshold, sign-asymmetry, fixed-state-experiment, initial-state-response, endogenous-state, direct-difference-test, kitagawa-oaxaca-blinder, specification-search |
 | 10 | marginal-effect, finite-shock-effect, causal-weight, weighted-average-effect, shock-distribution, nonlinear-response-function, linear-approximation, negative-weights, policy-relevant-effect |
 | 11 | panel-local-projection, unit-fixed-effect, time-fixed-effect, common-shock, exposure, exposure-interaction, cross-sectional-dependence, clustered-standard-errors, driscoll-kraay, effective-sample-size, nickell-bias, heterogeneous-response, conditional-comparison, financial-recession |
-| 12 | staggered-adoption, absorbing-treatment, treatment-cohort, event-time, clean-control, not-yet-treated, already-treated, forbidden-comparison, parallel-trends, no-anticipation, variance-weighted-ate, equally-weighted-ate, reweighting, pre-trend, two-way-fixed-effects, nonabsorbing-treatment |
-| 13 | sensitivity-analysis, specification-grid, influential-episode, leave-one-out, sample-window, counterfactual-path, policy-invariance, lucas-critique, conditional-forecast, policy-experiment, assumption-dependent-interpretation, unsupported-claim |
-| 14 | methods-section, discrepancy-log, replication-audit, numerical-tolerance, null-result, reproducibility-package, master-do-file, referee-report, defense, consequential-choice |
+| 12 | staggered-adoption, absorbing-treatment, treatment-cohort, event-time, clean-control, not-yet-treated, already-treated, forbidden-comparison, parallel-trends, no-anticipation, variance-weighted-att, equally-weighted-att, reweighting, pre-trend, two-way-fixed-effects, nonabsorbing-treatment |
+| 13 | sensitivity-analysis, specification-grid, influential-episode, leave-one-out, sample-window, counterfactual-path, policy-invariance, lucas-critique, conditional-forecast, policy-experiment, assumption-dependent-interpretation, unsupported-claim, statistical-result |
+| 14 | methods-section, discrepancy-log, replication-audit, numerical-tolerance, null-result, reproducibility-package, master-do-file, referee-report, defense, consequential-choice, discrepancy-class, clean-directory-run |
 
 Stable anchor conventions (also in the notation ledger): sections
 `#sec-lNN-slug`, equations `#eq-lNN-slug`, figures `#fig-lNN-slug`, tables

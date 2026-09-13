@@ -76,7 +76,7 @@ study, the notes call it a *statistical reproduction*, never a replication.
 
 **Guiding question.** When does changing the dependent variable change the estimand, and when is it merely a reparameterization?
 
-**Opening situation.** Two papers estimate "the response of output to a government spending shock." One reports a peak of 0.8; the other reports 3.1. The first plots the level of log GDP; the second accumulates quarterly growth rates and then divides by an accumulated spending response. Both may be right. The reader who cannot say what each axis measures cannot compare them.
+**Opening situation.** One dataset gives four numbers for the response of output to military-spending news in Ramey and Zubairy's quarterly data: 0.29, the peak of the level response; 1.76, the same peak per one-standard-deviation shock; 3.53, the sum of level responses through quarter 20; and 0.73, that sum divided by spending's. None contradicts another. The reader who cannot say what each axis measures will think they do.
 
 **Dependency chain.**
 
@@ -102,7 +102,7 @@ study, the notes call it a *statistical reproduction*, never a replication.
 
 **Guiding question.** What makes an estimated dynamic relationship causal?
 
-**Opening situation.** An FOMC statement is tighter than markets expected. Rents are contracted months in advance and shelter is about a third of core inflation. Does a monetary surprise lower shelter prices, and when? The regression of future shelter prices on today's surprise looks exactly like the regression of future prices on today's federal funds rate. One of them can carry a causal reading and the other cannot; the lecture is about the difference.
+**Opening situation.** An FOMC statement is tighter than markets expected. Rents are set in leases and move slowly. Does a monetary surprise lower shelter prices, and when? The regression of future shelter prices on today's surprise looks exactly like the regression of future prices on today's federal funds rate. One of them can carry a causal reading and the other cannot; the lecture is about the difference.
 
 **Dependency chain.**
 
@@ -158,7 +158,7 @@ study, the notes call it a *statistical reproduction*, never a replication.
 
 **Guiding question.** How reliable is the confidence interval at one horizon?
 
-**Opening situation.** Two researchers estimate the same response from the same data and report the same points. One draws Newey–West bands; the other draws heteroskedasticity-robust bands from a regression with one extra lag. The bands differ by a factor of two at long horizons. Both cite a theorem. The only way to adjudicate is to ask what a band promises and then check whether it delivers.
+**Opening situation.** Two researchers estimate the same response from the same data and report the same points. One draws Newey–West bands; the other draws heteroskedasticity-robust bands from a regression with one extra lag. On the shelter anchor the Newey–West band is up to 1.65 times as wide, at month 48, and most of that gap comes from Newey–West versus heteroskedasticity-robust errors rather than from the extra lag. Both cite a theorem. The only way to adjudicate is to ask what a band promises and then check whether it delivers.
 
 **Dependency chain.**
 
@@ -184,7 +184,7 @@ study, the notes call it a *statistical reproduction*, never a replication.
 
 **Guiding question.** What changes when the claim concerns several horizons rather than one?
 
-**Opening situation.** A paper states that "the response is negative throughout the first year." That sentence contains five horizons. Pointwise bands were built to make one statement at a time; used five times they do not support the sentence, and the reader cannot tell by how much.
+**Opening situation.** A paper states that "the response is negative throughout the first year." That sentence names five horizons. If those horizons were fixed before estimation, five one-sided pointwise tests combined by the intersection–union rule support it at level $\alpha$. If the window was chosen after seeing the estimates, or the claim is "different somewhere", pointwise bands used five times do not, and the reader cannot tell by how much.
 
 **Dependency chain.**
 
@@ -294,8 +294,8 @@ study, the notes call it a *statistical reproduction*, never a replication.
 
 1. *A nonlinear response.* $\theta_h(e)$ as a function of the shock size; marginal versus finite-sized effects.
 2. *The good.* With an observed exogenous shock, $\beta_h=\int\omega_h(e)\theta_h(e)\,de$ with nonnegative weights that integrate to one; the weights are computable from the shock's distribution.
-3. *The bad.* With controls or an instrument, the weights can turn negative or lose their interpretation.
-4. *The ugly.* Nonlinear specifications (interactions, squares) do not in general recover structural nonlinearities.
+3. *The bad.* Kolesár and Plagborg-Møller's label for identification through heteroskedasticity; the Lecture 10 brief §1 records what the linear estimand does and does not retain there.
+4. *The ugly.* Their label for identification through non-Gaussianity, with the same treatment.
 5. *Computing the weights.* From a shock series to $\omega_h(e)$, following the authors' Stata sequence.
 6. *Changing the distribution versus changing the response.* Holding $\theta_h(\cdot)$ fixed and reshaping $f_s$ changes $\beta_h$; a moved coefficient is not a moved response function.
 7. *Evidence.* Reproduce a weight figure for one Ramey shock series.
@@ -313,7 +313,7 @@ study, the notes call it a *statistical reproduction*, never a replication.
 
 **Guiding question.** What identifying information does a panel add?
 
-**Opening situation.** Jordà, Schularick, and Taylor ask whether recessions that follow credit booms are deeper, using seventeen countries and a century and a half of data. The panel has thousands of rows and fewer than two hundred recessions. The number of rows is not the amount of identifying information.
+**Opening situation.** Jordà, Schularick, and Taylor ask whether recessions that follow credit booms are deeper, using a historical archive of 14 advanced economies from 1870 to 2008. The regression behind their Figure 4 uses 121 business-cycle peaks, which fall in only 58 distinct years. The number of rows is not the amount of identifying information.
 
 **Dependency chain.**
 
@@ -324,7 +324,7 @@ study, the notes call it a *statistical reproduction*, never a replication.
 5. *Heterogeneity and averaging.* What a pooled $\beta_h$ averages when units differ.
 6. *The recession-path comparison.* JST's normal versus financial recessions is a conditional comparison of paths, not the response to an exogenous shock; the notes say so.
 7. *Bias with lags and fixed effects.* Nickell bias at short $T$; when it matters here.
-8. *Evidence.* Reproduce one JST output-path comparison from release 6 of the macrohistory data, preserving the vintage.
+8. *Evidence.* Reproduce the *When Credit Bites Back* Figure 4 GDP panel from the historical archive (D16), preserving the vintage.
 9. *Handoff.* Units that enter treatment at different dates.
 
 **Anchor examples.** JST macrohistory panel; a simulated panel with a common shock and exposure.
@@ -366,7 +366,7 @@ study, the notes call it a *statistical reproduction*, never a replication.
 
 **Guiding question.** Which conclusions follow from the estimated response, and which require additional assumptions?
 
-**Opening situation.** A paper estimates the unemployment response to a monetary shock, then reports what unemployment "would have been" under a different interest-rate path in 1990–1992. The first number is an estimate. The second is a calculation that borrows the first and adds three assumptions the paper does not name.
+**Opening situation.** Jordà and Taylor estimate the unemployment response to a funds-rate move instrumented by the Romer–Romer shock, then ask what unemployment would have done had the funds-rate response peaked one standard error earlier. The first number is an estimate. The second is a calculation that borrows the first and adds assumptions the calculation cannot check.
 
 **Dependency chain.**
 
