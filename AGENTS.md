@@ -108,3 +108,7 @@ sections, figures, terms, exercises, and labs must follow the material.
   assets under `practica/pNN-slug/build/`; CI cannot run Stata.
 - Data shipped in a lab project carries `PROVENANCE.md` (source, version,
   vintage, license, redistribution terms).
+- Never commit, copy, quote, or serve a Stata batch-mode log (the `FILE.log`
+  that `stata-se -e do FILE.do` writes). It prints the license banner and
+  serial number. Publish only logs written by `log using` inside the do-file,
+  and grep every published log for `Serial number` before committing.

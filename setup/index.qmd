@@ -47,7 +47,7 @@ Work through the [readiness do-file](readiness/readiness.do) before Lecture 1.
 It runs in under a minute and covers the four things the first practicum will
 assume. The file has no solutions in it; the
 [completed version](readiness/readiness_solution.do) is beside it, and its
-[log](readiness/readiness_solution.log) shows what a correct run prints.
+[log](readiness/readiness_expected_output.log) shows what a correct run prints.
 
 ### 1. Time-series setup, leads, lags, and missing values
 

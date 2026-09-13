@@ -5,6 +5,10 @@
 version 19
 clear all
 set more off
+capture log close
+* The published log is written here, not by batch mode: batch logs print the
+* Stata license banner, which must never be committed or served.
+log using readiness_expected_output.log, text replace
 
 * ---------- 1. Time-series setup, leads, lags, and missing values ----------
 clear
@@ -94,3 +98,4 @@ assert abs(ci["ll", "s"] - lo) < 1e-6 & abs(ci["ul", "s"] - hi) < 1e-6
 display "The interval is a claim about repeated samples of 200 observations,"
 display "not about where the coefficient lies with 95 percent probability."
 display "READINESS CHECKS PASSED"
+log close

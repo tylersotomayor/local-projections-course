@@ -1,0 +1,219 @@
+-------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  /Users/tylersotomayor/local-projections-course/setup/readiness/rea
+> diness_expected_output.log
+  log type:  text
+ opened on:  13 Sep 2026, 17:56:59
+
+. 
+. * ---------- 1. Time-series setup, leads, lags, and missing values ----------
+. clear
+
+. set obs 24
+Number of observations (_N) was 0, now 24.
+
+. gen t = _n
+
+. tsset t
+
+Time variable: t, 1 to 24
+        Delta: 1 unit
+
+. gen y = 0.7 * (t - 12)^2 / 50 + 2
+
+. replace y = . in 9
+(1 real change made, 1 to missing)
+
+. gen y_lead2 = F2.y
+(3 missing values generated)
+
+. gen y_lag1  = L1.y
+(2 missing values generated)
+
+. list t y y_lag1 y_lead2 in 7/12, clean noobs
+
+     t       y   y_lag1   y_lead2  
+     7    2.35    2.504         .  
+     8   2.224     2.35     2.056  
+     9       .    2.224     2.014  
+    10   2.056        .         2  
+    11   2.014    2.056     2.014  
+    12       2    2.014     2.056  
+
+. 
+. * F2.y is missing in row 7 because it reaches the missing row 9, and in rows
+. * 23 and 24 because the lead runs off the end of the sample. Row 9 itself is
+. * still usable (its lead and lag both exist); row 10 is not (its lag is row 9
+> ).
+. * A regression of F2.y on L1.y therefore loses rows 1, 7, 10, 23, and 24.
+. quietly regress F2.y L1.y
+
+. display "Rows used by regress F2.y L1.y: " e(N)
+Rows used by regress F2.y L1.y: 19
+
+. assert e(N) == 24 - 5
+
+. 
+. * ---------- 2. Loops, stored results, and a coefficient table ----------
+. matrix results = J(4, 3, .)
+
+. forvalues h = 0/3 {
+  2.     quietly regress F`h'.y L1.y
+  3.     matrix results[`h' + 1, 1] = `h'
+  4.     matrix results[`h' + 1, 2] = _b[L1.y]
+  5.     matrix results[`h' + 1, 3] = e(N)
+  6. }
+
+. matrix colnames results = h b_lag N
+
+. matrix list results, format(%9.4f)
+
+results[4,3]
+          h    b_lag        N
+r1   0.0000   0.9857  21.0000
+r2   1.0000   0.8493  20.0000
+r3   2.0000   0.6063  19.0000
+r4   3.0000   0.3057  18.0000
+
+. 
+. * The same table with postfile. N falls by one per horizon because each extra
+. * lead removes one more row at the end of the sample (and, here, one more row
+. * before the missing observation).
+. tempname handle
+
+. tempfile table
+
+. postfile `handle' h b_lag N using `table', replace
+(file /var/folders/bk/6srdc2qx62b56c7594wqt1yw0000gn/T//St22057.000001 not
+    found)
+
+. forvalues h = 0/3 {
+  2.     quietly regress F`h'.y L1.y
+  3.     post `handle' (`h') (_b[L1.y]) (e(N))
+  4. }
+
+. postclose `handle'
+
+. preserve
+
+. use `table', clear
+
+. list, clean noobs
+
+    h      b_lag    N  
+    0   .9856721   21  
+    1   .8492819   20  
+    2   .6062834   19  
+    3   .3056755   18  
+
+. forvalues h = 1/3 {
+  2.     assert N[`h' + 1] == N[`h'] - 1
+  3. }
+
+. restore
+
+. 
+. * ---------- 3. Logs, differences, percent, and percentage points ----------
+. clear
+
+. set obs 3
+Number of observations (_N) was 0, now 3.
+
+. gen level = 100 * 1.02^(_n - 1)          // a level, index units
+
+. gen log100 = 100 * ln(level)             // log points
+
+. gen pct_change = 100 * (level / level[_n-1] - 1)   // percent
+(1 missing value generated)
+
+. gen logdiff    = log100 - log100[_n-1]   // log points, approx. percent
+(1 missing value generated)
+
+. gen rate = 4 + _n                        // a rate, in percent
+
+. gen rate_change_pp = rate - rate[_n-1]   // percentage points
+(1 missing value generated)
+
+. list, clean noobs
+
+     level     log100   pct_ch~e    logdiff   rate   rate_c~p  
+       100    460.517          .          .      5          .  
+       102   462.4973          2   1.980255      6          1  
+    104.04   464.4775   2.000001   1.980255      7          1  
+
+. 
+. * rate rises from 5 to 6: one percentage point (a difference of two
+. * percentages), which is also a 20 percent increase (a ratio). The log
+. * difference approximates the percent change when the change is small:
+. assert abs(logdiff[2] - pct_change[2]) < 0.05
+
+. display "percent change: " %6.3f pct_change[2] "   log-difference: " %6.3f lo
+> gdiff[2]
+percent change:  2.000   log-difference:  1.980
+
+. 
+. * ---------- 4. A coefficient, a counterfactual, and an interval ----------
+. clear
+
+. set seed 20260913
+
+. set obs 200
+Number of observations (_N) was 0, now 200.
+
+. gen s = rnormal()
+
+. gen y = 1.5 + 0.8 * s + rnormal(0, 2)
+
+. regress y s
+
+      Source |       SS           df       MS      Number of obs   =       200
+-------------+----------------------------------   F(1, 198)       =     35.43
+       Model |  142.827131         1  142.827131   Prob > F        =    0.0000
+    Residual |   798.18122       198  4.03121829   R-squared       =    0.1518
+-------------+----------------------------------   Adj R-squared   =    0.1475
+       Total |  941.008351       199  4.72868518   Root MSE        =    2.0078
+
+------------------------------------------------------------------------------
+           y | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+           s |     .81073   .1362038     5.95   0.000     .5421339    1.079326
+       _cons |   1.468326   .1421182    10.33   0.000     1.188067    1.748586
+------------------------------------------------------------------------------
+
+. 
+. * The coefficient on s is the average difference in y between observations
+. * whose s differs by one unit, holding nothing else fixed. It is a response
+. * only if s is unrelated to everything else that moves y; here that is true b
+> y
+. * construction.
+. scalar b   = _b[s]
+
+. scalar se  = _se[s]
+
+. scalar lo  = b - invttail(e(df_r), 0.025) * se
+
+. scalar hi  = b + invttail(e(df_r), 0.025) * se
+
+. display "95% interval by hand: [" %6.3f lo ", " %6.3f hi "]"
+95% interval by hand: [ 0.542,  1.079]
+
+. matrix ci = r(table)
+
+. assert abs(ci["ll", "s"] - lo) < 1e-6 & abs(ci["ul", "s"] - hi) < 1e-6
+
+. display "The interval is a claim about repeated samples of 200 observations,"
+The interval is a claim about repeated samples of 200 observations,
+
+. display "not about where the coefficient lies with 95 percent probability."
+not about where the coefficient lies with 95 percent probability.
+
+. display "READINESS CHECKS PASSED"
+READINESS CHECKS PASSED
+
+. log close
+      name:  <unnamed>
+       log:  /Users/tylersotomayor/local-projections-course/setup/readiness/rea
+> diness_expected_output.log
+  log type:  text
+ closed on:  13 Sep 2026, 17:57:00
+-------------------------------------------------------------------------------

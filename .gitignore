@@ -9,3 +9,8 @@ tmp/
 # Stata scratch
 *.smcl
 practica/**/lab-project/output/
+
+# Logs written by `log using` inside a do-file are published outputs. Batch-mode
+# logs print the Stata license banner and serial number and are never committed.
+!setup/readiness/readiness_expected_output.log
+!practica/**/build/output/*.log
