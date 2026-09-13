@@ -6,7 +6,7 @@ opening situation, the guiding question, the dependency chain of sections (one
 sentence per section, each earned by the previous one), the anchor examples,
 what the lecture deliberately postpones, and the question it hands to the next
 lecture. Lecture authors work from this spine and the
-[notation ledger](notation-ledger.md); they may refine section titles but may
+[notation ledger](notation-ledger.md), and the [editor decisions](editor-decisions.md); they may refine section titles but may
 not reorder the chain or move an idea to a different lecture without updating
 this file.
 
@@ -22,16 +22,18 @@ estimation → inference → interpretation → evaluation. Four parts:
 
 ## Recurring empirical anchors
 
-Three real datasets recur so that later lectures deepen familiar cases rather
-than restarting. All three are redistributable for teaching with attribution
-and are shipped inside the relevant practicum lab projects with provenance.
+A small set of real datasets recurs so that later lectures deepen familiar
+cases rather than restarting. Whether a dataset ships inside a lab project or
+is fetched by an acquisition script follows editor decision D5; every copy
+carries its provenance. Validated benchmarks for each target are in
+`~/macro/local_projections/replication-packages/benchmarks/`.
 
 | Anchor | Source | Used in |
 |---|---|---|
-| **Fiscal.** U.S. quarterly data 1889Q1–2015Q4: real GDP and government spending as ratios to trend GDP, the military-news shock, the Blanchard–Perotti shock, unemployment, and the slack and ZLB indicators | Ramey and Zubairy (2018) replication package (`rzdat.xlsx`; local copy at `~/BSE/Local Projections 2024/Ramey, Zubairy 2018/Ramey_Zubairy_replication_codes/`) | L1, L2, L4, L9, L13 |
-| **Monetary, shelter inflation.** Monthly shelter PCE inflation and the Bauer–Swanson (2023) monetary policy surprise | Inoue, Jordà, and Kuersteiner (2026) replication package (`sigband_shelterinf.dta`; cloned at `~/macro/local_projections/upstream/Econometrics-Journal/code/Replication Code/`) | L3, L5, L6 |
+| **Fiscal.** U.S. quarterly data 1889Q1–2015Q4: real GDP and government spending as ratios to trend GDP, the military-news shock, the Blanchard–Perotti shock, unemployment, and the slack and ZLB indicators | Ramey and Zubairy (2018) replication package (`RZDAT.xlsx`, sheet `rzdat`; frozen at `replication-packages/packages/ramey-zubairy/supplied-local-copy/`; portable pilot at `replication-packages/pilots/REP04/`) | L1, L2, L4, L9, L13 |
+| **Monetary, shelter prices.** Monthly log shelter PCE price (cumulative response, percent) and the Bauer–Swanson (2023) monetary policy surprise, 1988m1–2019m12; specification fixed by editor decision D7 | Inoue, Jordà, and Kuersteiner (2026), August 13, 2024 official archive (`replication-packages/packages/econometrics-journal/author-20240813/`; benchmark `REP03-shelter-prices-author-20240813.csv`) | L3, L5, L6 |
 | **Monetary, unemployment.** Monthly U.S. unemployment rate, PCE inflation, federal funds rate, and the Romer–Romer shock extended by Coibion, Gorodnichenko, Kueng, and Silvia (2017) | Jordà and Taylor (2025) `Example6_JointInference/data_fred.dta` and `Example8_Counterfactuals` (local copy at `~/JEL-Code-main 3/LP_JEL_Replication/`) | L6, L8, L13 |
-| **Macrohistory panel.** 17 advanced economies, 1870–2017 (JST release 6) | `JSTdatasetR6.dta`, shipped with Jordà–Taylor Example 2 | L11 |
+| **Macrohistory panel.** The historical *When Credit Bites Back* panel (`panel14_1_oj.dta`, 1870–2008) for the replication; JST release 6 only for labeled extensions (D16) | `replication-packages/packages/macrohistory/historical-original/` and `.../macrohistory/` R6 | L11 |
 | **Ramey HOM shock series.** Government spending, monetary, tax, and technology shocks from Ramey's Handbook chapter | Kolesár and Plagborg-Møller replication repository (`~/macro/local_projections/upstream/nonlinear_dynamic_causal/data/`) | L10 |
 
 Simulations are the second kind of anchor. Every simulation in the course is
@@ -100,7 +102,7 @@ study, the notes call it a *statistical reproduction*, never a replication.
 
 **Guiding question.** What makes an estimated dynamic relationship causal?
 
-**Opening situation.** An FOMC statement is tighter than markets expected. Rents are contracted months in advance and shelter is about a third of core inflation. Does a monetary surprise lower shelter inflation, and when? The regression of future shelter inflation on today's surprise looks exactly like the regression of future inflation on today's federal funds rate. One of them can carry a causal reading and the other cannot; the lecture is about the difference.
+**Opening situation.** An FOMC statement is tighter than markets expected. Rents are contracted months in advance and shelter is about a third of core inflation. Does a monetary surprise lower shelter prices, and when? The regression of future shelter prices on today's surprise looks exactly like the regression of future prices on today's federal funds rate. One of them can carry a causal reading and the other cannot; the lecture is about the difference.
 
 **Dependency chain.**
 
@@ -112,7 +114,7 @@ study, the notes call it a *statistical reproduction*, never a replication.
 6. *Partialling out.* Frisch–Waugh–Lovell: the shock coefficient equals the slope of residualized $y_{t+h}$ on residualized $s_t$, which both verifies a specification and is how the reference code estimates.
 7. *Frequency, zeros, and missing.* A shock series that is zero outside announcement dates says "no news"; a missing value says "unknown" and drops the row; misaligned dates silently shift the horizon.
 8. *The specification record.* Shock, outcome, controls, sample, timing, and normalization written down once, so that the identification argument can be audited.
-9. *The shelter anchor.* Reproduce the point estimates of the IJK shelter-inflation response, audit its timing and sample, and write the identification memo.
+9. *The shelter anchor.* Reproduce the point estimates of the IJK cumulative shelter-price response (D7, D8), audit its timing and sample, and write the identification memo.
 10. *Handoff.* When the shock itself is not observed but an instrument for it is.
 
 **Anchor examples.** The three-mechanism sandbox economy (confounder, anticipation, mediator) with a known $\theta_h$; IJK Figure 4 point estimates.
@@ -193,10 +195,10 @@ study, the notes call it a *statistical reproduction*, never a replication.
 5. *Differences between curves.* A direct test with the covariance of the difference; why overlapping bands and star-counting are not tests.
 6. *Accumulated responses.* $\operatorname{Var}(\sum_h\hat\beta_h)=\sum_h\sum_k\operatorname{Cov}(\hat\beta_h,\hat\beta_k)$, so a cumulative multiplier's uncertainty needs the whole matrix.
 7. *Significance bands.* IJK's bands under the null of no response; what they answer and how they differ from confidence bands.
-8. *Evidence.* IJK Figure 3: Newey–West pointwise versus sup-$t$ on the shelter application.
+8. *Evidence.* IJK Figure 3 reproduced exactly on its simulated design (Newey–West pointwise versus sup-$t$), then a course-built sup-$t$ band on the shelter anchor, labeled as an extension (D10).
 9. *Handoff.* Two methods that target the same response can still disagree in a sample.
 
-**Anchor examples.** IJK Figure 3; the JT Example 6 unemployment response to the Romer shock (joint LP-IV); a claims-and-procedures matcher.
+**Anchor examples.** IJK Figure 3 (simulated design) and the shelter anchor of D7; the JT Example 6 unemployment response to the Romer shock (joint LP-IV); a claims-and-procedures matcher.
 
 **Figures.** Pointwise and simultaneous bands on one response; the multiplicity calculation; a difference-of-curves test versus overlapping bands; accumulated-response variance decomposition.
 

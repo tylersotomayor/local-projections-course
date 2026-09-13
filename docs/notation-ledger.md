@@ -72,6 +72,7 @@ Identifying assumptions are numbered per lecture (A1, A2, …) with stable ancho
 | $\operatorname{se}(\hat\beta_h)$ | Standard error of $\hat\beta_h$ | The estimator (HC, HAC, lag-augmented, clustered) is always named beside it. |
 | $m$ | HAC bandwidth (lag truncation) | Newey–West with $m$ lags; the "rule" $m=h$ is a convention, not a theorem. |
 | $\rho$ | Persistence parameter of a simulated AR(1) | Used in every Monte Carlo; $\rho=1$ is the unit-root case. |
+| $R$ | Number of Monte Carlo replications | Students $R=200$, instructor builds $R=500$ by default (D2). |
 | $\hat{\boldsymbol\beta}$ | Stacked vector $(\hat\beta_0,\dots,\hat\beta_H)'$ | $(H+1)\times 1$. |
 | $\boldsymbol\Sigma$ | Covariance matrix of $\hat{\boldsymbol\beta}$ across horizons | $(H+1)\times(H+1)$; its off-diagonal elements are what a pointwise interval ignores. |
 | $z_{1-\alpha/2}$ | Standard normal critical value for a pointwise interval | |
@@ -87,8 +88,13 @@ Coverage vocabulary: *nominal* coverage is $1-\alpha$; *achieved* (or *actual*) 
 | $\mathbf y_t$ | Vector of variables in a VAR | Bold lowercase for vectors of series. |
 | $\mathbf A(L)$ | VAR lag polynomial, $\mathbf A(L)=\mathbf A_1L+\dots+\mathbf A_pL^p$ | $L$ is the lag operator. |
 | $\theta^{\mathrm{LP}}_h,\ \theta^{\mathrm{VAR}}_h$ | Population responses implied by the LP and by the VAR | Equal in population under the Plagborg-Møller–Wolf conditions; the superscripts matter only for estimators, $\hat\theta^{\mathrm{LP}}_h$ versus $\hat\theta^{\mathrm{VAR}}_h$. |
+| $\mathbf S$ | Residual covariance matrix of a VAR | Keeps $\boldsymbol\Sigma$ free for the cross-horizon covariance of $\hat{\boldsymbol\beta}$ (D20). |
+| $\mathbf A_{\mathrm c}$ | Companion matrix of a VAR | Lecture 7. |
+| $\omega^{*}_h$ | Bias weight at which LP and VAR have equal loss at horizon $h$ | Lecture 7. |
 | $\operatorname{Bias},\ \operatorname{Var},\ \operatorname{MSE}$ | Bias, variance, and mean squared error of an estimator at horizon $h$ | Reported per horizon and, when summarized, as an average over horizons with the averaging stated. |
-| $b_k(h)$ | Basis function $k$ evaluated at horizon $h$ | Gaussian basis functions in Jordà–Taylor; B-splines in Barnichon–Brownlees. |
+| $b_k(h)$ | Linear basis function $k$ evaluated at horizon $h$ | B-splines in Barnichon–Brownlees. Reserved for linear expansions (D20). |
+| $a,\ h^\star,\ c$ | Amplitude, peak horizon, and width of the Gaussian response $a\exp\{-(h-h^\star)^2/c^2\}$ | A three-parameter parametric family, not a linear basis expansion (D21). Jordà–Taylor's code calls the peak $b$. |
+| $r$ | Order of the roughness penalty | Course default $r=2$, shrinkage toward a line (D23). |
 | $\delta_k$ | Coefficient on basis function $k$ | The restricted response is $\beta_h=\sum_{k=1}^{K}\delta_k b_k(h)$. |
 | $K$ | Number of basis functions | |
 | $\lambda$ | Smoothing penalty | Larger $\lambda$ imposes more smoothness; $\lambda=0$ recovers the unrestricted LP within the basis. |
