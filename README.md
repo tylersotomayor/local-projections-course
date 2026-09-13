@@ -37,6 +37,7 @@ pages; they run entirely in the reader's browser.
 - `interactives/` — browser labs (OJS)
 - `practica/` — practicum pages, lab projects, instructor builds
 - `capstone/`, `setup/` — capstone specification; software setup and readiness exercise
+- `shared/stata/` — course-wide Stata helpers copied into lab projects, such as `get_rz.do`, which downloads and checksums the Ramey–Zubairy data
 - `docs/` — the authoring guide, course spine, notation ledger, terminology plan
 - `scripts/audit_session.py` — fast structural audit of one lecture
 
