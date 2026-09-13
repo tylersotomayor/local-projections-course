@@ -1,0 +1,203 @@
+---
+title: "{{LAB_TITLE}}"
+subtitle: "Lecture {{N}} lab · {{ONE_LINE_PURPOSE}}"
+toc: true
+page-layout: full
+code-tools: false
+---
+
+Work through the labs in order the first time. In each one, stop at the
+prediction before moving a control. Use the display to test that prediction,
+then explain what changed and what stayed fixed. Open the explanation only
+after you have an answer. Every panel below says whether it shows a **live
+calculation**, a **stored simulation result**, or a **conceptual
+illustration**.
+
+## Lab 1: Title That Names the Relationship
+
+Setup that reconnects the lab to [the notes](../lectures/{{SLUG}}/notes.qmd#sec-l{{N}}-slug),
+with the equation and units visible.
+
+**Predict before using the controls.** A question about direction or
+invariance the learner must answer first.
+
+```{ojs}
+//| echo: false
+viewof lab1Control = Inputs.range([0, 1], {
+  value: 0.5, step: 0.05,
+  label: "Control name (units)"
+})
+```
+
+```{ojs}
+//| echo: false
+lab1 = {
+  // live calculation
+  return { value: lab1Control * 2 };
+}
+Plot.plot({
+  width: 920, height: 320, style: plotStyle,
+  x: { label: "Horizon h (quarters)" },
+  y: { label: "Response (percent)" },
+  marks: [ Plot.ruleY([0], { stroke: "var(--bs-border-color)" }) ]
+})
+```
+
+```{ojs}
+//| echo: false
+md`*Live calculation.* A reactive sentence that explains the current state in
+words, not one that echoes the inputs: the response is
+**${lab1.value.toFixed(2)}** ...`
+```
+
+**Try these comparisons.** Change one thing at a time.
+
+1. ...
+2. ...
+
+::: {.callout-note collapse="true"}
+## Why ... (open after you have committed to an answer)
+
+The mechanism, in ordinary language, tied to the notes' equation.
+:::
+
+## Transfer to Stata
+
+```{ojs}
+//| echo: false
+handoff = ({ lecture: {{N}}, settings: { lab1Control }, prediction: "..." })
+Inputs.button("Copy the handoff record", { reduce: () => navigator.clipboard.writeText(JSON.stringify(handoff, null, 2)) })
+```
+
+Paste the record at the top of your problem-set do-file as a comment, then
+implement the check it describes. The [Practicum {{N}}](../practica/p{{N}}-{{SLUG_REST}}/index.qmd)
+page says which task uses it.
+
+```{ojs}
+//| echo: false
+// ————— Shared helpers (copy verbatim into every lab; do not import) —————
+plotStyle = ({
+  background: "transparent",
+  color: "var(--bs-body-color)",
+  fontFamily: "Archivo, system-ui, sans-serif"
+})
+
+function formatSigned(value, digits = 2) {
+  if (Math.abs(value) < 0.5 * Math.pow(10, -digits)) return (0).toFixed(digits);
+  return (value > 0 ? "+" : "−") + Math.abs(value).toFixed(digits);
+}
+
+// Deterministic PRNG: the same seed gives the same draws on every load, so a
+// toggled control changes only what it is meant to change.
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function gaussian(rng) {
+  let spare = null;
+  return function () {
+    if (spare !== null) { const v = spare; spare = null; return v; }
+    let u = 0; while (u === 0) u = rng();
+    const r = Math.sqrt(-2 * Math.log(u)), th = 2 * Math.PI * rng();
+    spare = r * Math.sin(th);
+    return r * Math.cos(th);
+  };
+}
+
+// OLS by solving the normal equations with Gaussian elimination and partial
+// pivoting. X is an array of rows; the first column should be 1 for an
+// intercept. Returns coefficients, residuals, and (X'X)^{-1}.
+function ols(y, X) {
+  const n = y.length, k = X[0].length;
+  const XtX = Array.from({ length: k }, () => new Array(k).fill(0));
+  const Xty = new Array(k).fill(0);
+  for (let i = 0; i < n; i++) {
+    const xi = X[i];
+    for (let a = 0; a < k; a++) {
+      Xty[a] += xi[a] * y[i];
+      for (let b = a; b < k; b++) XtX[a][b] += xi[a] * xi[b];
+    }
+  }
+  for (let a = 0; a < k; a++) for (let b = 0; b < a; b++) XtX[a][b] = XtX[b][a];
+  const inv = invert(XtX);
+  const beta = inv.map(row => row.reduce((s, v, j) => s + v * Xty[j], 0));
+  const resid = y.map((yi, i) => yi - X[i].reduce((s, v, j) => s + v * beta[j], 0));
+  return { beta, resid, XtXinv: inv, n, k };
+}
+
+function invert(A) {
+  const n = A.length;
+  const M = A.map((row, i) => [...row, ...Array.from({ length: n }, (_, j) => (i === j ? 1 : 0))]);
+  for (let c = 0; c < n; c++) {
+    let p = c;
+    for (let r = c + 1; r < n; r++) if (Math.abs(M[r][c]) > Math.abs(M[p][c])) p = r;
+    [M[c], M[p]] = [M[p], M[c]];
+    const piv = M[c][c];
+    for (let j = 0; j < 2 * n; j++) M[c][j] /= piv;
+    for (let r = 0; r < n; r++) if (r !== c) {
+      const f = M[r][c];
+      for (let j = 0; j < 2 * n; j++) M[r][j] -= f * M[c][j];
+    }
+  }
+  return M.map(row => row.slice(n));
+}
+
+// Heteroskedasticity-robust (HC1) standard errors for an ols() result.
+function hcSe(fit, X) {
+  const { resid, XtXinv, n, k } = fit;
+  const meat = Array.from({ length: k }, () => new Array(k).fill(0));
+  for (let i = 0; i < n; i++) {
+    const e2 = resid[i] * resid[i];
+    for (let a = 0; a < k; a++) for (let b = 0; b < k; b++) meat[a][b] += e2 * X[i][a] * X[i][b];
+  }
+  const V = matmul(matmul(XtXinv, meat), XtXinv);
+  const c = n / (n - k);
+  return V.map((row, j) => Math.sqrt(c * row[j]));
+}
+
+// Newey–West (Bartlett kernel) standard errors with bandwidth m.
+function neweyWestSe(fit, X, m) {
+  const { resid, XtXinv, n, k } = fit;
+  const S = Array.from({ length: k }, () => new Array(k).fill(0));
+  const g = resid.map((e, i) => X[i].map(x => x * e));
+  for (let l = 0; l <= m; l++) {
+    const w = l === 0 ? 1 : 1 - l / (m + 1);
+    for (let t = l; t < n; t++) {
+      for (let a = 0; a < k; a++) for (let b = 0; b < k; b++) {
+        const v = g[t][a] * g[t - l][b];
+        S[a][b] += w * (l === 0 ? v : v + g[t - l][a] * g[t][b]);
+      }
+    }
+  }
+  const V = matmul(matmul(XtXinv, S), XtXinv);
+  return V.map((row, j) => Math.sqrt(row[j]));
+}
+
+function matmul(A, B) {
+  return A.map(row => B[0].map((_, j) => row.reduce((s, v, i) => s + v * B[i][j], 0)));
+}
+
+// One local projection at horizon h: regress y[t+h] on 1, s[t], and the
+// listed controls (each an array aligned with t). Returns the coefficient on
+// s, its HC1 and Newey–West(h) standard errors, and the row count.
+function localProjection(y, s, controls, h, opts = {}) {
+  const rows = [], Y = [];
+  for (let t = 0; t + h < y.length; t++) {
+    const row = [1, s[t], ...controls.map(c => c[t])];
+    if (row.some(v => v === null || Number.isNaN(v)) || y[t + h] == null) continue;
+    rows.push(row); Y.push(y[t + h]);
+  }
+  const fit = ols(Y, rows);
+  return {
+    beta: fit.beta[1],
+    seHC: hcSe(fit, rows)[1],
+    seNW: neweyWestSe(fit, rows, opts.bandwidth ?? h)[1],
+    n: rows.length
+  };
+}
+```

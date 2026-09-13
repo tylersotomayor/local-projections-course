@@ -1,0 +1,41 @@
+---
+title: "{{TITLE}}"
+subtitle: "Lecture {{N}}"
+author: "Tyler Sotomayor · Columbia University"
+format:
+  revealjs:
+    theme: [default]
+    slide-number: true
+    html-math-method: katex
+    footer: "Local Projections — Lecture {{N}}"
+---
+
+## Opening hook (one governing idea per slide)
+
+- A slide is a lecture prompt, not a compressed chapter.
+- One equation, one table, one figure, or one short progression.
+
+::: {.fragment}
+Fragments may stage a derivation, but the final state must remain intelligible.
+:::
+
+## Reuse the notes' figures
+
+![](figures/fig-l{{N}}-slug.svg){fig-alt="Alt text." width="85%"}
+
+## Work through the lab
+
+[Open the {{LAB_TITLE}}](../../interactives/{{LAB}}.qmd) and commit to each
+prediction before touching a control.
+
+## Exercises, hints, and worked solutions
+
+1. Start with the [Lecture {{N}} exercises](notes.qmd#sec-l{{N}}-exercises).
+2. Open **Hint** only when you need a direction.
+3. Compare your work with the **Detailed solution**.
+
+The [solutions companion](solutions.qmd) prints every hint and solution.
+
+## Next lecture
+
+- The question this lecture has made unavoidable.

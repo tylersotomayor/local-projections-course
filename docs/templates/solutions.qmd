@@ -1,0 +1,73 @@
+---
+title: "Exercise Hints & Worked Solutions"
+subtitle: "Lecture {{N}}"
+author: "Tyler Sotomayor"
+
+kicker: "Lecture {{N}}"
+course: "Local Projections: From First Principles to Empirical Research"
+contents-label: "Contents of this companion"
+contents-depth: 3
+solutions-document: true
+
+number-sections: false
+toc-depth: 3
+link-citations: true
+
+execute:
+  freeze: true
+  echo: false
+  warning: false
+filters:
+  - ../../filters/course-apparatus.lua
+css:
+  - ../notes-ebook.css
+format:
+  html:
+    include-after-body: ../notes-chapter.html
+  pdf:
+    documentclass: article
+    geometry:
+      - letterpaper
+      - top=1in
+      - bottom=1in
+      - left=1.15in
+      - right=1in
+      - headheight=14pt
+    toc: false
+    colorlinks: true
+    number-sections: false
+    template-partials:
+      - ../_pdf/title.tex
+      - ../_pdf/before-body.tex
+    include-in-header:
+      - ../_pdf/handbook.tex
+format-links: [pdf]
+bibliography: references.bib
+csl: ../lp-apa.csl
+---
+
+```{=latex}
+\markright{Exercise Hints \& Worked Solutions}
+```
+
+This companion is meant to be used in stages. Try the exercise first. Open the
+hint if you need a direction, then compare your work with the detailed solution.
+The solutions emphasize the reasoning behind each calculation, not only the
+final number.
+
+On the website, the hints and solutions are collapsed until selected. In the
+PDF, every hint and solution is printed in full so the document can be read
+offline or used as a conventional solutions manual.
+
+## Exercises and Solutions {.unnumbered #sec-l{{N}}-solutions}
+
+{{< include /lectures/{{SLUG}}/exercises.qmd >}}
+
+```{=latex}
+\clearpage
+```
+
+## References {.unnumbered}
+
+::: {#refs}
+:::

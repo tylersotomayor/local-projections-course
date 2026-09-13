@@ -1,0 +1,107 @@
+
+::: {.content-visible unless-format="pdf"}
+::: {.callout-note appearance="simple" icon=false}
+These notes pair with the [slides](slides.qmd), the
+[{{LAB_TITLE}}](../../interactives/{{LAB}}.qmd) browser lab, and
+[Practicum {{N}}](../../practica/p{{N}}-{{SLUG_REST}}/index.qmd). The PDF
+version, compiled from the same source, is under "Other Formats."
+:::
+:::
+
+<!-- Opening situation (2–4 paragraphs): a decision that must be made before
+     the desired quantity is observed. Then the learning outcomes list, then
+     the prerequisites sentence. See docs/lecture-authoring-guide.md. -->
+
+By the end of the lecture, you should be able to:
+
+1. ...
+
+## First Section Title {#sec-l{{N}}-slug}
+
+### Subsection Title
+
+<!-- Glossary term, marked once at first meaningful use: -->
+<!-- [**local projection**]{.glossary-term data-term="local-projection"} -->
+
+<!-- Explanatory footnote attached to a term: -->
+<!-- [look-ahead bias]{.footnote-term data-index="look-ahead bias"}^[The note text.] -->
+
+<!-- Numbered equation: -->
+<!--
+$$
+y_{t+h}=\mu_h+\beta_h s_t+\boldsymbol\gamma_h'\mathbf w_t+u_{t,h}
+$$ {#eq-l{{N}}-lp}
+-->
+
+<!-- Figure with paired assets and interpretive caption ABOVE (fig-cap-location: top): -->
+<!--
+::: {#fig-l{{N}}-slug}
+::: {.content-visible when-format="html"}
+![](/lectures/{{SLUG}}/figures/fig-l{{N}}-slug.svg){fig-alt="Describe the relationship, not the marks."}
+:::
+::: {.content-visible unless-format="html"}
+![](/lectures/{{SLUG}}/figures/fig-l{{N}}-slug.pdf)
+:::
+[Short title]{.smallcaps}. One or two sentences that name the subject and the conclusion visible in the figure.
+:::
+-->
+
+<!-- Table with caption and label: -->
+<!--
+| Symbol | Meaning |
+|---|---|
+| $h$ | Horizon |
+
+: Notation used in this lecture. {#tbl-l{{N}}-notation}
+-->
+
+<!-- Formal assumptions block with stable anchors: -->
+<!--
+::: {#assumptions-l{{N}} .assumptions}
+[]{#assumption-l{{N}}-a1}**A1 (Name).** Statement. *Meaning.* ... *Used in.* ... *Without it.* ...
+:::
+-->
+
+<!-- Algorithm / lemma callouts: -->
+<!--
+::: {#lem-l{{N}}-name .lemma name="Descriptive name"}
+Statement.
+:::
+-->
+
+## Closing Section: What the Lecture Built and What It Leaves Open {#sec-l{{N}}-summary}
+
+<!-- Return to the opening situation; inventory what can now be produced;
+     make the next lecture necessary with a question, not a preview. -->
+
+## Exercises {.unnumbered #sec-l{{N}}-exercises}
+
+Exercises marked **[core]** prepare material used later in the course.
+
+::: {.solutions-companion .content-visible when-format="pdf"}
+Hints and complete worked solutions are collected in the companion
+[Lecture {{N}} Exercise Hints & Worked Solutions](solutions.pdf). The companion
+restates every problem, so it can be read on its own.
+:::
+
+{{< include /lectures/{{SLUG}}/exercises.qmd >}}
+
+## Further Reading {.unnumbered}
+
+- @citekey, ...
+
+## Lecture Glossary {.unnumbered #sec-l{{N}}-glossary}
+
+The glossary collects the bold technical terms introduced in this lecture.
+
+::: {.content-visible when-format="html"}
+Hover over any dotted-underlined glossary term to see the same definition in
+place.
+:::
+
+::: {.content-visible when-format="pdf"}
+Every bold glossary term in the notes is linked to its definition below. After
+following a link, use the PDF viewer's Back command to return to the passage.
+:::
+
+{{< include /lectures/{{SLUG}}/glossary.qmd >}}

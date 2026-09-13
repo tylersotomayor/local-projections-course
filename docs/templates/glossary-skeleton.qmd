@@ -1,0 +1,17 @@
+::: {.session-glossary}
+[Displayed Term]{.glossary-head data-term="displayed-term"}
+: What the object is, and why it matters or how it behaves. Two sentences; a dictionary fragment is not enough. Entries are alphabetized by displayed term.
+
+[Another Term]{.glossary-head data-term="another-term"}
+: Definition.
+:::
+
+<!-- A term owned by an earlier lecture but re-defined here with more content
+     goes inside its own wrapper so the handbook keeps only the first course
+     definition:
+
+::: {.course-glossary-duplicate}
+[Earlier Term]{.glossary-head data-term="earlier-term"}
+: The fuller definition.
+:::
+-->

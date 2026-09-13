@@ -5,6 +5,9 @@ project:
     - CNAME
     - handbook.pdf
     - "practica/**/*.zip"
+    - "setup/readiness/*.do"
+    - "setup/readiness/*.log"
+    - "practica/**/build/output/**"
   render:
     # The handbook binds the lecture bodies into one PDF; it is built on demand
     # with `quarto render handbook.qmd`, not on every site render.
@@ -15,6 +18,7 @@ project:
     - "!lectures/**/exercises.qmd"
     - "!lectures/**/glossary.qmd"
     - "!lectures/_template/**"
+    - "!docs/**"
     # Downloadable lab projects are distributed as archives, not rendered as
     # parallel pages in the course site.
     - "!practica/**/lab-project/**"

@@ -1,0 +1,30 @@
+### Exercise 1: Short imperative title {.unnumbered .exercise-title #exercise-l{{N}}-1}
+
+::: {.exercise}
+**Problem.** [core, pencil] The problem statement. Tags come from
+[core] [pencil] [computational] [data] [extra]; a Stata task is
+[computational] and says so in the text.
+:::
+
+:::: {.solution-material}
+::: {.callout-tip .exercise-hint collapse="true" icon=false}
+## Hint
+
+The first productive move, the right representation, or the diagnostic
+question. Never the final number.
+:::
+
+::: {.callout-note .exercise-solution collapse="true" icon=false}
+## Detailed solution
+
+Restate notation and plan. Show every consequential step. Keep units and
+conditioning explicit. Interpret the result. Check it with a special case, an
+assertion, an alternative derivation, or a source record. Name a predictable
+mistake.
+
+```stata
+* Stata solutions are complete, runnable, and end with assertions.
+assert abs(_b[s] - 0.8) < 0.05
+```
+:::
+::::

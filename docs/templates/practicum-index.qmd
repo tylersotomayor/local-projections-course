@@ -1,0 +1,90 @@
+---
+title: "P{{N}} · {{PRACTICUM_TITLE}}"
+subtitle: "Replication lab REP{{N}}, Stata problem set STA{{N}}, and the {{LAB_TITLE}} handoff"
+css: [../../lectures/notes-ebook.css]
+bibliography: ../../lectures/{{SLUG}}/references.bib
+toc: true
+format:
+  html:
+    include-after-body: ../../lectures/notes-chapter.html
+---
+
+::: {.callout-tip}
+## What we are building
+
+One paragraph: the end product of this practicum in the student's hands, and
+what it will let them say. The **[complete lab project](p{{N}}-{{SLUG_REST}}-lab.zip)**
+contains the starter do-files, the data with provenance, and automated checks.
+The **[instructor build](build/index.qmd)** is the executed version.
+:::
+
+## The question
+
+The economic or empirical question the lecture posed, restated for the
+practicum, with the one line that says what this practicum answers.
+
+## How to use the lab project
+
+```stata
+cd "p{{N}}-{{SLUG_REST}}-lab"
+do master.do          // runs the checks, the replication, and the problem set
+```
+
+What `master.do` does, in order; what it writes to `output/`; runtime in
+StataNow/SE 19.5.
+
+## Part A · Replication lab REP{{N}}
+
+### The target
+
+| Field | Value |
+|---|---|
+| Paper and version | ... |
+| Exact target | Figure / table component / simulation design |
+| Kind | exact replication · statistical reproduction · conceptual reproduction |
+| Data and vintage | file, source, date |
+| Original code | script and the lines that produce the target |
+| Benchmark | published values and the instructor's reproduced values |
+| Tolerance | ... |
+| Deliberate departures | ... |
+| Runtime | ... |
+
+### Reconstruct the specification
+
+Steps with complete code blocks, each followed by *Read the result* and a
+**Checkpoint**.
+
+### Discrepancy guidance
+
+What to do when your number differs: the discrepancy log fields and the most
+likely causes for this target.
+
+## Part B · Stata problem set STA{{N}}
+
+Construct → estimate → diagnose → interpret. Each task states the deliverable
+and the automated check in `tests/checks.do` that it must pass.
+
+### Task 1 · ...
+
+### Task 2 · ...
+
+## Part C · The browser-lab handoff
+
+Which object the [{{LAB_TITLE}}](../../interactives/{{LAB}}.qmd) exports, and
+which task above consumes it.
+
+## Submission package
+
+| Deliverable | Required contents |
+|---|---|
+| Replication record | Exact target, paper version, data vintage, original code source, execution instructions, numerical comparison |
+| Stata submission | Master do-file, log, saved estimates, figures, automated checks |
+| Interpretation record | Estimand, assumptions, units, uncertainty, limitations |
+| Lab record | Predictions, selected settings, completed checks, the main lesson in one paragraph |
+
+## Mastery requirement
+
+The blueprint's observable requirement for this lecture, as a sentence the
+student should be able to say.
+
+## References {.unnumbered}

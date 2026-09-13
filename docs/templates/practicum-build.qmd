@@ -1,0 +1,62 @@
+---
+title: "P{{N}} · The Instructor Build"
+subtitle: "{{PRACTICUM_TITLE}}, executed in StataNow/SE 19.5"
+author: "Tyler Sotomayor"
+date: {{DATE}}
+css: [../../../lectures/notes-ebook.css]
+bibliography: ../../../lectures/{{SLUG}}/references.bib
+toc: true
+format:
+  html:
+    include-after-body: ../../../lectures/notes-chapter.html
+---
+
+This is the executed version of [Practicum {{N}}](../index.qmd). Every number
+and figure below was produced by `master.do` in the
+[lab project](../p{{N}}-{{SLUG_REST}}-lab.zip), run in batch with StataNow/SE
+19.5 on {{DATE}}; the log is committed beside this page. Stata does not run in
+the site build, so the outputs are static assets: rerun `master.do` to
+regenerate them.
+
+::: {.callout-warning}
+## What this build is and is not
+
+The replication kind (exact / statistical / conceptual), the data vintage, and
+the one caveat a reader needs before quoting a number.
+:::
+
+## Expectations the outputs will test
+
+Before the first run, the prior was: ...
+
+## 1. Replication REP{{N}}
+
+```stata
+* the exact code block that ran, unabridged
+```
+
+```text
+(the relevant log excerpt, unabridged for the target numbers)
+```
+
+![](output/fig-rep{{N}}.svg){fig-alt="..."}
+
+Read the result. Benchmark comparison table with published, reproduced,
+difference, and tolerance.
+
+## 2. Problem set STA{{N}}, solved
+
+One subsection per task: the code, the output, the reading of the result, the
+assertion that passed.
+
+## 3. The lab handoff, checked in Stata
+
+The exported record and the Stata check that confirms or refutes the
+prediction.
+
+## Discrepancy log
+
+| Object | Published | Reproduced | Class | Diagnosis | Status |
+|---|---|---|---|---|---|
+
+## References {.unnumbered}
