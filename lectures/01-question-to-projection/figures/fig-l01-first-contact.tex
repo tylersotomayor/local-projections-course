@@ -1,0 +1,35 @@
+% A first local projection on data: real GDP relative to potential on
+% Ramey-Zubairy military news, controlling only for y_{t-1}, h = 0..20
+% quarters. Point estimates only; no bands until Lectures 5 and 6.
+\documentclass[border=3pt]{standalone}
+\input{lpfig}
+\directlua{dofile("fig-l01-first-contact-data.lua")}
+\begin{document}
+\begin{tikzpicture}
+\begin{axis}[
+  nwaxis,
+  width=12cm, height=6.4cm,
+  xmin=-0.6, xmax=20.6, ymin=0, ymax=0.47,
+  xtick={0,2,...,20},
+  ytick={0,0.1,0.2,0.3,0.4},
+  yticklabels={$0$,$0.1$,$0.2$,$0.3$,$0.4$},
+  xlabel={horizon $h$ (quarters after the news)},
+  ylabel={$\hat\beta_h$},
+]
+
+\addplot[nwBlue, line width=1.3pt, mark=*, mark size=1.6pt,
+         mark options={fill=nwBlue, draw=nwBlue}] coordinates {\lpFcBhat};
+
+\node[text=nwInk, font=\footnotesize, anchor=west]
+  at (axis cs:12.3,0.435) {peak at $h=\lpFcPeakH$: $\hat\beta_{\lpFcPeakH}=\lpFcPeakLab$};
+\draw[nwInk, line width=0.6pt, -{Stealth[length=4pt,width=3pt]}]
+  (axis cs:12.2,0.433) -- (axis cs:10.35,\lpFcPeakB+0.008);
+
+\node[text=nwMut, font=\footnotesize, anchor=north west, align=left]
+  at (axis cs:12.3,0.40)
+  {GDP relative to trend, per unit of news\\
+   scaled by lagged nominal trend GDP};
+
+\end{axis}
+\end{tikzpicture}
+\end{document}

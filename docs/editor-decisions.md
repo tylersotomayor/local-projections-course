@@ -326,9 +326,8 @@ instructor-only.
 labeled course choices. Conditional-path bands appear only in a footnote that
 warns against reading their width as precision.
 
-**D52. Lecture 14.** The REP14 flaw key and any other answer key that must stay
-hidden until an audit lives outside the public repository, under
-`~/macro/local_projections/course-private/instructor-only/` (D54). A sample rule set in code is a
+**D52. Lecture 14.** The REP14 flaw key is published with the Lecture 14 practicum, on its own
+page placed after the audit instructions (D54). A sample rule set in code is a
 *specification* discrepancy. In a live offering the instructor assigns audit
 pairs; the teaching-package audit is formative and the capstone audit is graded
 **(owner)**.
@@ -336,13 +335,11 @@ pairs; the teaching-package audit is formative and the capstone audit is graded
 **D53. Exercise runtimes.** Runtimes quoted as estimates in briefs are timed in
 the build, and [extra] tags follow D26.
 
-**D54. Publication boundary (owner).** Public, in this repository and on the
-site: lecture notes with their exercise hints and worked solutions, slides,
-browser labs, practicum pages, starter do-files, data or acquisition scripts,
-automated checks, replication code and outputs, and the instructor build's
-replication results and checks. Private, in the local repository
-`~/macro/local_projections/course-private/` and never committed here: planning
-briefs (`course-private/lectures/NN-slug/BRIEF.md`), verification and editing
-logs, solutions to the graded Stata problem sets, the REP14 flaw key, and
-grading keys. Student lab archives exclude `solution/`; `master.do solution`
-explains that solutions are not distributed when the folder is absent.
+**D54. Publication (owner, September 13, 2026).** Everything is public:
+planning briefs, verification and editing logs, lecture notes with exercise
+hints and worked solutions, slides, browser labs, practicum pages, lab projects
+with starter and solution do-files, instructor builds with the solved problem
+sets, and answer keys, including the REP14 flaw key. Nothing is held in a
+private repository. Datasets still follow D5: a package without a
+redistribution license is fetched from its authors by a checksummed script,
+which D35 makes automatic.

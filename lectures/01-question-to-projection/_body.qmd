@@ -1,0 +1,307 @@
+
+::: {.content-visible unless-format="pdf"}
+::: {.callout-note appearance="simple" icon=false}
+These notes pair with the [slides](slides.qmd), the
+[Shock-to-Response Explorer](../../interactives/01-shock-to-response-explorer.qmd) browser lab, and
+[Practicum 01](../../practica/p01-question-to-projection/index.qmd). The PDF
+version, compiled from the same source, is under "Other Formats."
+:::
+:::
+
+In late June 1950, North Korean forces crossed into South Korea. Within weeks,
+American newspapers and business magazines were reporting plans for a large and
+lasting rise in military spending. Ramey's narrative series prices such reports
+as the change in the expected [present value]{.footnote-term
+data-index="present value"}^[The present value of a stream of future spending is
+its sum after each year's amount has been discounted back to the present. A
+report that raises planned spending for the next three years moves the present
+value at once, even though the spending itself arrives later.] of government
+spending [@ramey2011]. For the third quarter of 1950 it records news worth 179.4
+billion dollars, which is 0.600 of the previous quarter's nominal
+[trend GDP]{.footnote-term data-index="trend GDP"}^[In the Ramey–Zubairy data,
+trend GDP is a real potential-output series: a sixth-degree polynomial fitted to
+real GDP over 1889Q1–2015Q4, with the Great Depression and World War II left out
+of the fit. It is multiplied by the GDP deflator when a nominal value is needed.
+Lecture 2 explains why dividing output and spending by trend GDP puts them in
+common units.] at an annual rate [@rameyzubairy2018]. A policymaker reading
+those reports would want to know what the buildup would do to output over the
+next three years.
+
+The path that followed is easy to read. Real GDP stood 2.75 percent below trend
+in 1950Q2 and 5.12 percent above it in 1953Q1, ten quarters after the news
+arrived: a rise of 7.87 points of trend GDP. It is tempting to call those 7.87
+points the effect of the news. Many other things happened in the same quarters,
+though. Taxes rose; in the postwar tax record assembled by @romerromer2010, the
+largest increases motivated by spending came during the Korean War. The March
+1951 [Treasury–Federal Reserve Accord]{.footnote-term
+data-index="Treasury–Federal Reserve Accord"}^[The agreement that ended the
+Federal Reserve's wartime commitment to peg the prices of government bonds,
+leaving it free to let interest rates rise [@hetzelleach2001].] freed monetary
+policy. Wage and price controls were imposed in January 1951 and dismantled
+early in 1953 [@rockoff1984]. The rise of 7.87 points mixes the news with all of
+these.
+
+So the question is not what happened next. It is what happened *because of* the
+news, and answering it requires a path nobody observed: the one GDP would have
+followed had the news not arrived, with everything else as it was. This lecture
+turns that comparison into a regression. It starts in an economy small enough
+that the unobserved path can be computed exactly, derives a regression whose
+coefficient recovers the comparison, builds that regression's rows by hand, and
+returns to the quarterly data with one estimated response and an honest list of
+what it has not yet earned.
+
+By the end of the lecture, you should be able to:
+
+1. define the causal response at horizon $h$ as the gap between the realized
+   path and the path without the intervention, and distinguish it from the
+   change since the date before the intervention;
+2. iterate $y_t=\rho y_{t-1}+\theta_0 s_t+v_t$ forward to derive
+   $\theta_h=\theta_0\rho^h$, and show that the horizon-$h$ regression of
+   $y_{t+h}$ on a constant, $s_t$, and $y_{t-1}$ has $\beta_h=\theta_h$,
+   $\gamma_h=\rho^{h+1}$, and a residual built from disturbances dated $t$
+   through $t+h$ and shocks dated $t+1$ through $t+h$;
+3. build the regression rows for $h=0,1,2$ by hand, state $T_h=T-h-p$, and
+   compute $\hat\beta_h$ from those rows;
+4. estimate $\hat\beta_h$ for $h=0,\dots,H$ in a Stata loop that stores
+   $\hat\beta_h$ and $T_h$, and draw a response graph whose caption names the
+   intervention, the units, and the counterfactual; and
+5. explain what one estimated coefficient measures and where its variation
+   comes from, why a single episode cannot identify it, and which claims a
+   first data application has not yet earned.
+
+The lecture assumes ordinary least squares (the slope as a covariance over a
+variance, and the slope on a 0–1 regressor as a difference in means),
+expectation and independence, and elementary Stata: `tsset`, time-series
+operators, loops, `regress`, and stored results. No time-series course is
+assumed; the one autoregression we need is built from scratch and iterated by
+hand. Standard errors, instruments, and vector autoregressions come later.
+
+## The Question: An Intervention, an Outcome, and a Path We Never See {#sec-l01-question}
+
+The Korean episode has three parts that recur in every problem of this course.
+Something happens at a date: news arrives, a policy rate moves, a state changes
+its banking law. An outcome is measured at that date and afterwards. And the
+question compares that outcome with what it would otherwise have been. This
+section names the three parts and then shows, in an economy small enough to
+compute by hand, why the comparison cannot be read off a single observed path.
+
+### Intervention, Outcome, and Two Paths
+
+Write $s_t$ for the
+[**intervention variable**]{.glossary-term data-term="intervention-variable"}
+dated $t$ and $y_t$ for the outcome. In the opening, $s_t$ is a quarter's
+military news measured as a fraction of trend GDP, and $y_t$ is real GDP divided
+by trend GDP. The name is deliberately neutral. Calling $s_t$ a shock would
+claim that nothing else systematically moves with it, and that claim needs an
+argument, which Lecture 3 supplies. Until then $s_t$ is simply the variable
+whose effect we want.
+
+The data record one sequence of outcomes, the
+[**realized path**]{.glossary-term data-term="realized-path"}. It carries the
+effect of $s_t$ together with the effect of every other disturbance that arrived
+before and after. The [**counterfactual**]{.glossary-term
+data-term="counterfactual"} path, written $y^{c}_t$, is the sequence the same
+economy would have produced without the intervention at date $t$ and with every
+other disturbance exactly as it was. The superscript $c$ marks counterfactual
+objects throughout the course. Nobody observes $y^{c}_t$.
+
+The [**causal response**]{.glossary-term data-term="causal-response"} $h$
+periods after the intervention is the gap between the two paths at the same
+date:
+
+$$
+\theta_h=y_{t+h}-y^{c}_{t+h}.
+$$ {#eq-l01-causal-response}
+
+Read @eq-l01-causal-response across, not down the calendar. Both terms are
+dated $t+h$, so the equation compares two versions of one period, not one period
+with an earlier one. The units of $\theta_h$ are the units of $y$; when the
+intervention is a one-unit change in $s_t$, they are units of $y$ per unit of
+$s$. In the Korean example the gap would be measured in points of trend GDP.
+The response carries no date subscript here because, in the economies of this
+lecture, the gap does not depend on when the intervention arrives;
+@sec-l01-two-clocks and @sec-l01-smallest-model show why. This is the sense in
+which @stockwatson2018 define dynamic causal effects in macroeconomics: a
+comparison of the outcomes that would follow different values of the
+intervention, not a description of what followed the one value that occurred.
+
+### The Change Since the Date Before
+
+The number the opening read off the data was a different object: the change in
+the realized path since the period before the news, $y_{t+h}-y_{t-1}$. To see
+how it relates to $\theta_h$, add and subtract $y^{c}_{t+h}$:
+
+$$
+y_{t+h}-y_{t-1}
+=\underbrace{\bigl(y_{t+h}-y^{c}_{t+h}\bigr)}_{\theta_h}
++\underbrace{\bigl(y^{c}_{t+h}-y_{t-1}\bigr)}_{\text{change without the intervention}}.
+$$ {#eq-l01-change-decomposition}
+
+The first bracket is the causal response. The second is the change the economy
+would have made anyway, driven by everything except the intervention. The two
+sides of @eq-l01-change-decomposition agree with $\theta_h$ only when the second
+bracket is zero, that is, only when the counterfactual path would have stayed at
+its pre-intervention level. Nothing guarantees that. A wartime economy with
+rising taxes, a newly independent central bank, and price controls had many
+reasons to move.
+
+The decomposition relies on one fact about timing. An intervention at $t$
+cannot change $y_{t-1}$, so the realized and counterfactual paths coincide
+before $t$ and the same $y_{t-1}$ appears in both brackets. If people act on
+news before it is recorded, that fact fails; Lecture 3 treats the consequences
+under the name of anticipation.
+
+### A Twelve-Period Economy Where the Counterfactual Is Known
+
+To watch the two objects diverge with actual numbers, we need an economy in
+which the counterfactual can be computed. Take twelve periods and the rule
+
+$$
+y_t=0.5\,y_{t-1}+s_t+v_t,\qquad t=1,\dots,12,\qquad y_0=0.
+$$
+
+Each period's outcome is half of the previous outcome, plus the intervention,
+plus a [disturbance]{.footnote-term data-index="disturbance"}^[A disturbance is a
+random term that stands for everything moving the outcome other than the
+variables written in the equation. In a simulation the computer draws it; in
+data it is whatever the model leaves out.] $v_t$ that stands for everything
+else. The intervention is binary: $s_t=1$ in a period when it occurs and $0$
+otherwise. Both inputs were drawn once in Stata with
+[seed]{.footnote-term data-index="random-number seed"}^[A seed fixes the
+starting point of Stata's pseudo-random number generator, so the same commands
+reproduce the same draws on every run. The course fixes each seed before
+looking at any result and keeps the draw it produces.] 1. Each $v_t$ is a
+standard normal draw rounded to one decimal, and each $s_t$ is an independent
+draw equal to one with probability 0.3. The interventions happen to fall at
+$t=1,5,10,12$. @sec-l01-smallest-model returns to this rule with general
+coefficients; here it only has to generate numbers.
+
+<!-- D32: binary intervention, so every slope in the hand calculations is a
+     difference in means; seed 1 was fixed before any result was seen. -->
+
+@tbl-l01-hand-table lists the draws and the realized path. To build the
+counterfactual for the intervention at $t=5$, set $s_5=0$, hold every $v_t$ at
+its drawn value, and run the rule again.
+
+| $t$ | $s_t$ | $v_t$ | $y_t$ | $y^{c}_t$ | $y_t-y^{c}_t$ | $y_t-y_4$ |
+|---:|---:|---:|---:|---:|---:|---:|
+| 1 | 1 | 0.9 | 1.9000 | 1.9000 | 0 | — |
+| 2 | 0 | 0.5 | 1.4500 | 1.4500 | 0 | — |
+| 3 | 0 | 0.6 | 1.3250 | 1.3250 | 0 | — |
+| 4 | 0 | −0.6 | 0.0625 | 0.0625 | 0 | 0.0000 |
+| 5 | 1 | −1.7 | −0.6688 | −1.6688 | 1 | −0.7313 |
+| 6 | 0 | 0.2 | −0.1344 | −0.6344 | 0.5 | −0.1969 |
+| 7 | 0 | 2.1 | 2.0328 | 1.7828 | 0.25 | 1.9703 |
+| 8 | 0 | −1.3 | −0.2836 | −0.4086 | 0.125 | −0.3461 |
+| 9 | 0 | 0.8 | 0.6582 | 0.5957 | 0.0625 | 0.5957 |
+| 10 | 1 | 0.6 | 1.9291 | 1.8979 | 0.03125 | 1.8666 |
+| 11 | 0 | −0.9 | 0.0646 | 0.0489 | 0.015625 | 0.0021 |
+| 12 | 1 | 1.5 | 2.5323 | 2.5245 | 0.0078125 | 2.4698 |
+
+: The twelve-period economy. The counterfactual $y^{c}_t$ removes only the intervention at $t=5$ and keeps every $v_t$. Outcome columns are displayed to four decimals with ties rounded away from zero; the gap column is exact, and every calculation in the notes uses exact values. {#tbl-l01-hand-table}
+
+Before period 5 the two paths are identical, as the timing argument requires.
+At $t=5$ the realized outcome is $y_5=0.5(0.0625)+1-1.7=-0.66875$, while the
+counterfactual is $y^{c}_5=0.5(0.0625)+0-1.7=-1.66875$. The gap is exactly one:
+the intervention added one unit. Yet the realized outcome *fell* by 0.73125 from
+$y_4=0.0625$, because a disturbance of $-1.7$ arrived in the same period.
+
+From then on the gap halves every period. At $t=6$ both paths carry forward half
+of their own previous value and receive the same $v_6=0.2$, so the only
+difference left is half of the previous gap, $0.5\times1=0.5$. At $t=7$ the gap
+is 0.25 and at $t=8$ it is 0.125. The change since $t=4$ behaves erratically by
+comparison: $-0.196875$, then $1.9703125$, then $-0.34609375$.
+@fig-l01-realized-counterfactual shows both comparisons.
+
+::: {#fig-l01-realized-counterfactual}
+::: {.content-visible when-format="html"}
+![](/lectures/01-question-to-projection/figures/fig-l01-realized-counterfactual.svg){fig-alt="Two twelve-period outcome paths coincide through period 4, separate by exactly one unit at period 5, and the gap then halves each period, while the realized path swings well above and below its period-4 value."}
+:::
+::: {.content-visible unless-format="html"}
+![](/lectures/01-question-to-projection/figures/fig-l01-realized-counterfactual.pdf)
+:::
+[Two paths, one gap]{.smallcaps}. The causal response to the $t=5$ intervention is the vertical distance between the realized and counterfactual paths at the same date: 1, 0.5, 0.25, and 0.125 at $t=5,\dots,8$. The change from the pre-intervention value $y_4$ is a different quantity, $-0.731$ at $t=5$ and $1.970$ at $t=7$, because it also contains every disturbance that arrived after $t=4$.
+:::
+
+@eq-l01-change-decomposition accounts for the difference exactly. At $t=7$ the
+realized change of 1.9703125 splits into the causal response 0.25 and a
+counterfactual change $y^{c}_7-y_4=1.7828125-0.0625=1.7203125$, most of it the
+disturbance $v_7=2.1$. Reading the realized change as the effect would overstate
+the effect nearly eightfold at $t=7$ and get its sign wrong at $t=5$.
+
+Two features of the example matter for everything that follows. First, the gaps
+1, 0.5, 0.25, 0.125 do not depend on any $v_t$. Change the disturbances and the
+realized path moves, but the gap sequence does not. Second, the gaps were
+computable only because we knew the rule and every disturbance. With real data
+neither is available, so the counterfactual has to be reconstructed from other
+information. The rest of the lecture is about how a regression does that, and
+about what it has to assume.
+
+The gap at $t=7$ has also been described in two ways already: by the date at
+which it is measured, and by its distance of two periods from the intervention.
+Keeping those descriptions apart is the next step.
+
+## Two Clocks {#sec-l01-two-clocks}
+
+A statement such as "the response at $t=7$ is 0.25" hides a choice. It could be
+a fact about period 7, or a fact about what happens two periods after an
+intervention. In the twelve-period economy the readings coincide because only
+one intervention was switched off. They separate as soon as a second
+intervention is considered, and a regression will pool many.
+
+### Calendar Time and Horizon
+
+[**Calendar time**]{.glossary-term data-term="calendar-time"} $t$ is the date of
+an observation: a quarter such as 1950Q3, or a period in a simulation. In this
+course it also dates the intervention and, later, the regression row built
+around it. The [**horizon**]{.glossary-term data-term="horizon"} $h$ counts the
+periods after the intervention at which the outcome is measured, so $y_{t+h}$ is
+read "the outcome $h$ periods after date $t$." The horizon is measured in the
+data's own periods: quarters in the Ramey–Zubairy data and abstract periods in
+the simulations. The opening's 1953Q1 is horizon 10 for news dated 1950Q3.
+
+The response at $h=0$ is the
+[**impact response**]{.glossary-term data-term="impact-response"}, the effect
+within the period of the intervention. In the twelve-period economy it is the
+gap of 1 at $t=5$. Horizons count upward to a largest horizon $H$ chosen by the
+researcher: $H=2$ for the hand calculations of @sec-l01-rows-by-hand, $H=12$ for
+the simulations, and $H=20$ quarters for the military-news data.
+
+Now switch off the intervention at $t=10$ instead of the one at $t=5$, again
+holding every $v_t$ fixed. The gaps at $t=10,11,12$ are 1, 0.5, and 0.25. On
+the calendar these are new numbers at new dates. On the horizon clock they are
+the same numbers as before: 1 at $h=0$, 0.5 at $h=1$, 0.25 at $h=2$. The rule
+treats an intervention the same way whenever it arrives, so the gap depends on
+the horizon and not on the date. That property is what allows a single sequence
+$\theta_0,\theta_1,\dots$ to describe the response to every intervention in a
+sample. It is an assumption about the economy, stated formally as
+[A1](#assumption-l01-a1) below; if the effect of news depended on the state of
+the economy, the response would carry a date as well, which is the subject of
+Lecture 9.
+
+### The Impulse-Response Function
+
+The sequence of causal responses read as a function of the horizon,
+
+$$
+h\longmapsto\theta_h,\qquad h=0,1,\dots,H,
+$$
+
+is the [**impulse-response function**]{.glossary-term
+data-term="impulse-response-function"}. It answers "how does the effect evolve
+after the intervention?" with a curve rather than a number. In the twelve-period
+economy the curve starts at 1 and halves each period.
+
+The two clocks sort the objects of this course into two kinds. The realized
+path of GDP after 1950Q3 is a function of calendar time and belongs to one
+episode. The impulse-response function is a function of horizon and describes
+what an intervention does whenever it happens. The rise of 7.87 points was a
+calendar-time fact about 1950–1953. The policymaker's question was a
+horizon-time question.
+
+The distinction has a practical consequence. A regression that estimates the
+response at one horizon returns one number, so it estimates one point on the
+curve. Drawing the whole curve takes one estimate per horizon, and each estimate
+uses its own rows of data, a fact that @sec-l01-rows-by-hand makes concrete.
+Before estimating anything, though, we need to know what the curve looks like
+in an economy where it can be derived rather than simulated.

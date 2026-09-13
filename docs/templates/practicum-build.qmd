@@ -44,11 +44,10 @@ Before the first run, the prior was: ...
 Read the result. Benchmark comparison table with published, reproduced,
 difference, and tolerance.
 
-## 2. Problem set STA{{N}}: checks
+## 2. Problem set STA{{N}}, solved
 
-Which automated checks the instructor solution passes, task by task. The
-solution code and the graded answers are not published (D54); they are kept
-with the private course materials.
+One subsection per task: the code, the output, the reading of the result, the
+assertion that passed.
 
 ## 3. The lab handoff, checked in Stata
 

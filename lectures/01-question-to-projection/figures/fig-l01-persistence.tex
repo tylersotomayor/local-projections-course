@@ -1,0 +1,46 @@
+% The causal response theta_h = rho^h for two persistence values. Both start at
+% the same impact; each period multiplies the response by rho, so by h = 7 one
+% has all but vanished and the other is still near half its impact.
+\documentclass[border=3pt]{standalone}
+\input{lpfig}
+\directlua{dofile("fig-l01-persistence-data.lua")}
+\begin{document}
+\begin{tikzpicture}
+\begin{axis}[
+  nwaxis,
+  width=12cm, height=6.4cm,
+  xmin=-0.4, xmax=12.6, ymin=0, ymax=1.1,
+  xtick={0,1,...,12},
+  ytick={0,0.25,0.5,0.75,1},
+  xlabel={horizon $h$ (periods after the shock)},
+  ylabel={response $\theta_h$},
+]
+
+% guide at h = 7
+\addplot[nwMut, densely dotted, line width=0.6pt]
+  coordinates {(7,0) (7,1.02)};
+
+\addplot[nwOrange, line width=1.2pt, mark=*, mark size=1.7pt,
+         mark options={fill=nwOrange, draw=nwOrange}] coordinates {\lpPsLo};
+\addplot[nwBlue, line width=1.3pt, mark=*, mark size=1.7pt,
+         mark options={fill=nwBlue, draw=nwBlue}] coordinates {\lpPsHi};
+
+% direct labels
+\node[text=nwBlue, font=\footnotesize, anchor=south west]
+  at (axis cs:3.2,0.8) {$\rho=0.9$};
+\node[text=nwOrange, font=\footnotesize, anchor=south west]
+  at (axis cs:2.15,0.3) {$\rho=0.5$};
+
+% same impact
+\node[text=nwInk, font=\footnotesize, anchor=west]
+  at (axis cs:0.25,1.035) {same impact, $\theta_0=1$};
+
+% the h = 7 comparison
+\node[text=nwBlue, font=\footnotesize, anchor=west]
+  at (axis cs:7.2,\lpPsHiSeven+0.06) {$0.9^7=\lpPsHiSevenLab$};
+\node[text=nwOrange, font=\footnotesize, anchor=south west]
+  at (axis cs:7.2,\lpPsLoSeven+0.03) {$0.5^7=\lpPsLoSevenLab$};
+
+\end{axis}
+\end{tikzpicture}
+\end{document}

@@ -15,11 +15,3 @@ practica/**/lab-project/output/
 !setup/readiness/readiness_expected_output.log
 !practica/**/build/output/*.log
 
-# Planning, verification logs, graded problem-set solutions, and answer keys
-# live in the private course repository (~/macro/local_projections/course-private),
-# never here (editor decision D54).
-lectures/*/BRIEF.md
-lectures/*/VERIFY-*.md
-lectures/*/EDIT-log.md
-practica/*/VERIFY-*.md
-practica/*/lab-project/solution/
