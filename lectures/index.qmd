@@ -8,8 +8,8 @@ glossary and footnote popovers, a LaTeX-compiled PDF, and reveal.js slides.
 Exercises appear in the notes with collapsible hints and worked solutions; the
 solutions companion prints them in full.
 
-The [course handbook](../handbook.pdf) binds every lecture into one PDF,
-followed by the course glossary and index.
+The course handbook will bind the finished lectures into one PDF, followed by
+the course glossary and index.
 
 | # | Lecture | Practicum | Status |
 |---|---------|-----------|--------|

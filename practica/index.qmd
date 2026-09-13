@@ -19,7 +19,7 @@ README; the **instructor build** is the executed version with its Stata output.
 |---|-----------|--------------------|---------|--------|
 | P01 | Recover the basic LP estimator | Levels-LP component of Jordà–Taylor's Example 1 simulation | 1 | in development |
 | P02 | Complete the levels / long-differences comparison | Both persistence settings of Example 1 | 2 | in development |
-| P03 | Reconstruct an empirical specification | Shelter-inflation response, Inoue–Jordà–Kuersteiner Figure 4 | 3 | in development |
+| P03 | Reconstruct an empirical specification | Cumulative shelter-price response, Inoue–Jordà–Kuersteiner Figure 4, August 2024 author archive | 3 | in development |
 | P04 | A baseline fiscal multiplier | Ramey–Zubairy linear cumulative multipliers | 4 | in development |
 | P05 | Compare coverage procedures | Newey–West versus lag-augmented bands, Inoue–Jordà–Kuersteiner Figure 2 | 5 | in development |
 | P06 | Pointwise versus simultaneous bands | Inoue–Jordà–Kuersteiner Figure 3 | 6 | in development |
@@ -30,7 +30,7 @@ README; the **instructor build** is the executed version with its Stata output.
 | P11 | Reconstruct historical response paths | Normal versus financial recessions, *When Credit Bites Back* | 11 | in development |
 | P12 | Banking deregulation and the labor share | Dube–Girardi–Jordà–Taylor application | 12 | in development |
 | P13 | Reproduce and scrutinize a counterfactual | Jordà–Taylor Example 8 | 13 | in development |
-| P14 | Independent reproduction audit | Another team's capstone package | 14 | spec live |
+| P14 | Independent reproduction audit | A course teaching package built on the Ramey–Zubairy benchmark, then another team's capstone | 14 | in development |
 | ★ | [Capstone](../capstone/index.qmd) | A published result, one extension, a peer audit | 4–14 | spec live |
 
 : {tbl-colwidths="[5,30,43,8,14]"}
