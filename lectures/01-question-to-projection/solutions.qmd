@@ -1,0 +1,69 @@
+---
+title: "Exercise Hints & Worked Solutions"
+subtitle: "Lecture 01"
+author: "Tyler Sotomayor"
+
+kicker: "Lecture 01"
+course: "Local Projections: From First Principles to Empirical Research"
+contents-label: "Contents of this companion"
+contents-depth: 3
+solutions-document: true
+
+number-sections: false
+toc-depth: 3
+link-citations: true
+
+execute:
+  freeze: true
+  echo: false
+  warning: false
+filters:
+  - ../../filters/course-apparatus.lua
+css:
+  - ../notes-ebook.css
+format:
+  html:
+    include-after-body: ../notes-chapter.html
+  pdf:
+    documentclass: article
+    geometry:
+      - letterpaper
+      - top=1in
+      - bottom=1in
+      - left=1.15in
+      - right=1in
+      - headheight=14pt
+    toc: false
+    colorlinks: true
+    number-sections: false
+    template-partials:
+      - ../_pdf/title.tex
+      - ../_pdf/before-body.tex
+    include-in-header:
+      - ../_pdf/handbook.tex
+format-links: [pdf]
+bibliography: references.bib
+csl: ../lp-apa.csl
+---
+
+```{=latex}
+\markright{Exercise Hints \& Worked Solutions}
+```
+
+This companion is meant to be used in stages. Try the exercise first. Open the
+hint if you need a direction, then compare your work with the detailed solution.
+The solutions emphasize the reasoning behind each calculation, not only the
+final number.
+
+On the website, the hints and solutions are collapsed until selected. In the
+PDF, every hint and solution is printed in full so the document can be read
+offline or used as a conventional solutions manual.
+
+## Exercises and Solutions {.unnumbered #sec-l01-solutions}
+
+{{< include /lectures/01-question-to-projection/exercises.qmd >}}
+
+<!-- The Lecture 01 exercises cite no sources, so the companion has no
+     reference list; an empty one printed a blank final page. If an exercise
+     adds a citation, end the file with a LaTeX \clearpage, a References
+     heading marked {.unnumbered}, and an empty refs div. -->

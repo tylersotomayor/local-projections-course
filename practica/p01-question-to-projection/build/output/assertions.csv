@@ -1,0 +1,201 @@
+step,check,result
+checks,"helpers: lp_assert passes a true statement",pass
+checks,"helpers: lp_assert stops with r(9) on a false statement",pass
+checks,"helpers: lp_close stops with r(9) when two numbers differ by more than tol",pass
+checks,"helpers: lp_close accepts a difference below tol",pass
+checks,"helpers: lp_sha256 returns the SHA-256 of a known text",pass
+checks,"helpers: lp_json_get reads a top-level string",pass
+checks,"helpers: lp_json_get reads a nested number",pass
+checks,"helpers: lp_json_get reads a boolean",pass
+checks,"helpers: lp_json_get reads a negative number exactly",pass
+checks,"helpers: lp_json_get reads an array",pass
+checks,"helpers: lp_json_get finds the direction and the number in a hypothesis",pass
+checks,"helpers: lp_json_get reports a missing key",pass
+checks,"data: hand_table.csv has the SHA-256 in PROVENANCE.md",pass
+checks,"data: hand_table.csv has 12 rows and the variables t, s, v, y",pass
+checks,"data: hand_table.csv dates run t = 1, ..., 12",pass
+checks,"data: interventions exactly at t = 1, 5, 10, 12",pass
+checks,"data: v is rounded to one decimal",pass
+checks,"data: y follows y_t = 0.5 y_(t-1) + s_t + v_t with y_0 = 0 (1e-6)",pass
+checks,"data: onedraw_rho05_seed2.csv has the SHA-256 in PROVENANCE.md",pass
+checks,"data: onedraw_rho05_seed2.csv has 200 rows and the variables t, s, v, y",pass
+checks,"data: onedraw_rho05_seed2.csv dates run t = 1, ..., 200",pass
+checks,"data: y follows y_t = 0.5 y_(t-1) + s_t + v_t (1e-5, float storage)",pass
+checks,"data: s in onedraw_rho05 has mean near 0 and standard deviation near 1",pass
+checks,"data: onedraw_rho09_seed2.csv has the SHA-256 in PROVENANCE.md",pass
+checks,"data: onedraw_rho09_seed2.csv has 200 rows and the variables t, s, v, y",pass
+checks,"data: onedraw_rho09_seed2.csv dates run t = 1, ..., 200",pass
+checks,"data: y follows y_t = 0.9 y_(t-1) + s_t + v_t (1e-5, float storage)",pass
+checks,"data: s in onedraw_rho09 has mean near 0 and standard deviation near 1",pass
+checks,"data: make_sim_data.do regenerates hand_table.csv byte for byte",pass
+checks,"data: make_sim_data.do regenerates onedraw_rho05_seed2.csv byte for byte",pass
+checks,"data: make_sim_data.do regenerates onedraw_rho09_seed2.csv byte for byte",pass
+checks,"vendor: SSBias_IntcpYLagdiffN_95.do is the file of JEL-Code commit 655696c (SHA-256)",pass
+checks,"vendor: all-simulate.do is the file of JEL-Code commit 655696c (SHA-256)",pass
+checks,"vendor: SSBias_IntcpYLagdiffN_95.dta is the file of JEL-Code commit 655696c (SHA-256)",pass
+checks,"vendor: LICENSE is the file of JEL-Code commit 655696c (SHA-256)",pass
+checks,"vendor: the authors' shipped means hold 11 horizons with t, rl, rt",pass
+checks,"vendor: horizons 0 to 10 and true response 0.95^h (1e-6)",pass
+checks,"benchmark: REP01-levels-lp.csv has the SHA-256 in PROVENANCE.md",pass
+checks,"benchmark: REP01-levels-lp.csv holds 11 REP01 rows",pass
+checks,"benchmark: horizons 0 to 10 with n = 99 - h",pass
+checks,"benchmark: every horizon has a mean",pass
+checks,"benchmark: REP01-author-R200-v195.csv has the SHA-256 in PROVENANCE.md",pass
+checks,"benchmark: REP01-author-R200-v195.csv holds horizons 0 to 10 with rl and rt",pass
+checks,"handoff: l01-explorer-handoff.json is a Lecture 01 record",pass
+checks,"handoff: the record holds thirteen Lab 3 estimates",pass
+checks,"data: RZDAT.xlsx is the file of the February 2018 package (SHA-256)",pass
+checks,"data: sheet rzdat has quarter, rgdp, rgdp_pott6, pgdp, news, ngov",pass
+checks,"data: 508 quarters from 1889Q1 to 2015Q4",pass
+checks,"data: news is recorded in 504 of those quarters",pass
+rep01,"REP01 step 1: the h = 0 regression has T_0 = 99 rows",pass
+rep01,"REP01 step 1: draw 1 at h = 0",pass
+rep01,"REP01 step 2: T_h = 99 - h in draw 1",pass
+rep01,"REP01 step 2: draw 1 at h = 0",pass
+rep01,"REP01 step 2: draw 1 at h = 1",pass
+rep01,"REP01 step 2: draw 1 at h = 2",pass
+rep01,"REP01 step 2: draw 1 at h = 3",pass
+rep01,"REP01 step 2: draw 1 at h = 4",pass
+rep01,"REP01 step 2: draw 1 at h = 5",pass
+rep01,"REP01 step 2: draw 1 at h = 6",pass
+rep01,"REP01 step 2: draw 1 at h = 7",pass
+rep01,"REP01 step 2: draw 1 at h = 8",pass
+rep01,"REP01 step 2: draw 1 at h = 9",pass
+rep01,"REP01 step 2: draw 1 at h = 10",pass
+rep01,"REP01: every draw has T_h = 99 - h rows",pass
+rep01,"REP01: R draws at each of 11 horizons",pass
+rep01,"REP01 benchmark file: 11 rows of the levels series",pass
+rep01,"REP01: the benchmark's derived row count is T_h = 99 - h",pass
+rep01,"REP01: the true response equals the authors' rt (1e-6)",pass
+rep01,"REP01: the true response equals the benchmark's true_response (1e-6)",pass
+rep01,"REP01 exact: first 500 draws against the published benchmark at h = 0",pass
+rep01,"REP01 exact: first 500 draws against the published benchmark at h = 1",pass
+rep01,"REP01 exact: first 500 draws against the published benchmark at h = 2",pass
+rep01,"REP01 exact: first 500 draws against the published benchmark at h = 3",pass
+rep01,"REP01 exact: first 500 draws against the published benchmark at h = 4",pass
+rep01,"REP01 exact: first 500 draws against the published benchmark at h = 5",pass
+rep01,"REP01 exact: first 500 draws against the published benchmark at h = 6",pass
+rep01,"REP01 exact: first 500 draws against the published benchmark at h = 7",pass
+rep01,"REP01 exact: first 500 draws against the published benchmark at h = 8",pass
+rep01,"REP01 exact: first 500 draws against the published benchmark at h = 9",pass
+rep01,"REP01 exact: first 500 draws against the published benchmark at h = 10",pass
+rep01,"REP01 exact: first 200 draws against the authors' script at 200 draws at h = 0",pass
+rep01,"REP01 exact: first 200 draws against the authors' script at 200 draws at h = 1",pass
+rep01,"REP01 exact: first 200 draws against the authors' script at 200 draws at h = 2",pass
+rep01,"REP01 exact: first 200 draws against the authors' script at 200 draws at h = 3",pass
+rep01,"REP01 exact: first 200 draws against the authors' script at 200 draws at h = 4",pass
+rep01,"REP01 exact: first 200 draws against the authors' script at 200 draws at h = 5",pass
+rep01,"REP01 exact: first 200 draws against the authors' script at 200 draws at h = 6",pass
+rep01,"REP01 exact: first 200 draws against the authors' script at 200 draws at h = 7",pass
+rep01,"REP01 exact: first 200 draws against the authors' script at 200 draws at h = 8",pass
+rep01,"REP01 exact: first 200 draws against the authors' script at 200 draws at h = 9",pass
+rep01,"REP01 exact: first 200 draws against the authors' script at 200 draws at h = 10",pass
+rep01,"REP01 statistical: mean of 500 draws within 3 Monte Carlo SE of the 10,000-draw mean at h = 0 (z =  1.00)",pass
+rep01,"REP01 statistical: mean of 500 draws within 3 Monte Carlo SE of the 10,000-draw mean at h = 1 (z =  0.42)",pass
+rep01,"REP01 statistical: mean of 500 draws within 3 Monte Carlo SE of the 10,000-draw mean at h = 2 (z =  1.71)",pass
+rep01,"REP01 statistical: mean of 500 draws within 3 Monte Carlo SE of the 10,000-draw mean at h = 3 (z =  0.79)",pass
+rep01,"REP01 statistical: mean of 500 draws within 3 Monte Carlo SE of the 10,000-draw mean at h = 4 (z =  1.15)",pass
+rep01,"REP01 statistical: mean of 500 draws within 3 Monte Carlo SE of the 10,000-draw mean at h = 5 (z =  0.77)",pass
+rep01,"REP01 statistical: mean of 500 draws within 3 Monte Carlo SE of the 10,000-draw mean at h = 6 (z =  0.83)",pass
+rep01,"REP01 statistical: mean of 500 draws within 3 Monte Carlo SE of the 10,000-draw mean at h = 7 (z =  0.89)",pass
+rep01,"REP01 statistical: mean of 500 draws within 3 Monte Carlo SE of the 10,000-draw mean at h = 8 (z =  0.04)",pass
+rep01,"REP01 statistical: mean of 500 draws within 3 Monte Carlo SE of the 10,000-draw mean at h = 9 (z =  0.31)",pass
+rep01,"REP01 statistical: mean of 500 draws within 3 Monte Carlo SE of the 10,000-draw mean at h = 10 (z =  0.14)",pass
+rep01,"REP01 cross-check: authors' script against this file at R = 500 and h = 0",pass
+rep01,"REP01 cross-check: authors' script against this file at R = 500 and h = 1",pass
+rep01,"REP01 cross-check: authors' script against this file at R = 500 and h = 2",pass
+rep01,"REP01 cross-check: authors' script against this file at R = 500 and h = 3",pass
+rep01,"REP01 cross-check: authors' script against this file at R = 500 and h = 4",pass
+rep01,"REP01 cross-check: authors' script against this file at R = 500 and h = 5",pass
+rep01,"REP01 cross-check: authors' script against this file at R = 500 and h = 6",pass
+rep01,"REP01 cross-check: authors' script against this file at R = 500 and h = 7",pass
+rep01,"REP01 cross-check: authors' script against this file at R = 500 and h = 8",pass
+rep01,"REP01 cross-check: authors' script against this file at R = 500 and h = 9",pass
+rep01,"REP01 cross-check: authors' script against this file at R = 500 and h = 10",pass
+rep01,"REP01 cross-check: the authors' true response equals 0.95^h (1e-6)",pass
+sta01,"Task 1: T_h = 11 - h at h = 0, 1, 2 (T = 12, p = 1)",pass
+sta01,"Task 1: every row is an intervention row or a comparison row",pass
+sta01,"Task 1: the rows run from t = 2 to t = 12 - h",pass
+sta01,"Task 1: 3 intervention rows at h = 0 and 2 at h = 1 and h = 2",pass
+sta01,"Task 2: the slope by hand equals the difference in means (1e-6)",pass
+sta01,"Task 2: regress returns the slope computed by hand (1e-6)",pass
+sta01,"Task 2: the regressions with and without y_(t-1) use the same rows",pass
+sta01,"Task 2: slopes without the control 0.617322, -0.983356, 2.050024 (1e-6)",pass
+sta01,"Task 2: slopes with y_(t-1) 0.575667, -1.050405, 2.153022 (1e-6)",pass
+sta01,"Task 3: the draw holds T = 200 periods",pass
+sta01,"Task 3: T_h = 199 - h at every horizon",pass
+sta01,"Task 3: beta_0 = 0.878940",pass
+sta01,"Task 3: beta_12 = -0.293297",pass
+sta01,"Task 3: the estimate lies below theta_h at all 13 horizons",pass
+sta01,"Task 4: 199 - h rows with the control and 200 - h without",pass
+sta01,"Task 4: with R = 200 the mean at rho = 0.9 and h = 8 is 0.370337",pass
+sta01,"Task 4: with R = 200 the standard deviation at rho = 0.9 and h = 8 is 0.211226",pass
+sta01,"Task 4: without y_(t-1) the spread is larger at every h when rho = 0.9 (R = 200)",pass
+sta01,"Task 4: with R = 500 the mean at rho = 0.9 and h = 8 is 0.397256",pass
+sta01,"Task 4: with R = 500 the standard deviation at rho = 0.9 and h = 8 is 0.228403",pass
+sta01,"Task 4: the caption names the intervention and its unit",pass
+sta01,"Task 4: the caption gives the outcome's units",pass
+sta01,"Task 4: the caption gives the horizon unit",pass
+sta01,"Task 4: the caption names the counterfactual",pass
+sta01,"Task 4: the response graph is exported to output/pset/fig-sta01-one-draw.svg",pass
+sta01,"Task 5: 508 consecutive quarters, 1889Q1-2015Q4",pass
+sta01,"Task 5: newsy has 504 nonmissing quarters",pass
+sta01,"Task 5: newsy in 1950Q3 is 0.600073",pass
+sta01,"Task 5: 1941Q4 has the largest share, 0.261211 (1e-6)",pass
+sta01,"Task 5: 1950Q3 has the second largest share, 0.195838 (1e-6)",pass
+sta01,"Task 5: without 1950Q3 the h = 8 regression has 495 rows",pass
+sta01,"Task 5: at h = 8 without 1950Q3 the estimate is 0.433969",pass
+sta01,"Task 5: with Ramey-Zubairy controls the h = 10 regression has 490 rows",pass
+sta01,"Task 5: with Ramey-Zubairy controls the h = 10 estimate is 0.29376385",pass
+sta01,"Task 5: T_h = 504 - h",pass
+sta01,"Task 5: beta_8 = 0.361906",pass
+sta01,"Task 5: beta_10 = 0.404210",pass
+sta01,"Task 5: the response peaks at h = 10",pass
+sta01,"Task 5: the caption names the intervention and its unit",pass
+sta01,"Task 5: the caption gives the outcome's units",pass
+sta01,"Task 5: the caption gives the horizon unit",pass
+sta01,"Task 5: the caption names the counterfactual",pass
+sta01,"Task 5: the not-yet-argued paragraph has a sentence on units",pass
+sta01,"Task 5: the not-yet-argued paragraph has a sentence on controls",pass
+sta01,"Task 5: the not-yet-argued paragraph has a sentence on identification",pass
+sta01,"Task 5: the not-yet-argued paragraph has a sentence on uncertainty",pass
+sta01,"Task 5: the not-yet-argued paragraph has a sentence on episodes",pass
+sta01,"Task 5: the response graph is exported to output/pset/fig-sta01-first-contact.svg",pass
+handoff,"Handoff: the record comes from the Lecture 01 Explorer",pass
+handoff,"Handoff Lab 2: handoff/hand_table.csv holds the shipped observations",pass
+handoff,"Handoff Lab 2: 9 rows at h = 2, as in the browser",pass
+handoff,"Handoff Lab 2: the slope at h = 2 against the browser",pass
+handoff,"Handoff Lab 3: the record names one of the two shipped draws",pass
+handoff,"Handoff Lab 3: thirteen browser estimates",pass
+handoff,"Handoff Lab 3: handoff/onedraw_rho09_seed2.csv holds the shipped observations",pass
+handoff,"Handoff Lab 3: 199 rows at h = 0",pass
+handoff,"Handoff Lab 3: the slope at h = 0 against the browser",pass
+handoff,"Handoff Lab 3: 198 rows at h = 1",pass
+handoff,"Handoff Lab 3: the slope at h = 1 against the browser",pass
+handoff,"Handoff Lab 3: 197 rows at h = 2",pass
+handoff,"Handoff Lab 3: the slope at h = 2 against the browser",pass
+handoff,"Handoff Lab 3: 196 rows at h = 3",pass
+handoff,"Handoff Lab 3: the slope at h = 3 against the browser",pass
+handoff,"Handoff Lab 3: 195 rows at h = 4",pass
+handoff,"Handoff Lab 3: the slope at h = 4 against the browser",pass
+handoff,"Handoff Lab 3: 194 rows at h = 5",pass
+handoff,"Handoff Lab 3: the slope at h = 5 against the browser",pass
+handoff,"Handoff Lab 3: 193 rows at h = 6",pass
+handoff,"Handoff Lab 3: the slope at h = 6 against the browser",pass
+handoff,"Handoff Lab 3: 192 rows at h = 7",pass
+handoff,"Handoff Lab 3: the slope at h = 7 against the browser",pass
+handoff,"Handoff Lab 3: 191 rows at h = 8",pass
+handoff,"Handoff Lab 3: the slope at h = 8 against the browser",pass
+handoff,"Handoff Lab 3: 190 rows at h = 9",pass
+handoff,"Handoff Lab 3: the slope at h = 9 against the browser",pass
+handoff,"Handoff Lab 3: 189 rows at h = 10",pass
+handoff,"Handoff Lab 3: the slope at h = 10 against the browser",pass
+handoff,"Handoff Lab 3: 188 rows at h = 11",pass
+handoff,"Handoff Lab 3: the slope at h = 11 against the browser",pass
+handoff,"Handoff Lab 3: 187 rows at h = 12",pass
+handoff,"Handoff Lab 3: the slope at h = 12 against the browser",pass
+handoff,"Handoff Lab 4: recognized controls and rows",pass
+handoff,"Handoff Lab 4: 495 rows, as stored in the browser",pass
+handoff,"Handoff Lab 4: the selected estimate against the browser",pass
+handoff,"Handoff Lab 4: 496 rows on the full sample",pass
+handoff,"Handoff Lab 4: the full-sample estimate against the browser",pass

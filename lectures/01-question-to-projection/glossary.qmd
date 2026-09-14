@@ -1,0 +1,61 @@
+::: {.session-glossary}
+[Autoregressive process]{.glossary-head data-term="autoregressive-process"}
+: A series whose value each period equals a linear function of its own past values plus a new disturbance. Its coefficient on the past sets how long a disturbance keeps echoing in later values, which makes it the smallest model in which a response has a shape.
+
+[Calendar time]{.glossary-head data-term="calendar-time"}
+: The date $t$ of an observation, which in a local projection also dates the intervention and the regression row. Estimates at one horizon pool rows from many calendar dates, so a response describes no single episode.
+
+[Causal response]{.glossary-head data-term="causal-response"}
+: The difference between the realized and the counterfactual outcome at the same date, written $\theta_h$ when that date is $h$ periods after the intervention. It is the causal estimand of a local projection, defined before any data are used, and a regression coefficient equals it only under assumptions about how the intervention arises.
+
+[Counterfactual]{.glossary-head data-term="counterfactual"}
+: The path the outcome would have followed without the intervention, with every other disturbance as it actually was. It is never observed, so every causal response compares data with something that has to be reconstructed.
+
+[Estimand]{.glossary-head data-term="estimand"}
+: The population quantity a procedure is meant to recover, fixed before any sample is drawn. For a local projection the causal estimand is the response $\theta_h$, while the regression targets the projection coefficient $\beta_h$; the two coincide only under identifying assumptions. Naming the estimand separates two questions that are easily blurred: whether the coefficient a regression targets is the right object, and how close a particular estimate comes to that coefficient.
+
+[Estimation sample]{.glossary-head data-term="estimation-sample"}
+: The set $\mathcal T_h$ of rows in which every variable of the horizon-$h$ regression is nonmissing, with size $T_h$. Leads remove rows at the end and lags remove rows at the start, so $T_h=T-h-p$ when those are the only gaps and the sample changes with the horizon.
+
+[Horizon]{.glossary-head data-term="horizon"}
+: The number of periods $h$ between the intervention and the date at which the outcome is measured, with $h=0$ the impact period. Each horizon has its own regression, and the impulse-response function is read along this clock rather than the calendar.
+
+[Impact response]{.glossary-head data-term="impact-response"}
+: The response at horizon zero, within the period of the intervention. In the AR(1) economy of Lecture 1 it equals $\theta_0$, and every later response is a multiple of it.
+
+[Impulse-response function]{.glossary-head data-term="impulse-response-function"}
+: The sequence of responses $\theta_0,\theta_1,\dots,\theta_H$ read as a function of the horizon. A single regression coefficient is one point on it, so any claim about its shape involves several estimates at once.
+
+[Intervention variable]{.glossary-head data-term="intervention-variable"}
+: The variable $s_t$ whose effect on the outcome is wanted, named without presuming that it is a shock. The neutral name keeps open the question, argued in Lecture 3, of whether its coefficient can carry a causal reading.
+
+[Lag]{.glossary-head data-term="lag"}
+: The value of a series $k$ periods earlier, $y_{t-k}$. It is missing in the first $k$ rows of a sample, so every lag used as a control costs rows at the start.
+
+[Lead]{.glossary-head data-term="lead"}
+: The value of a series $k$ periods later, $y_{t+k}$. It is missing in the last $k$ rows, which is why the horizon-$h$ regression loses $h$ rows at the end of the sample.
+
+[Local projection]{.glossary-head data-term="local-projection"}
+: A separate regression for each horizon of the outcome $h$ periods ahead on the intervention variable and predetermined controls. Each regression estimates its coefficient on the intervention directly, without iterating a model forward, and under identifying assumptions that coefficient is one point of the impulse-response function.
+
+[Observed shock]{.glossary-head data-term="observed-shock"}
+: An intervention variable that is measured directly, unpredictable from the past, and independent of the other disturbances that move the outcome. When the intervention is an observed shock and its effects are linear and the same at every date, the local-projection coefficient on it equals the causal response in population.
+
+[Persistence]{.glossary-head data-term="persistence"}
+: How slowly a series returns toward its mean after a disturbance, measured in the AR(1) by $\rho$. The same impact produces a brief response when persistence is low and a long one when it is high, and high persistence also makes long-horizon estimates noisier.
+
+[Population projection]{.glossary-head data-term="population-projection"}
+: The best linear predictor of one variable from a set of regressors in the population, defined by an error that has mean zero and is uncorrelated with every regressor. Its coefficients are what least squares estimates, and it exists whenever the relevant second moments are finite and the regressors are not collinear, whether or not the relationship it summarizes is causal.
+
+[Projection coefficient]{.glossary-head data-term="projection-coefficient"}
+: A coefficient of a population projection, such as $\beta_h$ on $s_t$, the coefficient a local projection targets. It describes a joint distribution and equals the causal estimand $\theta_h$ only when assumptions about how the intervention arises make the intervention unrelated to everything else, beyond the controls, that moves the outcome.
+
+[Realized path]{.glossary-head data-term="realized-path"}
+: The sequence of outcomes actually observed, which combines the intervention's effect with every other disturbance of the same periods. Its change since the date before the intervention is a fact about history, not a measure of the intervention's effect.
+
+[Regression row]{.glossary-head data-term="regression-row"}
+: One dated observation of a horizon-$h$ regression, pairing the intervention and controls at date $t$ with the outcome at date $t+h$. Rows are dated by the intervention, not by the outcome, so the same date indexes a row at every horizon.
+
+[Response graph]{.glossary-head data-term="response-graph"}
+: A plot of estimated responses $\hat\beta_h$ against the horizon $h$ with the units of the intervention and the outcome stated. Its caption names the intervention, the units, and the counterfactual that the vertical axis is measured against, because the curve alone cannot say what it compares.
+:::

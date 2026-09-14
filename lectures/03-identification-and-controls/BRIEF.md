@@ -134,7 +134,7 @@ Switching all three mechanisms off gives Lecture 1's AR(1) economy, where $\beta
 | $q_t$ | Sandbox same-month variable (mediator or recursively ordered confounder) | scalar | $t$ | s.d. $\ge1$ | §5 | Lab 3 |
 | $v_t$, $\xi_t$ | Other shock to $y$; idiosyncratic shock to $q$ | scalar | $t$ | s.d. 1 | §3, §5 | L6, L7 reuse $v_t$ |
 | $\varsigma_t$; $\sigma_\varepsilon,\sigma_\varsigma$ | Measurement noise in a proxy $s_t=\varepsilon_t+\varsigma_t$; s.d. of $\varepsilon_t$ and of $\varsigma_t$ | scalar | $t$ | units of $s$ (1 in the sandbox check) | §1 (§6.8) | — |
-| $\theta_0$ | Impact effect of $s_t$ on $y_t$ in the sandbox | scalar | $h=0$ | $y$ per $s$ | §3 | labs |
+| $\theta_0$ | Impact response of $s_t$ on $y_t$ in the sandbox | scalar | $h=0$ | $y$ per $s$ | §3 | labs |
 | $\psi_s$, $\psi_y$ | Loadings of $s_t$ and $y_t$ on $x_{t-1}$ | scalars | — | per unit $x$ | §3 | Lab 1 |
 | $\zeta$ | Response of $y_{t-1}$ to news about $\varepsilon_t$ | scalar | one month early | $y$ per unit shock | §4 | Lab 2 |
 | $\nu_s,\nu_y,\nu_v$ | $q$ on $s$; $y$ on $q$; $q$ on $v$ | scalars | same month | per unit | §5 | Lab 3 |

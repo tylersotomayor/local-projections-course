@@ -1,0 +1,207 @@
+{
+  "lecture": "01",
+  "lab": "Shock-to-Response Explorer",
+  "lab1": {
+    "settings": {
+      "intervention_at_t5": true,
+      "theta0": 1,
+      "rho": 0.9
+    },
+    "gap_t5_to_t8": [
+      1,
+      0.9,
+      0.81,
+      0.729
+    ],
+    "change_since_t4_t5_to_t8": [
+      -0.87301,
+      -0.758719,
+      1.244143,
+      -0.353281
+    ],
+    "prediction": "Sample record. At t = 5 the gap stays at 1, because the impact response does not involve rho. At t = 7 the gap rises from 0.25 to 0.81. The change since t = 4 moves as well, but not by the same amount."
+  },
+  "lab2": {
+    "settings": {
+      "h": 2,
+      "control_y_lag": false,
+      "single_episode": false
+    },
+    "file": "hand_table.csv",
+    "rows": "2-10",
+    "T_h": 9,
+    "intervention_rows": [
+      5,
+      10
+    ],
+    "beta_h": 2.050024,
+    "theta_h": 0.25,
+    "used_in": "Exercise 4; STA01 Tasks 1-2",
+    "prediction": "Sample record. Going from h = 0 to h = 2, rows 11 and 12 leave, and the intervention in row 12 leaves with them. The h = 2 slope will be no closer to 0.25 than the h = 0 slope is to 1."
+  },
+  "lab3": {
+    "settings": {
+      "rho": 0.9,
+      "T": 200,
+      "control_y_lag": true,
+      "band_shown": true
+    },
+    "file": "onedraw_rho09_seed2.csv",
+    "keep_if_t_at_most": 200,
+    "beta_h": [
+      0.87894,
+      0.85326,
+      0.612737,
+      0.611046,
+      0.548477,
+      0.583099,
+      0.50912,
+      0.417788,
+      0.240595,
+      0.130293,
+      -0.028821,
+      -0.1172,
+      -0.293297
+    ],
+    "T_h": [
+      199,
+      198,
+      197,
+      196,
+      195,
+      194,
+      193,
+      192,
+      191,
+      190,
+      189,
+      188,
+      187
+    ],
+    "theta_h": [
+      1,
+      0.9,
+      0.81,
+      0.729,
+      0.6561,
+      0.59049,
+      0.531441,
+      0.478297,
+      0.430467,
+      0.38742,
+      0.348678,
+      0.313811,
+      0.28243
+    ],
+    "stored_band_p5_p95": [
+      [
+        0.879349,
+        1.1253
+      ],
+      [
+        0.692191,
+        1.093415
+      ],
+      [
+        0.553873,
+        1.054064
+      ],
+      [
+        0.427804,
+        1.035753
+      ],
+      [
+        0.319972,
+        0.957689
+      ],
+      [
+        0.203801,
+        0.922669
+      ],
+      [
+        0.177696,
+        0.86804
+      ],
+      [
+        0.098724,
+        0.807388
+      ],
+      [
+        0.046705,
+        0.792668
+      ],
+      [
+        -0.007893,
+        0.69356
+      ],
+      [
+        -0.043725,
+        0.658474
+      ],
+      [
+        -0.066248,
+        0.669901
+      ],
+      [
+        -0.106968,
+        0.635417
+      ]
+    ],
+    "used_in": "Exercises 6-7; STA01 Tasks 3-4",
+    "prediction": "Sample record. Without the control the curve mostly gets noisier, most visibly at short horizons; it does not move systematically toward theta_h."
+  },
+  "lab4": {
+    "settings": {
+      "h": 8,
+      "controls": "toy",
+      "rows": "drop1950q3"
+    },
+    "stored": {
+      "beta_h": 0.433969,
+      "T_h": 495,
+      "beta_h_full_sample": 0.361906,
+      "T_h_full_sample": 496
+    },
+    "hypothesis": "Sample record. Dropping 1950Q3 will lower the h = 8 coefficient to about 0.30, because Korea is one of the two largest news quarters.",
+    "used_in": "Exercise 9; STA01 Task 5"
+  },
+  "stata_checks": [
+    "* Lab 2 -> Exercise 4 and STA01 Tasks 1-2",
+    "import delimited using hand_table.csv, clear",
+    "tsset t",
+    "regress F2.y s if t >= 2",
+    "assert e(N) == 9",
+    "assert abs(_b[s] - (2.050024)) < 1e-6",
+    "",
+    "* Lab 3 -> Exercises 6-7 and STA01 Tasks 3-4",
+    "import delimited using onedraw_rho09_seed2.csv, clear",
+    "tsset t",
+    "keep if t <= 200",
+    "tempname P",
+    "postfile `P' h double beta_h T_h using results_onedraw, replace",
+    "forvalues h = 0/12 {",
+    "    quietly regress F`h'.y s L.y",
+    "    post `P' (`h') (_b[s]) (e(N))",
+    "}",
+    "postclose `P'",
+    "use results_onedraw, clear",
+    "assert T_h == 199 - h",
+    "assert abs(beta_h - (0.87894)) < 1e-6 if h == 0",
+    "assert abs(beta_h - (0.85326)) < 1e-6 if h == 1",
+    "assert abs(beta_h - (0.612737)) < 1e-6 if h == 2",
+    "assert abs(beta_h - (0.611046)) < 1e-6 if h == 3",
+    "assert abs(beta_h - (0.548477)) < 1e-6 if h == 4",
+    "assert abs(beta_h - (0.583099)) < 1e-6 if h == 5",
+    "assert abs(beta_h - (0.50912)) < 1e-6 if h == 6",
+    "assert abs(beta_h - (0.417788)) < 1e-6 if h == 7",
+    "assert abs(beta_h - (0.240595)) < 1e-6 if h == 8",
+    "assert abs(beta_h - (0.130293)) < 1e-6 if h == 9",
+    "assert abs(beta_h - (-0.028821)) < 1e-6 if h == 10",
+    "assert abs(beta_h - (-0.1172)) < 1e-6 if h == 11",
+    "assert abs(beta_h - (-0.293297)) < 1e-6 if h == 12",
+    "",
+    "* Lab 4 -> Exercise 9 and STA01 Task 5, after the data step that builds qdate, y, and newsy",
+    "regress F8.y newsy L.y if qdate != tq(1950q3)",
+    "display _b[newsy]    // compare with lab4.hypothesis in this record"
+  ]
+}

@@ -63,11 +63,7 @@ offline or used as a conventional solutions manual.
 
 {{< include /lectures/{{SLUG}}/exercises.qmd >}}
 
-```{=latex}
-\clearpage
-```
-
-## References {.unnumbered}
-
-::: {#refs}
-:::
+<!-- No References section: a companion whose exercises cite nothing printed a
+     blank final page under an empty heading. If an exercise cites a work, end
+     the file with a LaTeX \clearpage, a References heading marked
+     {.unnumbered}, and an empty refs div. -->

@@ -272,7 +272,7 @@ $\sigma_v$, $y^{c}_t$). $\sigma_s$ is used early, with its meaning from ledger
 | $v_t$ | Outcome disturbance, independent of $\{s_t\}$ | scalar series | $t$ | units of $y$ | §smallest-model | L6, L7 toy economies (**new**) |
 | $\sigma_s,\ \sigma_v$ | Standard deviations of $s_t$, $v_t$ | scalars | — | units of $s$, of $y$ | §residual | L2 normalization; L6 (**$\sigma_v$ new**) |
 | $\rho$ | AR(1) persistence | scalar, $\lvert\rho\rvert<1$ here | — | unitless | §smallest-model | L2 ($\rho\to1$), L5 |
-| $\theta_0$ | Impact effect of $s_t$ on $y_t$ | scalar | $h=0$ | units of $y$ per unit of $s$ | §smallest-model | L6, L7 |
+| $\theta_0$ | Impact response of $s_t$ on $y_t$ | scalar | $h=0$ | units of $y$ per unit of $s$ | §smallest-model | L6, L7 |
 | $\theta_h$ | Causal response: realized minus counterfactual at $t+h$ | scalar per $h$ | $t+h$ | units of $y$ per unit of $s$ | §question (words), §smallest-model (formula) | L3 conditions for $\beta_h=\theta_h$; L10 $\theta_h(e)$ |
 | $y^{c}_t$ | Counterfactual path with one intervention removed | scalar series | dates of $y_t$ | units of $y$ | §question | L13 $y^{c}_{t+h}$ (**new here**) |
 | $\beta_h$ | Population projection coefficient on $s_t$ | scalar per $h$ | row $t$, outcome $t+h$ | units of $y$ per unit of $s$ | §model-to-regression | all |

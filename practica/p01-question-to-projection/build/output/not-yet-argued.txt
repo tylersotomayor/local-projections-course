@@ -1,0 +1,7 @@
+What has not yet been argued
+
+units: The coefficients are responses of a level relative to a fitted trend per unit of scaled news, and whether that level, its change, or its accumulation answers the policymaker's question is not yet settled.
+controls: One lag of GDP is a choice, and Ramey and Zubairy's controls lower the ten-quarter coefficient from 0.404 to 0.294.
+identification: Reading the curve as the effect of the news requires the news to be unpredictable and unrelated to the taxes, monetary policy, price controls, and wars that arrived with it, which nothing here has shown.
+uncertainty: No standard error or band has been computed, and the overlapping horizons make the residuals serially correlated.
+episodes: Two quarters, 1941Q4 and 1950Q3, supply 45.7 percent of the variation in the news, and dropping 1950Q3 alone moves the eight-quarter estimate from 0.362 to 0.434.

@@ -1,0 +1,1617 @@
+---
+title: "Shock-to-Response Explorer"
+subtitle: "Lecture 01 lab · Four controlled experiments on what one local-projection coefficient measures"
+toc: true
+page-layout: full
+code-tools: false
+---
+
+```{=html}
+<style>
+.lab-label { font-size: 0.9rem; color: var(--bs-secondary-color); margin: 0.75rem 0 0.25rem; }
+.lab-sentence { border-left: 3px solid var(--bs-link-color); padding: 0.1rem 0 0.1rem 0.9rem; margin: 0.75rem 0 1.25rem; }
+.lab-table { font-variant-numeric: tabular-nums; font-size: 0.9rem; margin-bottom: 0.5rem; }
+.lab-table th, .lab-table td { padding: 0.2rem 0.6rem; text-align: right; white-space: nowrap; }
+.lab-table th:first-child, .lab-table td:first-child { text-align: left; }
+.lab-table tr.lab-out td { color: var(--bs-secondary-color); }
+.lab-table tr.lab-treated td { font-weight: 600; }
+.lab-table-wrap { overflow-x: auto; }
+.lab-note textarea { width: min(40rem, 100%); }
+.lab-json { max-height: 22rem; overflow: auto; font-size: 0.8rem; }
+.lab-downloads a { margin: 0 0.5rem 0.5rem 0; }
+.katex-display { overflow-x: auto; overflow-y: hidden; padding: 0.1rem 0; }
+</style>
+```
+
+Work through the labs in order the first time. In each one, stop at the
+prediction before moving a control, and write the prediction in the box
+under it; the box travels with your settings into the handoff record at the
+end of the page. Use the display to test the prediction, then explain what
+changed and what stayed fixed. Open the explanation only after you have an
+answer. Every panel says whether it shows a **live calculation**, a **stored
+simulation result**, or a **stored result** estimated in Stata.
+
+The labs follow [Lecture 01](../lectures/01-question-to-projection/notes.qmd)
+from the gap between two paths to a coefficient estimated on a century of
+quarterly data. Labs 2 and 3 compute on the same observations that
+[Practicum 01](../practica/p01-question-to-projection/index.qmd) ships, so a
+coefficient shown here and the same regression run in Stata agree to at least
+six decimals. Lab 4 shows estimates only. The Ramey–Zubairy workbook is
+downloaded by the practicum's script and never reaches the browser.
+
+## Lab 1: Two Paths, One Gap
+
+The twelve-period economy of
+[the notes](../lectures/01-question-to-projection/notes.qmd#sec-l01-question)
+follows
+
+$$
+y_t=\rho\,y_{t-1}+\theta_0 s_t+v_t,\qquad t=1,\dots,12,\qquad y_0=0,
+$$
+
+with interventions $s_t=1$ at $t=1,5,10,12$ and the disturbances $v_t$ of
+the hand table held at their drawn values. The counterfactual path $y^{c}_t$
+removes only the intervention at $t=5$. The causal response $h$ periods after
+it is the gap between the two paths at the same date,
+$\theta_h=y_{5+h}-y^{c}_{5+h}$, measured in units of $y$ per unit of $s$. A
+reader of the realized path alone sees something else: the change since the
+date before, $y_{5+h}-y_4$. The defaults, $\rho=0.5$ and $\theta_0=1$,
+reproduce the hand table.
+
+**Predict before using the controls.** If $\rho$ rises from 0.5 to 0.9 with
+$\theta_0$ fixed, does the gap at $t=5$ change? Does the gap at $t=7$? Does
+the change in $y$ since $t=4$?
+
+```{ojs}
+//| echo: false
+viewof lab1Prediction = Inputs.textarea({
+  label: "Your prediction for Lab 1",
+  placeholder: "At t = 5 the gap will … because …",
+  rows: 2
+})
+```
+
+```{ojs}
+//| echo: false
+viewof lab1Shock = Inputs.toggle({
+  label: html`Intervention at <i>t</i> = 5 (<i>s</i><sub>5</sub> = 1)`,
+  value: true
+})
+viewof lab1Theta0 = Inputs.range([0, 2], {
+  value: 1, step: 0.05,
+  label: html`Impact response <i>θ</i><sub>0</sub> (units of <i>y</i> per unit of <i>s</i>)`
+})
+viewof lab1Rho = Inputs.range([0, 0.95], {
+  value: 0.5, step: 0.05,
+  label: html`Persistence <i>ρ</i> (unitless)`
+})
+```
+
+```{ojs}
+//| echo: false
+lab1 = lab1Economy(lab1Rho, lab1Theta0, lab1Shock)
+```
+
+::: {.lab-label}
+*Live calculation.* Both paths are recomputed from the rule whenever a control
+moves. The disturbances $v_t$ and the interventions at $t=1,10,12$ never
+change. Orange segments are the gaps from $t=5$ on; the dotted line holds
+$y_4$ so the change since $t=4$ can be read against it.
+:::
+
+```{ojs}
+//| echo: false
+{
+  const values = lab1.rows.flatMap(d => [d.y, d.yc]);
+  const lo = Math.min(...values);
+  const hi = Math.max(...values);
+  const pad = 0.1 * Math.max(hi - lo, 1);
+  return Plot.plot({
+  width: 920,
+  height: 360,
+  style: plotStyle,
+  x: { label: "Calendar date t (periods)", domain: [-0.3, 12.5], ticks: 13 },
+  y: { label: "Outcome y (units of y)", grid: true, domain: [lo - 2.5 * pad, hi + pad] },
+  color: {
+    legend: true,
+    domain: ["Realized path y", "Counterfactual path yᶜ (no intervention at t = 5)", "Gap y − yᶜ"],
+    range: ["var(--bs-link-color)", "var(--bs-secondary-color)", "var(--bs-orange)"]
+  },
+  marks: [
+    Plot.ruleY([0], { stroke: "var(--bs-border-color)" }),
+    Plot.ruleY([lab1.y4], {
+      x1: 4, x2: 12.3,
+      stroke: "var(--bs-secondary-color)", strokeDasharray: "1 3"
+    }),
+    Plot.text([lab1.y4], {
+      x: 12.35, y: d => d, text: () => "y₄", textAnchor: "start",
+      fill: "var(--bs-secondary-color)"
+    }),
+    Plot.line(lab1.rows.map(d => ({ t: d.t, value: d.yc, series: "Counterfactual path yᶜ (no intervention at t = 5)" })), {
+      x: "t", y: "value", stroke: "series", strokeWidth: 2, strokeDasharray: "5 4"
+    }),
+    Plot.line(lab1.rows.map(d => ({ t: d.t, value: d.y, series: "Realized path y" })), {
+      x: "t", y: "value", stroke: "series", strokeWidth: 2
+    }),
+    Plot.link(lab1.rows.filter(d => Math.abs(d.gap) > 1e-12).map(d => ({ ...d, series: "Gap y − yᶜ" })), {
+      x1: "t", x2: "t", y1: "yc", y2: "y", stroke: "series", strokeWidth: 3.5
+    }),
+    Plot.dot(lab1.rows, { x: "t", y: "yc", r: 3.5, stroke: "var(--bs-secondary-color)", fill: "var(--bs-body-bg)" }),
+    Plot.dot(lab1.rows, { x: "t", y: "y", r: 3.5, fill: "var(--bs-link-color)" }),
+    Plot.text(lab1.interventions.filter(d => d.t !== 5), {
+      x: "t", text: "label", frameAnchor: "bottom", dy: -6, fill: "var(--bs-secondary-color)"
+    }),
+    Plot.text(lab1.interventions.filter(d => d.t === 5), {
+      x: "t", text: "label", frameAnchor: "bottom", dy: -6, fill: "var(--bs-orange)"
+    })
+  ]
+  });
+}
+```
+
+::: {.lab-label}
+*Live calculation.* The same quantities read on the horizon clock, $h=t-5$.
+Orange dots are the gaps; the blue line is $\theta_0\rho^h$ from
+[the notes](../lectures/01-question-to-projection/notes.qmd#eq-l01-theta);
+grey rings are the changes since $t=4$.
+:::
+
+```{ojs}
+//| echo: false
+Plot.plot({
+  width: 920,
+  height: 280,
+  style: plotStyle,
+  x: { label: "Horizon h = t − 5 (periods after the intervention)", ticks: 8, inset: 10 },
+  y: { label: "Units of y", grid: true, inset: 10 },
+  color: {
+    legend: true,
+    domain: ["θ₀ρʰ", "Gap y − yᶜ at t = 5 + h", "Change since t = 4"],
+    range: ["var(--bs-link-color)", "var(--bs-orange)", "var(--bs-secondary-color)"]
+  },
+  marks: [
+    Plot.ruleY([0], { stroke: "var(--bs-border-color)" }),
+    Plot.line(lab1.horizon.map(d => ({ h: d.h, value: d.formula, series: "θ₀ρʰ" })), {
+      x: "h", y: "value", stroke: "series", strokeWidth: 2
+    }),
+    Plot.dot(lab1.horizon.map(d => ({ h: d.h, value: d.change, series: "Change since t = 4" })), {
+      x: "h", y: "value", stroke: "series", r: 4.5, strokeWidth: 1.5
+    }),
+    Plot.dot(lab1.horizon.map(d => ({ h: d.h, value: d.gap, series: "Gap y − yᶜ at t = 5 + h" })), {
+      x: "h", y: "value", fill: "series", r: 4
+    })
+  ]
+})
+```
+
+```{ojs}
+//| echo: false
+labTable(
+  ["Date t", "Horizon h", "Gap y − yᶜ", "Change since t = 4", "Everything else, yᶜ − y₄"],
+  lab1.rows.filter(d => d.t >= 5 && d.t <= 8).map(d => ({
+    cells: [d.t, d.t - 5, labFmt(d.gap, 4), labFmt(d.change, 4), labFmt(d.other, 4)]
+  }))
+)
+```
+
+```{ojs}
+//| echo: false
+labSentence(lab1Sentence(lab1))
+```
+
+**Try these comparisons.** Change one thing at a time.
+
+1. Hold $\theta_0$ at 1 and move $\rho$ from 0.5 to 0.9. Read the gap at
+   $t=5$, then the gap at $t=7$, then the change since $t=4$.
+2. Return $\rho$ to 0.5 and set $\theta_0$ to 2. Compare each gap with its
+   value at $\theta_0=1$, and do the same for the change since $t=4$.
+3. Return $\theta_0$ to 1 and switch the intervention at $t=5$ off. Note
+   which of the two paths moves.
+
+::: {.callout-note collapse="true"}
+## Why the Impact Response Ignores Persistence (open after you have committed to an answer)
+
+Subtract the counterfactual rule from the realized rule. The disturbances and
+the interventions at $t=1,10,12$ appear in both and cancel, so the gap
+$g_t=y_t-y^{c}_t$ follows a rule of its own,
+$g_t=\rho\,g_{t-1}+\theta_0\,(s_t-s^{c}_t)$. Before $t=5$ the gap is zero. At
+$t=5$ there is no earlier gap to carry forward, so $g_5=\theta_0$ whatever
+$\rho$ is. After that each period keeps the share $\rho$ of the previous gap,
+which gives $g_{5+h}=\theta_0\rho^h$, the response of
+[the notes' formula](../lectures/01-question-to-projection/notes.qmd#eq-l01-theta).
+Raising $\rho$ to 0.9 leaves the gap at $t=5$ at 1 and raises the gap at
+$t=7$ from 0.25 to 0.81.
+
+The change since $t=4$ follows no such rule. By
+[the decomposition in the notes](../lectures/01-question-to-projection/notes.qmd#eq-l01-change-decomposition)
+it is the gap plus the change the counterfactual path makes on its own, and
+that second piece carries every disturbance after $t=4$ (the draw $v_7=2.1$
+above all) together with the echo of the intervention at $t=1$ in $y_4$,
+which depends on both $\rho$ and $\theta_0$. Doubling $\theta_0$ doubles every
+gap exactly, but it does not double the change since $t=4$. Switching the
+intervention off moves the realized path onto the counterfactual path. The
+counterfactual path does not move, because it never contained $s_5$.
+:::
+
+## Lab 2: Which Rows Enter the Horizon-$h$ Regression
+
+A [regression row](../lectures/01-question-to-projection/notes.qmd#sec-l01-rows-by-hand)
+pairs the intervention $s_t$ and the control $y_{t-1}$ with the outcome
+$y_{t+h}$. Row $t$ needs $y_{t-1}$, so row 1 never enters, and it needs
+$y_{t+h}$, so the last $h$ rows leave. With $T=12$ periods and $p=1$ lag the
+sample has $T_h$ rows, and without the control the slope is a difference in
+means, with $\bar y_1$ and $\bar y_0$ the mean outcomes $h$ periods after
+intervention rows and after the other rows:
+
+$$
+T_h=T-h-p,\qquad \hat\beta_h=\bar y_1-\bar y_0 .
+$$
+
+This lab always uses the stored hand table, the realized path at $\rho=0.5$
+and $\theta_0=1$ with every intervention in place, whatever Lab 1's controls
+show. As in the notes, the rows start at $t=2$ with and without the control, so
+the control switch changes a regressor and never the rows.
+
+**Predict before using the controls.** Which rows leave when $h$ goes from 0
+to 2, and which intervention rows leave with them? Will the slope at $h=2$ be
+closer to $\theta_2=0.25$ than the slope at $h=0$ is to $\theta_0=1$?
+
+```{ojs}
+//| echo: false
+viewof lab2Prediction = Inputs.textarea({
+  label: "Your prediction for Lab 2",
+  placeholder: "Going from h = 0 to h = 2, rows … leave, and …",
+  rows: 2
+})
+```
+
+```{ojs}
+//| echo: false
+viewof lab2H = Inputs.radio([0, 1, 2, 3], {
+  value: 0,
+  label: html`Horizon <i>h</i> (periods after the intervention)`
+})
+viewof lab2Control = Inputs.toggle({
+  label: html`Add the control <i>y</i><sub><i>t</i>−1</sub>`,
+  value: false
+})
+viewof lab2Single = Inputs.toggle({
+  label: html`Single episode: keep only the intervention at <i>t</i> = 5`,
+  value: false
+})
+```
+
+```{ojs}
+//| echo: false
+lab2 = lab2Rows(lab2H, lab2Control, lab2Single)
+```
+
+::: {.lab-label}
+*Live calculation.* Each line is one regression row, dated by its
+intervention. Grey squares are $y_{t-1}$, rings are $s_t$ (orange when the
+regression codes $s_t=1$), blue dots are the outcome $y_{t+h}$, and crosses mark
+values that lie outside the data. Faded rows are not in the horizon-$h$ sample.
+:::
+
+```{ojs}
+//| echo: false
+{
+  const e = lab2;
+  const T = 12;
+  const rowDomain = Array.from({ length: T }, (_, i) => i + 1);
+  const fade = d => (d.inSample ? 1 : 0.3);
+  const lag = e.rows.map(d => ({ t: d.t, x: d.t - 1, ok: d.t >= 2, o: fade(d) }));
+  const lead = e.rows.map(d => ({ t: d.t, x0: d.t, x: d.t + e.h, ok: d.t + e.h <= T, o: fade(d) }));
+  const ring = e.rows.map(d => ({ t: d.t, x: d.t, treated: d.sReg === 1, o: fade(d) }));
+  return Plot.plot({
+    width: 920,
+    height: 420,
+    style: plotStyle,
+    marginRight: 130,
+    opacity: { type: "identity" },
+    x: { label: "Calendar date (periods)", domain: [-0.5, 15.5], ticks: 16 },
+    y: { label: "Regression row t", domain: rowDomain, type: "point" },
+    marks: [
+      Plot.ruleX([12.5], { stroke: "var(--bs-border-color)", strokeDasharray: "4 3" }),
+      Plot.text(["end of data"], {
+        x: 12.6, frameAnchor: "top", textAnchor: "start", dy: 4,
+        fill: "var(--bs-secondary-color)"
+      }),
+      Plot.link(lead.filter(d => d.ok), {
+        x1: "x0", x2: "x", y1: "t", y2: "t",
+        stroke: "var(--bs-link-color)", strokeOpacity: "o", strokeWidth: 1.5
+      }),
+      Plot.link(lead.filter(d => !d.ok), {
+        x1: "x0", x2: "x", y1: "t", y2: "t",
+        stroke: "var(--bs-link-color)", strokeOpacity: 0.3, strokeWidth: 1.5, strokeDasharray: "3 3"
+      }),
+      Plot.dot(lag.filter(d => d.ok), {
+        x: "x", y: "t", symbol: "square", r: 4,
+        fill: "var(--bs-secondary-color)", fillOpacity: "o"
+      }),
+      Plot.dot(lag.filter(d => !d.ok), {
+        x: "x", y: "t", symbol: "times", r: 5, stroke: "var(--bs-secondary-color)"
+      }),
+      Plot.dot(ring.filter(d => d.treated), {
+        x: "x", y: "t", r: 8, stroke: "var(--bs-orange)", strokeWidth: 2.5, strokeOpacity: "o"
+      }),
+      Plot.dot(ring.filter(d => !d.treated), {
+        x: "x", y: "t", r: 8, stroke: "var(--bs-secondary-color)", strokeWidth: 1, strokeOpacity: "o"
+      }),
+      Plot.dot(lead.filter(d => d.ok), {
+        x: "x", y: "t", r: 4, fill: "var(--bs-link-color)", fillOpacity: "o"
+      }),
+      Plot.dot(lead.filter(d => !d.ok), {
+        x: "x", y: "t", symbol: "times", r: 5, stroke: "var(--bs-link-color)"
+      }),
+      Plot.text(e.rows.filter(d => d.inSample), {
+        x: 15.5, y: "t", textAnchor: "start", dx: 8, fill: "currentColor",
+        text: d => (d.treated ? "intervention row" : "comparison row")
+      }),
+      Plot.text(e.rows.filter(d => !d.inSample), {
+        x: 15.5, y: "t", textAnchor: "start", dx: 8, fill: "var(--bs-secondary-color)",
+        text: "reason"
+      })
+    ]
+  });
+}
+```
+
+```{ojs}
+//| echo: false
+labTable(
+  ["Row <i>t</i>", `In the <i>h</i> = ${lab2.h} sample`, "<i>s<sub>t</sub></i> as coded",
+   "<i>y</i><sub><i>t</i>−1</sub>", lab2.h === 0 ? "<i>y<sub>t</sub></i>" : `<i>y</i><sub><i>t</i>+${lab2.h}</sub>`, "Group"],
+  lab2.rows.map(d => ({
+    className: !d.inSample ? "lab-out" : (d.treated ? "lab-treated" : ""),
+    cells: [
+      d.t,
+      d.inSample ? "yes" : "no",
+      d.sReg,
+      d.ylag === null ? "—" : labFmt(d.ylag, 4),
+      d.lead === null ? "—" : labFmt(d.lead, 4),
+      !d.inSample ? d.reason : (d.treated ? "intervention" : "comparison")
+    ]
+  }))
+)
+```
+
+::: {.lab-label}
+*Live calculation.* Group means and both slopes on the rows above, rounded to
+six decimals from full-precision values; compare the notes' table of slopes.
+:::
+
+```{ojs}
+//| echo: false
+labTable(
+  ["<i>T<sub>h</sub></i>", "Rows", "Intervention rows", "<i>ȳ</i><sub>1</sub>", "<i>ȳ</i><sub>0</sub>",
+   "<i>ȳ</i><sub>1</sub> − <i>ȳ</i><sub>0</sub>", "<i>β̂<sub>h</sub></i>, no control",
+   "<i>β̂<sub>h</sub></i>, with <i>y</i><sub><i>t</i>−1</sub>", "<i>θ<sub>h</sub></i>"],
+  [{
+    cells: [
+      lab2.Th, `${lab2.first}–${lab2.last}`, lab2.treatedRows.join(", "),
+      labFmt(lab2.ybar1, 6), labFmt(lab2.ybar0, 6), labFmt(lab2.diffMeans, 6),
+      labFmt(lab2.betaNoControl, 6), labFmt(lab2.betaControl, 6), String(lab2.theta)
+    ]
+  }]
+)
+```
+
+```{ojs}
+//| echo: false
+labSentence(lab2Sentence(lab2))
+```
+
+**Try these comparisons.** Change one thing at a time.
+
+1. Keep the control off and move $h$ from 0 to 1 to 2. Record which rows leave
+   the sample, which intervention rows leave with them, and $\hat\beta_h$.
+2. At $h=2$, switch the control on. The rows and the group means stay where
+   they are; the coefficient does not.
+3. Move to $h=3$ with the single-episode switch off and count the intervention
+   rows. Then switch single episode on and off.
+
+::: {.callout-note collapse="true"}
+## Why Twelve Rows Cannot Recover $\theta_h$ (open after you have committed to an answer)
+
+Row $t$ enters only if both $y_{t-1}$ and $y_{t+h}$ exist, so the rows run
+from 2 to $12-h$ and $T_h=11-h$. The intervention in row 12 leaves at $h=1$
+and the one in row 10 at $h=3$. From then on row 5 is the only intervention
+row, and the slope is the
+[single-episode formula](../lectures/01-question-to-projection/notes.qmd#eq-l01-one-episode):
+row 5's outcome minus the mean outcome of the other rows. That is why the
+single-episode switch changes nothing at $h=3$.
+
+The slopes miss their targets because
+[the estimate is the target plus a weighted sum of everything else](../lectures/01-question-to-projection/notes.qmd#eq-l01-estimation-error)
+in the rows, and with two or three intervention rows a few disturbances
+dominate that sum. At $h=1$ the intervention rows' outcomes are $y_6$, which
+carries half of $y_5$ and so half of $v_5=-1.7$, and $y_{11}$, which receives
+$v_{11}=-0.9$. Row 4 is a comparison row, yet its outcome $y_5$ contains the
+intervention $s_5$. Moving from $h=0$ to $h=2$ does not bring the slope closer
+to its target: 0.617 against 1 becomes 2.050 against 0.25.
+
+Adding $y_{t-1}$ on the same rows changes the comparison, not the rows. The
+slope now compares outcomes after removing the part that $y_{t-1}$ predicts, so
+it is no longer a difference in means; the exact weights are the subject of
+Lecture 3. In twelve rows the control moves the slopes by 0.04 to 0.10. Both
+regressions target the same $\theta_h$, and neither has enough rows to come
+close to it.
+:::
+
+## Lab 3: One Draw Against the Truth
+
+In the smallest model the horizon-$h$ regression
+
+$$
+y_{t+h}=\mu_h+\beta_h s_t+\gamma_h y_{t-1}+u_{t,h},\qquad \beta_h=\theta_h=\theta_0\rho^h,
+$$
+
+recovers the causal response in population, with the control $y_{t-1}$ or
+without it
+([the notes](../lectures/01-question-to-projection/notes.qmd#eq-l01-lp-toy)).
+A sample of $T$ periods is not the population. This lab runs the thirteen
+regressions $h=0,\dots,12$ on the draw behind
+[the notes' one-draw figure](../lectures/01-question-to-projection/notes.qmd#fig-l01-one-draw):
+$s_t$ and $v_t$ standard normal, $\theta_0=1$, 300 periods drawn in Stata with
+seed 2 and the first 100 discarded, stored once for $\rho=0.5$ and once for
+$\rho=0.9$. One unit of $s$ is one standard deviation, the response is in units
+of $y$ per unit of $s$, and horizons are periods. The draw never changes.
+Shortening $T$ keeps its first $T$ periods, and switching the control changes
+a regressor, not a number in the data. The defaults reproduce the notes'
+figure.
+
+**Predict before using the controls.** Without $y_{t-1}$, does the curve move
+toward $\theta_h$, away from it, or just get noisier? Decide separately for
+short and long horizons.
+
+```{ojs}
+//| echo: false
+viewof lab3Prediction = Inputs.textarea({
+  label: "Your prediction for Lab 3",
+  placeholder: "Without the control, at short horizons the curve will …",
+  rows: 2
+})
+```
+
+```{ojs}
+//| echo: false
+viewof lab3Rho = Inputs.radio([0.5, 0.9], {
+  value: 0.9,
+  label: html`Persistence <i>ρ</i> (selects the stored draw)`,
+  format: x => x.toFixed(1)
+})
+viewof lab3T = Inputs.radio([50, 100, 200], {
+  value: 200,
+  label: html`Sample length <i>T</i> (first <i>T</i> periods of the draw)`
+})
+viewof lab3Control = Inputs.toggle({
+  label: html`Include the control <i>y</i><sub><i>t</i>−1</sub>`,
+  value: true
+})
+viewof lab3Band = Inputs.toggle({
+  label: "Show the 5–95 percent band (stored simulation result, R = 500, seed 3)",
+  value: true
+})
+```
+
+```{ojs}
+//| echo: false
+lab3 = lab3Estimates(lab3Rho, lab3T, lab3Control)
+```
+
+::: {.lab-label}
+*Live calculation* on the stored draw: the blue curve is $\hat\beta_h$ for the
+current settings, and the grey curve is the same draw with the other control
+choice. *Stored simulation result:* the shaded band holds the middle 90 percent
+of $\hat\beta_h$ across $R=500$ samples of the same design (seed 3), estimated
+in Stata with the same $T$ and control choice. It shows how the estimator
+behaves when the economy is known; it is not a confidence interval.
+:::
+
+```{ojs}
+//| echo: false
+{
+  const main = lab3.withControl ? "This draw, with the lagged outcome" : "This draw, without the lagged outcome";
+  const other = lab3.withControl ? "Same draw, without the lagged outcome" : "Same draw, with the lagged outcome";
+  const truth = "True response θₕ = ρʰ";
+  return Plot.plot({
+    width: 920,
+    height: 380,
+    style: plotStyle,
+    x: { label: "Horizon h (periods after the intervention)", ticks: 13 },
+    y: { label: "Response (units of y per unit of s)", grid: true },
+    color: {
+      legend: true,
+      domain: [main, other, truth],
+      range: ["var(--bs-link-color)", "var(--bs-secondary-color)", "var(--bs-orange)"]
+    },
+    marks: [
+      ...(lab3Band ? [Plot.areaY(lab3.rows, {
+        x: "h", y1: "p5", y2: "p95", fill: "var(--bs-link-color)", fillOpacity: 0.13
+      })] : []),
+      Plot.ruleY([0], { stroke: "var(--bs-border-color)" }),
+      Plot.line(lab3.rows.map(d => ({ h: d.h, value: d.theta, series: truth })), {
+        x: "h", y: "value", stroke: "series", strokeWidth: 2, strokeDasharray: "6 4"
+      }),
+      Plot.line(lab3.rows.map(d => ({ h: d.h, value: d.other, series: other })), {
+        x: "h", y: "value", stroke: "series", strokeWidth: 1.25
+      }),
+      Plot.line(lab3.rows.map(d => ({ h: d.h, value: d.beta, series: main })), {
+        x: "h", y: "value", stroke: "series", strokeWidth: 2.5
+      }),
+      Plot.dot(lab3.rows.map(d => ({ h: d.h, value: d.beta, series: main })), {
+        x: "h", y: "value", fill: "series", r: 3.5
+      })
+    ]
+  });
+}
+```
+
+::: {.lab-label}
+*Live calculation* in the first five columns; *stored simulation result* in the
+last four. With the control the rows are $t=2,\dots,T-h$; without it they are
+$t=1,\dots,T-h$, as in the notes' Monte Carlo table.
+:::
+
+```{ojs}
+//| echo: false
+labTable(
+  ["<i>h</i>", "<i>θ<sub>h</sub></i>", "<i>β̂<sub>h</sub></i>, this setting", "<i>T<sub>h</sub></i>",
+   "<i>β̂<sub>h</sub></i>, other control choice", "5th percentile", "95th percentile",
+   "SD with <i>y</i><sub><i>t</i>−1</sub>", "SD without"],
+  lab3.rows.filter(d => [0, 4, 8, 12].includes(d.h)).map(d => ({
+    cells: [d.h, labFmt(d.theta, 4), labFmt(d.beta, 4), d.n, labFmt(d.other, 4),
+            labFmt(d.p5, 4), labFmt(d.p95, 4), labFmt(d.sdControl, 4), labFmt(d.sdNoControl, 4)]
+  }))
+)
+```
+
+```{ojs}
+//| echo: false
+labSentence(lab3Sentence(lab3), "Live calculation and stored simulation result.")
+```
+
+**Try these comparisons.** Change one thing at a time.
+
+1. Keep $\rho=0.9$ and $T=200$. Switch the control off and on. Compare the
+   band's width at $h=0$ and at $h=12$, then the distance between the blue
+   curve and $\theta_h$.
+2. Switch the control back on and shorten $T$ to 100, then to 50. The first 50
+   periods are the same numbers in all three settings.
+3. Return to $T=200$ and switch $\rho$ to 0.5, which selects the other stored
+   draw. Find the first horizon at which the band contains zero, for each
+   $\rho$.
+
+::: {.callout-note collapse="true"}
+## What the Control Buys, and What One Draw Can Show (open after you have committed to an answer)
+
+Dropping $y_{t-1}$ does not change what the regression estimates. The omitted
+term $\rho^{h+1}y_{t-1}$ moves into the residual, and $s_t$ is unrelated to
+it, so the population coefficient is still $\theta_h$. What changes is the
+size of the residual. At $\rho=0.9$ and $h=0$ its variance rises from 1 to
+about 9.5, and across the stored samples with $T=200$ the standard deviation
+of $\hat\beta_0$ rises from 0.073 to 0.218. The omitted term fades as
+$\rho^{h+1}$ shrinks: by $h=12$ the two standard deviations are 0.225 and
+0.242, and at $\rho=0.5$ they are within one percent of each other from $h=4$
+on.
+So the curve without the
+control mostly gets noisier, most of all at short horizons with high
+persistence. Samples this short also bias both regressions a little, and the
+one without the control visibly at impact: the stored mean of $\hat\beta_0$
+without the control is 0.967 at $T=200$ and 0.855 at $T=50$. Lecture 2
+explains that bias. The regression without the control also uses row 1, as in
+[the notes' Monte Carlo table](../lectures/01-question-to-projection/notes.qmd#tbl-l01-control-precision);
+one extra row does not account for the change in spread.
+
+Shortening $T$ widens everything. With the control, the stored standard
+deviation roughly doubles when $T$ falls from 200 to 50 (from 0.073 to 0.144
+at $h=0$ with $\rho=0.9$), because a quarter as many rows vote.
+
+With the control, the $\rho=0.9$ draw lies below $\theta_h$ at every horizon.
+That is not thirteen independent misses. Neighbouring regressions use almost
+the same rows, and
+[the residual at one horizon is $\rho$ times the residual at the horizon before plus one new period](../lectures/01-question-to-projection/notes.qmd#sec-l01-residual),
+so an error made at $h=4$ is largely repeated at $h=5$. The seed was fixed
+before any estimate was computed, and the draw was kept rather than replaced by
+a tidier one because it shows exactly this.
+:::
+
+## Lab 4: Where the Military-News Coefficient's Variation Comes From
+
+[First contact with data](../lectures/01-question-to-projection/notes.qmd#sec-l01-first-contact)
+regressed $y_{t+h}$, real GDP divided by trend GDP, on the military news $s_t$,
+measured as a fraction of the previous quarter's nominal trend GDP, and on
+$y_{t-1}$, for quarters 1890Q1–2015Q4. Trend GDP is Ramey and Zubairy's
+`rgdp_pott6`, the series they call potential GDP and estimate as a sixth-degree
+polynomial trend in real GDP. By
+[the slope formula](../lectures/01-question-to-projection/notes.qmd#eq-l01-ols-slope),
+row $t$ supplies the share
+
+$$
+\frac{(s_t-\bar s)^2}{\sum_\tau(s_\tau-\bar s)^2}
+$$
+
+of the variation behind the slope, so a quarter with unusually large news
+weighs heavily. Everything in this lab is a stored result: least-squares
+coefficients, row counts, and the ten largest shares, computed in StataNow/SE
+19.5 from Ramey and Zubairy's `RZDAT.xlsx` (February 2018 replication package,
+SHA-256 `b2d85087…8c6120`) for $h=0,\dots,20$, two sets of controls, and five
+sets of rows. "Without 1950Q3" drops the row dated 1950Q3 from every
+regression. Shares use $s_t-\bar s$ over the rows of the selected regression,
+as in the notes' table, even when more controls are included. Read a
+coefficient per 0.01 of news: news worth one percent of trend GDP, response in
+percent of trend GDP. No bands are shown; Lectures 5 and 6 build them.
+
+<!-- D5, D35: RZDAT.xlsx is fetched by the practicum's acquisition script and never shipped.
+     D33: this lab embeds coefficients and variation shares only, never data rows. -->
+
+**Predict before using the controls.** At $h=8$, will dropping Korea's news
+quarter, 1950Q3, lower the coefficient, leave it unchanged, or raise it? Write
+a number as well as a direction. The box below is your hypothesis for
+Exercise 9.
+
+```{ojs}
+//| echo: false
+viewof lab4Hypothesis = Inputs.textarea({
+  label: "Your hypothesis for Lab 4 (tested in Exercise 9)",
+  placeholder: "At h = 8, dropping 1950Q3 will … the coefficient to about …, because …",
+  rows: 2
+})
+```
+
+```{ojs}
+//| echo: false
+viewof lab4H = Inputs.range([0, 20], {
+  value: 8, step: 1,
+  label: html`Horizon <i>h</i> (quarters after the news arrives)`
+})
+viewof lab4Spec = Inputs.radio(new Map([
+  ["One lag of y (the notes' specification)", "toy"],
+  ["Ramey–Zubairy controls: four lags each of news, y, and g", "rz"]
+]), { value: "toy", label: "Controls" })
+viewof lab4Sample = Inputs.radio(new Map([
+  ["Full sample", "full"],
+  ["Without 1941Q4", "drop1941q4"],
+  ["Without 1950Q3", "drop1950q3"],
+  ["Without 1941Q4 and 1950Q3", "dropboth"],
+  ["From 1947Q1 on", "from1947q1"]
+]), { value: "full", label: "Rows" })
+```
+
+```{ojs}
+//| echo: false
+lab4 = lab4View(lab4H, lab4Spec, lab4Sample)
+```
+
+::: {.lab-label}
+*Stored result.* Coefficients by horizon for the selected controls: grey on the
+full sample, blue on the selected rows. The orange line marks the horizon
+$h$.
+:::
+
+```{ojs}
+//| echo: false
+Plot.plot({
+  width: 920,
+  height: 320,
+  style: plotStyle,
+  x: { label: "Horizon h (quarters after the news arrives)", ticks: 11 },
+  y: { label: "Percent of trend GDP per news worth 1% of trend GDP", grid: true },
+  color: {
+    legend: true,
+    domain: ["Full sample", "Selected rows"],
+    range: ["var(--bs-secondary-color)", "var(--bs-link-color)"]
+  },
+  marks: [
+    Plot.ruleY([0], { stroke: "var(--bs-border-color)" }),
+    Plot.ruleX([lab4.h], { stroke: "var(--bs-orange)", strokeDasharray: "4 3" }),
+    Plot.line(lab4.path.map(d => ({ h: d.h, value: d.bFull, series: "Full sample" })), {
+      x: "h", y: "value", stroke: "series", strokeWidth: 2
+    }),
+    Plot.line(lab4.path.map(d => ({ h: d.h, value: d.b, series: "Selected rows" })), {
+      x: "h", y: "value", stroke: "series", strokeWidth: 2.5
+    }),
+    Plot.dot([{ h: lab4.at.h, value: lab4.at.b, series: "Selected rows" }], {
+      x: "h", y: "value", fill: "series", r: 5
+    })
+  ]
+})
+```
+
+::: {.lab-label}
+*Stored result.* The ten quarters with the largest shares of
+$\sum_t(s_t-\bar s)^2$ among the rows of the selected regression at horizon
+$h$. Orange bars are 1941Q4 and 1950Q3 whenever they are in the rows.
+:::
+
+```{ojs}
+//| echo: false
+{
+  const named = new Set(["1941Q4", "1950Q3"]);
+  const bars = lab4.shares.map(d => ({
+    ...d, pct: 100 * d.share,
+    series: named.has(d.quarter) ? "1941Q4 or 1950Q3" : "Another quarter"
+  }));
+  return Plot.plot({
+    width: 920,
+    height: 320,
+    style: plotStyle,
+    marginLeft: 70,
+    x: { label: "Share of the variation in the news across these rows (percent)", grid: true, domain: [0, 70] },
+    y: { label: null, domain: bars.map(d => d.quarter) },
+    color: {
+      legend: true,
+      domain: ["1941Q4 or 1950Q3", "Another quarter"],
+      range: ["var(--bs-orange)", "var(--bs-link-color)"]
+    },
+    marks: [
+      Plot.barX(bars, { x: "pct", y: "quarter", fill: "series" }),
+      Plot.text(bars, {
+        x: "pct", y: "quarter", text: d => d.pct.toFixed(1), textAnchor: "start", dx: 5,
+        fill: "currentColor"
+      })
+    ]
+  });
+}
+```
+
+```{ojs}
+//| echo: false
+labSentence(lab4Sentence(lab4), "Stored result.")
+```
+
+**Try these comparisons.** Change one thing at a time.
+
+1. Keep one lag of $y$ and $h=8$. Choose "Without 1950Q3", then "Without
+   1941Q4", then both. Record the coefficient, the number of rows, and the
+   largest remaining share each time.
+2. Keep "Without 1950Q3" and switch to the Ramey–Zubairy controls. Does
+   dropping the quarter move the coefficient by as much as it did before?
+3. Choose "From 1947Q1 on". Read the share chart before the coefficient.
+
+::: {.callout-note collapse="true"}
+## Why Dropping Korea's News Raises the Estimate (open after you have committed to an answer)
+
+The slope is a weighted sum of outcomes, with each quarter's weight
+proportional to how far its news was from the average
+([the notes' slope formula](../lectures/01-question-to-projection/notes.qmd#eq-l01-ols-slope)).
+1941Q4 and 1950Q3 carry the two largest weights, so the coefficient leans on
+what followed them. At $h=8$ the outcome after the Korean news was smaller,
+measured against the regression's line, than the outcomes after the other large
+episodes, which 1941Q4 leads. Removing a heavily weighted quarter that sat
+below the line raises the slope from 0.362 to 0.434; removing 1941Q4, which
+sat above it, lowers the slope to 0.344. This is
+[the one-episode formula](../lectures/01-question-to-projection/notes.qmd#eq-l01-one-episode)
+at a larger scale. When a few quarters dominate the variation, the coefficient
+behaves like an average over a handful of episodes, not over 496 rows.
+
+From 1947Q1 on, every world-war quarter leaves the rows. Korea's two news
+quarters, 1950Q3 and 1950Q4, then supply 93 percent of the variation at
+$h=8$, and the coefficient falls to 0.059. That describes which rows carry the
+estimate. It does not say whether wartime or postwar news is the better
+experiment, which is the identification question of Lecture 3; Lecture 13
+turns drop-one comparisons into a systematic sensitivity analysis.
+
+With Ramey and Zubairy's controls the same exclusion moves the $h=8$
+coefficient from 0.229 to 0.278, a smaller move in the same direction.
+Dropping the row dated 1950Q3 removes it as an intervention row, but its news
+still enters the next four rows as a lagged control. The shares shown use
+$s_t-\bar s$; with controls in the regression the exact weights use $s_t$
+after the controls have been partialled out, which Lecture 3 develops.
+:::
+
+## From One Gap to One Coefficient
+
+The four labs form one chain. Before reading the next paragraph, explain that
+chain aloud without formulas, one sentence per lab, and then compare.
+
+A causal response is the gap between two paths at the same date, and in the
+smallest model that gap is fixed by the impact response and persistence, whatever
+else happens. A regression recovers it by comparing the rows that follow larger
+interventions with the rows that follow smaller ones, and each horizon has its
+own rows, fewer as $h$ grows. One sample of those rows can land far from the
+truth, with errors that persist across neighbouring horizons. In the
+military-news data, a few quarters carry most of the comparison.
+
+If a step of your version was missing or different, return to its lab and
+change only the input responsible for that step. The derivations are in the
+[Lecture 01 notes](../lectures/01-question-to-projection/notes.qmd), and the
+[exercises](../lectures/01-question-to-projection/notes.qmd#sec-l01-exercises)
+take each step by hand and in Stata.
+
+## Transfer to Stata
+
+The record below collects your predictions and the current settings of all
+four labs, and it changes as you move the controls. Set each lab the way you
+want it recorded, then copy the record or download it. Paste it at the top of
+your problem-set do-file as a comment block and run the checks it lists. The
+whole record, predictions included, is the lab record in the submission
+package of [Practicum 01](../practica/p01-question-to-projection/index.qmd).
+Three of its parts feed specific tasks:
+
+::: {.lab-table-wrap}
+
+| From | Object | Used in |
+|---|---|---|
+| Lab 2 | `hand_table.csv` (`t s v y`, written as Stata's default export writes it) and the chosen $h$, control, and single-episode setting | [Exercise 4](../lectures/01-question-to-projection/notes.qmd#exercise-l01-4); STA01 Tasks 1–2 |
+| Lab 3 | `onedraw_rho09_seed2.csv` or `onedraw_rho05_seed2.csv` (`t s v y`), the chosen $T$ and control, and the thirteen browser estimates | [Exercises 6](../lectures/01-question-to-projection/notes.qmd#exercise-l01-6) and [7](../lectures/01-question-to-projection/notes.qmd#exercise-l01-7); STA01 Tasks 3–4 |
+| Lab 4 | Your hypothesis about the $h=8$ coefficient without 1950Q3 | [Exercise 9](../lectures/01-question-to-projection/notes.qmd#exercise-l01-9); STA01 Task 5 |
+
+: {tbl-colwidths="[10,60,30]"}
+
+:::
+
+Run in Stata on the downloaded files, the lines below reproduce the browser's
+coefficients to at least six decimals. `hand_table.csv` is written exactly as
+Stata's default `export delimited` writes the notes' table, so its `v` column
+shows float storage (0.89999998 for 0.9); the draw file follows Lab 3's
+$\rho$ setting.
+
+```{ojs}
+//| echo: false
+{
+  const files = [
+    { name: "hand_table.csv", text: labHandTableCsv(), type: "text/csv" },
+    { name: labDrawFileName(lab3Rho), text: labDrawCsv(lab3Rho), type: "text/csv" },
+    { name: "l01-explorer-handoff.json", text: labHandoffJson, type: "application/json" }
+  ];
+  const urls = [];
+  const wrap = document.createElement("div");
+  wrap.className = "lab-downloads";
+  for (const f of files) {
+    const url = URL.createObjectURL(new Blob([f.text], { type: f.type }));
+    urls.push(url);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = f.name;
+    a.className = "btn btn-outline-primary btn-sm";
+    a.textContent = `Download ${f.name}`;
+    wrap.appendChild(a);
+  }
+  invalidation.then(() => urls.forEach(u => URL.revokeObjectURL(u)));
+  return wrap;
+}
+```
+
+```{ojs}
+//| echo: false
+Inputs.button("Copy the handoff record", {
+  reduce: () => {
+    if (navigator.clipboard) navigator.clipboard.writeText(labHandoffJson).catch(() => {});
+  }
+})
+```
+
+```{ojs}
+//| echo: false
+{
+  const pre = document.createElement("pre");
+  pre.className = "lab-json";
+  pre.textContent = labHandoffJson;
+  return pre;
+}
+```
+
+The checks the record describes, written out for the current settings. Run
+them after `hand_table.csv` and the draw file are in your working directory.
+
+```{ojs}
+//| echo: false
+{
+  const pre = document.createElement("pre");
+  const code = document.createElement("code");
+  code.textContent = labHandoffRecord.stata_checks.join("\n");
+  pre.appendChild(code);
+  return pre;
+}
+```
+
+```{ojs}
+//| echo: false
+labHandoffRecord = labHandoff({
+  lab1: { prediction: lab1Prediction, e: lab1 },
+  lab2: { prediction: lab2Prediction, e: lab2 },
+  lab3: { prediction: lab3Prediction, band: lab3Band, e: lab3 },
+  lab4: { hypothesis: lab4Hypothesis, e: lab4 }
+})
+labHandoffJson = JSON.stringify(labHandoffRecord, null, 2)
+```
+
+```{ojs}
+//| echo: false
+// Display helpers for this page (DOM only; no calculations).
+function labTable(columns, rows) {
+  const table = document.createElement("table");
+  table.className = "table table-sm lab-table";
+  const head = table.createTHead().insertRow();
+  for (const c of columns) {
+    const th = document.createElement("th");
+    th.innerHTML = c;
+    head.appendChild(th);
+  }
+  const body = table.createTBody();
+  for (const r of rows) {
+    const tr = body.insertRow();
+    if (r.className) tr.className = r.className;
+    for (const cell of r.cells) tr.insertCell().innerHTML = String(cell);
+  }
+  const wrap = document.createElement("div");
+  wrap.className = "lab-table-wrap";
+  wrap.appendChild(table);
+  return wrap;
+}
+
+function labSentence(text, label = "Live calculation.") {
+  const p = document.createElement("p");
+  p.className = "lab-sentence";
+  p.innerHTML = `<em>${label}</em> ${text}`;
+  return p;
+}
+```
+
+```{ojs}
+//| echo: false
+// core: lab computations. Pure functions of labData and the shared helpers; the node tests run
+// exactly this code (extracted to core.js).
+function labFmt(x, digits = 3) {
+  if (x === null || x === undefined || !Number.isFinite(x)) return "—";
+  const r = Number(x).toFixed(digits);
+  if (Number(r) === 0) return (0).toFixed(digits);
+  return r[0] === "-" ? "−" + r.slice(1) : r;
+}
+
+function labSub(n) {
+  return String(n).split("").map(c => "₀₁₂₃₄₅₆₇₈₉"["0123456789".indexOf(c)] ?? c).join("");
+}
+
+function labList(a) {
+  if (a.length <= 1) return a.join("");
+  return a.slice(0, -1).join(", ") + " and " + a[a.length - 1];
+}
+
+// Lab 1: realized and counterfactual paths of the hand economy for any rho and theta0.
+function lab1Economy(rho, theta0, shockOn) {
+  const { t: dates, s, v } = labData.hand;
+  let y = 0;
+  let yc = 0;
+  const rows = [{ t: 0, s: 0, y: 0, yc: 0, gap: 0, change: null, other: null }];
+  for (let i = 0; i < dates.length; i++) {
+    const t = dates[i];
+    const sReal = t === 5 ? (shockOn ? 1 : 0) : s[i];
+    const sCf = t === 5 ? 0 : s[i];
+    y = rho * y + theta0 * sReal + v[i];
+    yc = rho * yc + theta0 * sCf + v[i];
+    rows.push({ t, s: sReal, y, yc, gap: y - yc, change: null, other: null });
+  }
+  const y4 = rows[4].y;
+  for (const r of rows) {
+    if (r.t >= 4) {
+      r.change = r.y - y4;
+      r.other = r.yc - y4;
+    }
+  }
+  const horizon = rows.filter(r => r.t >= 5).map(r => ({
+    h: r.t - 5, gap: r.gap, change: r.change, formula: theta0 * Math.pow(rho, r.t - 5)
+  }));
+  const interventions = dates.filter((t, i) => s[i] === 1).map(t => ({
+    t, label: `s${labSub(t)} = ${t === 5 && !shockOn ? 0 : 1}`
+  }));
+  return { rho, theta0, shockOn, rows, y4, horizon, interventions };
+}
+
+function lab1Sentence(e) {
+  const r5 = e.rows[5];
+  const r7 = e.rows[7];
+  const moved = r7.change >= 0 ? "risen" : "fallen";
+  if (!e.shockOn) {
+    return `With the intervention at <i>t</i> = 5 switched off, the realized path is the counterfactual path, so the gap is <b>0</b> at every date. ` +
+      `Between <i>t</i> = 4 and <i>t</i> = 7, <i>y</i> has still ${moved} <b>${labFmt(Math.abs(r7.change))}</b>, and all of it is everything else.`;
+  }
+  return `With <i>ρ</i> = ${labFmt(e.rho, 2)} and <i>θ</i><sub>0</sub> = ${labFmt(e.theta0, 2)}, the gap at <i>t</i> = 7 is <b>${labFmt(r7.gap)}</b>, ` +
+    `while <i>y</i> has ${moved} <b>${labFmt(Math.abs(r7.change))}</b> since <i>t</i> = 4; the other <b>${labFmt(r7.other)}</b> is everything else. ` +
+    `The gap starts at <b>${labFmt(r5.gap)}</b> at <i>t</i> = 5, the impact response itself, and each later date keeps the share <i>ρ</i> of the gap before it, ` +
+    `so two periods on it is <i>θ</i><sub>0</sub><i>ρ</i><sup>2</sup>.`;
+}
+
+// Lab 2: the rows of the horizon-h regression in the stored hand table (rho = 0.5, theta0 = 1).
+function lab2Rows(h, withControl, singleEpisode) {
+  const { t: dates, s, v, rho, theta0 } = labData.hand;
+  const T = dates.length;
+  const p = 1;
+  const y = [];
+  let prev = 0;
+  for (let i = 0; i < T; i++) {
+    prev = rho * prev + theta0 * s[i] + v[i];
+    y.push(prev);
+  }
+  const rows = dates.map((t, i) => {
+    const hasLag = t >= p + 1;
+    const hasLead = t + h <= T;
+    const inSample = hasLag && hasLead;
+    const sReg = singleEpisode ? (t === 5 ? 1 : 0) : s[i];
+    return {
+      t, s: s[i], sReg, inSample, treated: inSample && sReg === 1,
+      ylag: hasLag ? y[i - 1] : null,
+      lead: hasLead ? y[i + h] : null,
+      reason: !hasLag ? "no y₀ in the data" : (!hasLead ? `no y${labSub(t + h)} in the data` : "")
+    };
+  });
+  // Rows start at t = p + 1 with and without the control, as in the notes.
+  const Y = y.slice(p);
+  const S = rows.slice(p).map(r => r.sReg);
+  const lagged = y.slice(0, T - p);
+  const noControl = localProjection(Y, S, [], h);
+  const control = localProjection(Y, S, [lagged], h);
+  const used = rows.filter(r => r.inSample);
+  const g1 = used.filter(r => r.sReg === 1);
+  const g0 = used.filter(r => r.sReg === 0);
+  const mean = g => g.reduce((acc, r) => acc + r.lead, 0) / g.length;
+  const ybar1 = g1.length ? mean(g1) : NaN;
+  const ybar0 = g0.length ? mean(g0) : NaN;
+  return {
+    h, withControl, singleEpisode, rows, y,
+    Th: used.length, first: used[0].t, last: used[used.length - 1].t,
+    treatedRows: g1.map(r => r.t), n1: g1.length, n0: g0.length,
+    ybar1, ybar0, diffMeans: ybar1 - ybar0,
+    betaNoControl: noControl.beta, betaControl: control.beta,
+    beta: withControl ? control.beta : noControl.beta,
+    nNoControl: noControl.n, nControl: control.n,
+    recoded: singleEpisode ? used.filter(r => r.s === 1 && r.t !== 5).map(r => r.t) : [],
+    theta: theta0 * Math.pow(rho, h)
+  };
+}
+
+function lab2Sentence(e) {
+  const bh = `<i>β̂</i><sub>${e.h}</sub>`;
+  const th = `<i>θ</i><sub>${e.h}</sub>`;
+  let first = `At <i>h</i> = ${e.h} the regression uses rows ${e.first}–${e.last} (<i>T<sub>h</sub></i> = ${e.Th}); `;
+  const slopeName = e.withControl ? "the slope without the control is" : `${bh} =`;
+  if (e.n1 === 1) {
+    first += `row ${e.treatedRows[0]} is the only intervention row, and its outcome, <b>${labFmt(e.ybar1)}</b>, minus the mean of the other ${e.n0} rows, ` +
+      `<b>${labFmt(e.ybar0)}</b>, gives ${slopeName} <b>${labFmt(e.diffMeans)}</b> while ${th} = ${e.theta}.`;
+  } else {
+    first += `intervention rows ${labList(e.treatedRows)} average <b>${labFmt(e.ybar1)}</b> against <b>${labFmt(e.ybar0)}</b>, ` +
+      `so ${slopeName} <b>${labFmt(e.diffMeans)}</b> while ${th} = ${e.theta}.`;
+  }
+  const parts = [first];
+  if (e.withControl) {
+    parts.push(`With <i>y</i><sub><i>t</i>−1</sub> added on the same rows, ${bh} = <b>${labFmt(e.betaControl)}</b>, which is no longer a difference in means.`);
+  }
+  if (e.singleEpisode) {
+    parts.push(e.recoded.length
+      ? `The single-episode switch recodes row${e.recoded.length > 1 ? "s" : ""} ${labList(e.recoded)} as comparison row${e.recoded.length > 1 ? "s" : ""}, so the estimate is one episode plus everything else that happened in it, measured against the other rows.`
+      : `No other intervention row is left at this horizon, so the switch changes nothing.`);
+  } else if (e.n1 === 1) {
+    parts.push(`Every other intervention row has left the sample, so the regression has become a single episode on its own.`);
+  }
+  return parts.join(" ");
+}
+
+// Lab 3: thirteen local projections on the first T periods of a stored draw, plus the stored bands.
+function labDrawKey(rho) {
+  return rho === 0.5 ? "rho05" : "rho09";
+}
+
+function lab3Stored(rho, T, withControl, h) {
+  const r = labData.mc.find(m => m[0] === rho && m[1] === T && m[2] === (withControl ? 1 : 0) && m[3] === h);
+  return r ? { mean: r[4], sd: r[5], p5: r[6], p95: r[7], n: r[8] } : null;
+}
+
+function lab3Estimates(rho, T, withControl) {
+  const d = labData.draws[labDrawKey(rho)];
+  const y = d.y.slice(0, T);
+  const s = d.s.slice(0, T);
+  const ylag = y.map((_, i) => (i === 0 ? null : y[i - 1]));
+  const rows = [];
+  for (let h = 0; h <= 12; h++) {
+    const ctl = localProjection(y, s, [ylag], h);
+    const no = localProjection(y, s, [], h);
+    const band = lab3Stored(rho, T, withControl, h);
+    rows.push({
+      h, theta: Math.pow(rho, h),
+      betaControl: ctl.beta, nControl: ctl.n, betaNoControl: no.beta, nNoControl: no.n,
+      beta: withControl ? ctl.beta : no.beta, n: withControl ? ctl.n : no.n,
+      other: withControl ? no.beta : ctl.beta,
+      mean: band.mean, p5: band.p5, p95: band.p95, nStored: band.n,
+      sdControl: lab3Stored(rho, T, true, h).sd, sdNoControl: lab3Stored(rho, T, false, h).sd
+    });
+  }
+  return { rho, T, withControl, rows, below: rows.filter(r => r.beta < r.theta).length };
+}
+
+function lab3Sentence(e) {
+  const r0 = e.rows[0];
+  const r8 = e.rows[8];
+  const control = e.withControl ? "<i>y</i><sub><i>t</i>−1</sub> included" : "no control";
+  return [
+    `With <i>ρ</i> = ${labFmt(e.rho, 2)}, <i>T</i> = ${e.T} and ${control}, <i>β̂</i><sub>8</sub> = <b>${labFmt(r8.beta)}</b> against <i>θ</i><sub>8</sub> = <b>${labFmt(r8.theta)}</b>; ` +
+      `across 500 stored samples, 90 percent of estimates lie between <b>${labFmt(r8.p5)}</b> and <b>${labFmt(r8.p95)}</b>.`,
+    `This draw's estimate is below <i>θ<sub>h</sub></i> at <b>${e.below} of 13</b> horizons; neighbouring regressions share almost all their rows, so a miss at one horizon tends to repeat at the next.`,
+    `${e.withControl ? "Dropping" : "Adding"} the control moves <i>β̂</i><sub>0</sub> on this draw from <b>${labFmt(r0.beta)}</b> to <b>${labFmt(r0.other)}</b>, ` +
+      `and across the stored samples the standard deviation of <i>β̂</i><sub>0</sub> is <b>${labFmt(r0.sdControl)}</b> with the control and <b>${labFmt(r0.sdNoControl)}</b> without it.`
+  ].join(" ");
+}
+
+// Lab 4: stored Ramey-Zubairy estimates and variation shares (no data rows).
+function lab4View(h, spec, sample) {
+  const coef = labData.rz.coef[spec];
+  const path = coef[sample].map((d, i) => ({ h: i, b: d[0], n: d[1], bFull: coef.full[i][0], nFull: coef.full[i][1] }));
+  const shares = labData.rz.shares[spec][sample][h].map((d, i) => ({ rank: i + 1, quarter: d[0], share: d[1] }));
+  let cum = 0;
+  for (const r of shares) {
+    cum += r.share;
+    r.cum = cum;
+  }
+  const shareOf = q => {
+    const r = shares.find(x => x.quarter === q);
+    return r ? r.share : 0;
+  };
+  return {
+    h, spec, sample, path, at: path[h], shares,
+    share1941Q4: shareOf("1941Q4"), share1950Q3: shareOf("1950Q3"), share1950Q4: shareOf("1950Q4")
+  };
+}
+
+function lab4Sentence(e) {
+  const { b, n, bFull, nFull } = e.at;
+  const pct = x => (100 * x).toFixed(1);
+  const spec = e.spec === "toy" ? "the local projection with one lag of <i>y</i>" : "the local projection with Ramey–Zubairy controls";
+  const move = `${b > bFull ? "raises" : "lowers"} it by <b>${labFmt(Math.abs(b - bFull))}</b>`;
+  const top = e.shares[0];
+  const head = `At <i>h</i> = ${e.h}, ${spec} gives <b>${labFmt(bFull)}</b> on the full sample of ${nFull} rows`;
+  if (e.sample === "full") {
+    return `${head}. 1941Q4 and 1950Q3 alone supply <b>${pct(e.share1941Q4 + e.share1950Q3)}</b> percent of the variation in the news across those rows, so the coefficient leans on what followed two quarters.`;
+  }
+  if (e.sample === "from1947q1") {
+    return `${head}; the ${n} rows from 1947Q1 on give <b>${labFmt(b)}</b>. Those rows lose every world-war quarter, and 1950Q3 and 1950Q4 supply <b>${pct(e.share1950Q3 + e.share1950Q4)}</b> percent of their variation.`;
+  }
+  const dropped = { drop1941q4: "1941Q4", drop1950q3: "1950Q3", dropboth: "1941Q4 and 1950Q3" }[e.sample];
+  const count = e.sample === "dropboth" ? "two quarters" : "one quarter";
+  return `${head}; without ${dropped} it gives <b>${labFmt(b)}</b>, so ${count} out of ${nFull} ${move}. ` +
+    `The largest remaining share belongs to ${top.quarter}, at <b>${pct(top.share)}</b> percent.`;
+}
+
+// Transfer to Stata: the exported files and the handoff record.
+function labHandTableCsv() {
+  return labData.hand.stataCsv.join("\n") + "\n";
+}
+
+function labDrawFileName(rho) {
+  return `onedraw_${labDrawKey(rho)}_seed2.csv`;
+}
+
+function labDrawCsv(rho) {
+  const d = labData.draws[labDrawKey(rho)];
+  const lines = ["t,s,v,y"];
+  for (let i = 0; i < d.t.length; i++) lines.push(`${d.t[i]},${d.s[i]},${d.v[i]},${d.y[i]}`);
+  return lines.join("\n") + "\n";
+}
+
+function labHandoff(st) {
+  const r6 = x => (Number.isFinite(x) ? Number(x.toFixed(6)) : null);
+  const q = "`";
+  const e1 = st.lab1.e;
+  const e2 = st.lab2.e;
+  const e3 = st.lab3.e;
+  const e4 = st.lab4.e;
+  const regressor = e2.singleEpisode ? "s_one" : "s";
+  const handChecks = [
+    "* Lab 2 -> Exercise 4 and STA01 Tasks 1-2",
+    "import delimited using hand_table.csv, clear",
+    "tsset t",
+    ...(e2.singleEpisode ? ["generate byte s_one = (t == 5)"] : []),
+    `regress F${e2.h}.y ${regressor}${e2.withControl ? " L.y" : ""} if t >= 2`,
+    `assert e(N) == ${e2.Th}`,
+    `assert abs(_b[${regressor}] - (${r6(e2.beta)})) < 1e-6`
+  ];
+  const drawChecks = [
+    "* Lab 3 -> Exercises 6-7 and STA01 Tasks 3-4",
+    `import delimited using ${labDrawFileName(e3.rho)}, clear`,
+    "tsset t",
+    `keep if t <= ${e3.T}`,
+    "tempname P",
+    `postfile ${q}P' h double beta_h T_h using results_onedraw, replace`,
+    "forvalues h = 0/12 {",
+    `    quietly regress F${q}h'.y s${e3.withControl ? " L.y" : ""}`,
+    `    post ${q}P' (${q}h') (_b[s]) (e(N))`,
+    "}",
+    `postclose ${q}P'`,
+    "use results_onedraw, clear",
+    `assert T_h == ${e3.withControl ? e3.T - 1 : e3.T} - h`,
+    ...e3.rows.map(d => `assert abs(beta_h - (${r6(d.beta)})) < 1e-6 if h == ${d.h}`)
+  ];
+  const rzChecks = [
+    "* Lab 4 -> Exercise 9 and STA01 Task 5, after the data step that builds qdate, y, and newsy",
+    "regress F8.y newsy L.y if qdate != tq(1950q3)",
+    "display _b[newsy]    // compare with lab4.hypothesis in this record"
+  ];
+  return {
+    lecture: "01",
+    lab: "Shock-to-Response Explorer",
+    lab1: {
+      settings: { intervention_at_t5: e1.shockOn, theta0: r6(e1.theta0), rho: r6(e1.rho) },
+      gap_t5_to_t8: e1.rows.slice(5, 9).map(d => r6(d.gap)),
+      change_since_t4_t5_to_t8: e1.rows.slice(5, 9).map(d => r6(d.change)),
+      prediction: st.lab1.prediction || ""
+    },
+    lab2: {
+      settings: { h: e2.h, control_y_lag: e2.withControl, single_episode: e2.singleEpisode },
+      file: "hand_table.csv",
+      rows: `${e2.first}-${e2.last}`,
+      T_h: e2.Th,
+      intervention_rows: e2.treatedRows,
+      beta_h: r6(e2.beta),
+      theta_h: e2.theta,
+      used_in: "Exercise 4; STA01 Tasks 1-2",
+      prediction: st.lab2.prediction || ""
+    },
+    lab3: {
+      settings: { rho: e3.rho, T: e3.T, control_y_lag: e3.withControl, band_shown: Boolean(st.lab3.band) },
+      file: labDrawFileName(e3.rho),
+      keep_if_t_at_most: e3.T,
+      beta_h: e3.rows.map(d => r6(d.beta)),
+      T_h: e3.rows.map(d => d.n),
+      theta_h: e3.rows.map(d => r6(d.theta)),
+      stored_band_p5_p95: e3.rows.map(d => [r6(d.p5), r6(d.p95)]),
+      used_in: "Exercises 6-7; STA01 Tasks 3-4",
+      prediction: st.lab3.prediction || ""
+    },
+    lab4: {
+      settings: { h: e4.h, controls: e4.spec, rows: e4.sample },
+      stored: { beta_h: r6(e4.at.b), T_h: e4.at.n, beta_h_full_sample: r6(e4.at.bFull), T_h_full_sample: e4.at.nFull },
+      hypothesis: st.lab4.hypothesis || "",
+      used_in: "Exercise 9; STA01 Task 5"
+    },
+    stata_checks: [...handChecks, "", ...drawChecks, "", ...rzChecks]
+  };
+}
+```
+
+```{ojs}
+//| echo: false
+// core: data. Generated by make-data.mjs from Stata 19.5 outputs; do not edit by hand.
+// hand: Lecture 01 hand table (seed 1). draws: seed-2 one-draw samples, T = 200, the same
+// rows the practicum ships. mc: stored simulation result, R = 500, seed 3, columns
+// [rho, T, ctrl, h, mean, sd, p5, p95, N]. rz: stored OLS estimates and variation shares from
+// Ramey and Zubairy (2018) RZDAT.xlsx (SHA-256 b2d85087...8c6120); no data rows (D5, D33).
+labData = ({
+  hand: {"rho":0.5,"theta0":1,"t":[1,2,3,4,5,6,7,8,9,10,11,12],"s":[1,0,0,0,1,0,0,0,0,1,0,1],"v":[0.9,0.5,0.6,-0.6,-1.7,0.2,2.1,-1.3,0.8,0.6,-0.9,1.5],"stataCsv":["t,s,v,y","1,1,.89999998,1.899999976158142","2,0,.5,1.449999988079071","3,0,.60000002,1.325000017881393","4,0,-.60000002,.0624999850988388","5,1,-1.7,-.6687500551342964","6,0,.2,-.134375024586916","7,0,2.0999999,2.03281239233911","8,0,-1.3,-.283593756146729","9,0,.80000001,.6582031338475645","10,1,.60000002,1.92910159076564","11,0,-.89999998,.064550819224678","12,1,1.5,2.532275409612339"]},
+  draws: {
+    rho05: {
+      t: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99,100,101,102,103,104,105,106,107,108,109,110,111,112,113,114,115,116,117,118,119,120,121,122,123,124,125,126,127,128,129,130,131,132,133,134,135,136,137,138,139,140,141,142,143,144,145,146,147,148,149,150,151,152,153,154,155,156,157,158,159,160,161,162,163,164,165,166,167,168,169,170,171,172,173,174,175,176,177,178,179,180,181,182,183,184,185,186,187,188,189,190,191,192,193,194,195,196,197,198,199,200],
+      s: [-1.1373634,0.6782853,-0.052217387,-0.47713703,-0.068435021,0.97100091,1.5554731,1.1543671,1.7746086,-2.6865196,-0.61831331,-0.96433938,1.3315946,0.73306024,-0.26614311,-1.4288682,0.6094889,0.29475483,0.21226433,-0.98363054,-0.42679608,0.46381566,-0.49676025,0.52845132,1.7430943,0.42806581,0.95918781,-0.36925876,-0.51972598,-0.94920045,0.38290164,-1.6159546,-1.2504479,-0.28467053,2.4447749,0.88707578,-1.1193022,-0.20125808,-2.499943,-1.3132536,0.6819331,-0.76926214,-0.19824672,-0.85287392,-1.9888946,1.6748956,0.068263687,0.73483282,0.53150123,0.67207849,-0.45101303,0.92494041,-0.26023206,0.60107356,-0.32431668,0.23314311,-1.8516711,-0.95185488,-2.4254036,-0.24509397,-1.0072293,-0.71451533,-1.5142689,0.88605791,-0.31747869,-1.3009362,0.63895243,0.71902817,0.5135209,-0.78873748,1.2295784,0.32075027,1.5087081,-0.88397366,0.56340069,-1.0025464,-0.25545648,1.1857013,-1.483824,-1.2074326,-1.4904104,-1.0215993,1.7180535,-0.13092695,0.16298102,-0.99964184,-0.76660103,0.074602641,-1.2690139,1.5688962,-0.50074381,-1.8176963,1.5214601,-1.1315705,-1.4386984,-0.04403409,0.33591118,-0.045227416,-1.2999163,-0.35433146,-2.1515665,-0.31666866,0.61742151,0.41914192,0.68979234,1.0220239,1.0533956,-0.49493992,-1.3543683,-0.1552978,-1.1502708,1.4590324,1.2116764,-0.42926982,0.62154114,-1.579594,0.55235237,0.71503735,1.5216225,-0.14866927,-0.23479357,-1.3703744,0.2417662,-0.21049909,-0.066230461,-0.89581281,1.0303122,0.46531513,-1.5464879,0.34955373,-1.2204914,1.3654815,0.44275206,-0.12311884,-0.66850257,0.78303611,0.67788899,0.18543208,-0.41091922,-0.14000922,0.1104344,-0.86134988,-0.76645762,-0.66003817,0.68058974,1.8311772,-1.3893039,-0.77387667,0.46688011,0.74659437,-1.0588788,-1.6172926,0.15884171,-0.76598865,-0.37757498,-0.14874412,-0.71951967,-0.4900862,1.3160172,-0.0041302247,-1.6819971,0.091072842,0.6386565,-1.0746883,-0.5930059,0.34799024,0.29128841,-0.20156561,0.26206195,-1.038289,0.85757238,0.86336154,0.67368895,-1.281852,-0.90546095,1.0361427,1.7638128,0.020149121,-0.18379943,0.1974877,-1.3538774,0.66930515,0.25527689,-0.95437646,0.51530474,1.3858967,0.70331293,1.80047,0.76926553,-0.15429863,0.3651787,0.82642335,0.25212365,1.7051753,0.27095592,-1.5055847,0.17202526,-0.85800099,-1.562059,0.61191678],
+      v: [-0.10624045,0.87896901,0.83401841,-0.87741572,-0.80346292,0.44744721,-1.2598003,0.42926392,-0.1142583,-1.0382929,0.99112821,-0.14956906,-1.1567174,0.53613585,1.2300817,0.53831905,-0.9044857,-0.31157416,-1.2833426,3.1519487,-0.40028182,0.41090927,0.33112043,-0.10533169,-0.32479963,1.1430447,-0.68566513,-0.36311823,0.28450906,1.7398959,-0.14685299,1.7214404,-2.6184001,0.53769499,0.05182213,-0.45467663,0.13277337,0.46135283,-0.46272954,-0.2067465,1.5916121,-0.1535303,-0.15799262,2.3800082,0.88453746,0.52919644,-1.9505004,0.52486545,-0.33425927,-0.13474981,0.80709606,2.3204775,1.6704541,-0.46239024,-0.32704979,-0.55806851,1.3751469,-0.18426703,0.99151355,-0.15204448,1.4255427,-0.99295294,-0.22576243,-0.15722811,1.2589529,-0.98122555,1.0805193,0.89523804,-0.71301931,1.3978344,-0.63869208,1.4042542,0.74147886,-0.090380304,-0.86063701,0.54483616,-2.2463684,-0.29244468,0.74196589,0.16981918,-0.45879501,-1.2322649,0.25886178,0.16527659,-0.87186074,0.4520143,0.83581662,0.67417395,1.7428302,-1.1984526,1.3761195,-0.45874214,0.69525337,2.4463785,0.42370406,0.23990515,0.52960157,0.81481892,-1.3337666,0.92166668,0.65161818,1.8641731,-0.60166377,1.1367711,-2.6509364,1.2437919,-0.45770848,0.80362058,0.63907707,1.9715977,2.3126857,0.12199975,-1.6566781,0.94803327,-1.2638648,-0.24277163,0.11544072,0.54726243,-1.2406967,0.25263676,2.1387758,0.86986011,-0.33785167,-0.036595359,-0.44273463,0.29746929,0.30350047,-0.91031796,-1.9416343,1.7162515,0.16564411,1.0294404,0.15280586,0.02761054,1.1090792,0.2548131,1.0199453,-1.0385944,-2.1992924,-0.21668777,0.61838663,-1.4090531,-0.22702637,-0.55216551,0.99925524,-1.5518141,-0.34721655,0.95430738,1.2547266,-0.19213489,0.079976752,0.96338582,1.541641,-0.74646842,1.4292508,-0.83412683,1.9858092,0.21691793,-0.7806645,1.079726,0.3508735,-0.71449739,0.26912782,0.36685047,-0.91131324,-0.45783442,1.1090914,-1.2137568,0.040828422,-1.9881945,-0.34417868,-0.021413408,0.41750062,-0.43309298,-1.9628726,-1.0396286,-0.45190445,0.66257322,-0.72937429,-0.14016636,0.5828076,0.039024428,-0.74396396,-0.73566443,-0.16808532,0.89482623,1.1206332,-0.32855129,1.5353184,1.2806587,1.145784,-0.6122148,-0.40073565,-0.034157023,1.7094448,0.8202709,-0.80385453,1.7876635,1.366696,1.7392542],
+      y: [-2.1919305,0.46128905,1.0124456,-0.84832996,-1.2960629,0.77041662,0.68088108,1.9240716,2.622386,-2.4136195,-0.83399487,-1.5309058,-0.59057575,0.97390819,1.4508927,-0.16510278,-0.37754819,-0.20559342,-1.173875,1.5813806,-0.036387593,0.85653114,0.26262575,0.55443251,1.695511,2.4188659,1.4829557,0.0091008544,-0.23066649,0.67536223,0.57372975,0.39235067,-3.6726727,-1.5833119,1.704941,1.2848697,-0.34409395,0.088047773,-2.9186487,-2.9793246,0.78388292,-0.53085101,-0.62166482,1.2163019,-0.49620616,1.955989,-0.90424216,0.80757719,0.60103059,0.83784395,0.77500498,3.6329203,3.2266822,1.7520244,0.22464573,-0.21260254,-0.58282548,-1.4275347,-2.1476574,-1.4709672,-0.3171702,-1.8660533,-2.673058,-0.60769922,0.63762456,-1.9633495,0.73779702,1.9831648,0.79208398,1.0051389,1.0934558,2.2717323,3.3860531,0.71867257,0.062099963,-0.4266603,-2.7151551,-0.46432099,-0.97401863,-1.5246228,-2.7115169,-3.6096225,0.172104,0.12040164,-0.6486789,-0.87196696,-0.36676788,0.56539267,0.75651264,0.7486999,1.2497256,-1.6515757,1.3909256,2.0102708,-0.0098589361,0.19094159,0.96098357,1.2500833,-2.0086412,-0.4369854,-1.718441,0.68828392,0.3598997,1.7358629,-1.0932126,1.7192096,1.455292,1.0363266,-0.19712794,1.7177359,2.0212829,2.5916736,0.85083508,0.94418097,-0.17023313,-1.9074821,-0.28594798,1.1193258,0.84058875,0.52426183,2.1661131,0.58254224,0.19518565,-0.14950162,-0.58371592,-0.89020145,0.88871193,-0.00064685941,-3.4884458,0.32158235,-0.89405614,1.9478939,1.5695049,0.68924415,0.78519875,1.4304485,2.4130585,0.35336697,-2.4335282,-1.5734611,-0.057909504,-2.2993577,-2.1431627,-2.2837851,0.53795242,0.54833937,-1.4623508,-0.55074471,1.4462345,1.2775767,-0.3401137,-0.82396364,1.2885009,-0.86820662,0.61757255,-0.67408466,0.9292472,0.19145533,0.63108033,1.3911359,-0.63555562,-0.94120234,0.43718314,-0.48924628,-1.7489423,-0.98431528,0.9082222,-0.96121132,-0.17771529,-3.1153409,-1.0442767,0.31980976,1.2510945,-1.0893978,-3.4130325,-1.7100022,0.45690724,0.91117597,-0.45758575,-0.17147154,-0.85680556,0.27992678,-0.34872368,-1.8644028,-0.58498198,1.9882319,2.8180621,2.8809497,3.7450588,2.9988894,3.0104074,1.7194123,0.71109414,2.0265653,2.9936833,0.81152785,-0.22606534,0.81662977,0.21295184,2.4576468],
+    },
+    rho09: {
+      t: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99,100,101,102,103,104,105,106,107,108,109,110,111,112,113,114,115,116,117,118,119,120,121,122,123,124,125,126,127,128,129,130,131,132,133,134,135,136,137,138,139,140,141,142,143,144,145,146,147,148,149,150,151,152,153,154,155,156,157,158,159,160,161,162,163,164,165,166,167,168,169,170,171,172,173,174,175,176,177,178,179,180,181,182,183,184,185,186,187,188,189,190,191,192,193,194,195,196,197,198,199,200],
+      s: [-1.1373634,0.6782853,-0.052217387,-0.47713703,-0.068435021,0.97100091,1.5554731,1.1543671,1.7746086,-2.6865196,-0.61831331,-0.96433938,1.3315946,0.73306024,-0.26614311,-1.4288682,0.6094889,0.29475483,0.21226433,-0.98363054,-0.42679608,0.46381566,-0.49676025,0.52845132,1.7430943,0.42806581,0.95918781,-0.36925876,-0.51972598,-0.94920045,0.38290164,-1.6159546,-1.2504479,-0.28467053,2.4447749,0.88707578,-1.1193022,-0.20125808,-2.499943,-1.3132536,0.6819331,-0.76926214,-0.19824672,-0.85287392,-1.9888946,1.6748956,0.068263687,0.73483282,0.53150123,0.67207849,-0.45101303,0.92494041,-0.26023206,0.60107356,-0.32431668,0.23314311,-1.8516711,-0.95185488,-2.4254036,-0.24509397,-1.0072293,-0.71451533,-1.5142689,0.88605791,-0.31747869,-1.3009362,0.63895243,0.71902817,0.5135209,-0.78873748,1.2295784,0.32075027,1.5087081,-0.88397366,0.56340069,-1.0025464,-0.25545648,1.1857013,-1.483824,-1.2074326,-1.4904104,-1.0215993,1.7180535,-0.13092695,0.16298102,-0.99964184,-0.76660103,0.074602641,-1.2690139,1.5688962,-0.50074381,-1.8176963,1.5214601,-1.1315705,-1.4386984,-0.04403409,0.33591118,-0.045227416,-1.2999163,-0.35433146,-2.1515665,-0.31666866,0.61742151,0.41914192,0.68979234,1.0220239,1.0533956,-0.49493992,-1.3543683,-0.1552978,-1.1502708,1.4590324,1.2116764,-0.42926982,0.62154114,-1.579594,0.55235237,0.71503735,1.5216225,-0.14866927,-0.23479357,-1.3703744,0.2417662,-0.21049909,-0.066230461,-0.89581281,1.0303122,0.46531513,-1.5464879,0.34955373,-1.2204914,1.3654815,0.44275206,-0.12311884,-0.66850257,0.78303611,0.67788899,0.18543208,-0.41091922,-0.14000922,0.1104344,-0.86134988,-0.76645762,-0.66003817,0.68058974,1.8311772,-1.3893039,-0.77387667,0.46688011,0.74659437,-1.0588788,-1.6172926,0.15884171,-0.76598865,-0.37757498,-0.14874412,-0.71951967,-0.4900862,1.3160172,-0.0041302247,-1.6819971,0.091072842,0.6386565,-1.0746883,-0.5930059,0.34799024,0.29128841,-0.20156561,0.26206195,-1.038289,0.85757238,0.86336154,0.67368895,-1.281852,-0.90546095,1.0361427,1.7638128,0.020149121,-0.18379943,0.1974877,-1.3538774,0.66930515,0.25527689,-0.95437646,0.51530474,1.3858967,0.70331293,1.80047,0.76926553,-0.15429863,0.3651787,0.82642335,0.25212365,1.7051753,0.27095592,-1.5055847,0.17202526,-0.85800099,-1.562059,0.61191678],
+      v: [-0.10624045,0.87896901,0.83401841,-0.87741572,-0.80346292,0.44744721,-1.2598003,0.42926392,-0.1142583,-1.0382929,0.99112821,-0.14956906,-1.1567174,0.53613585,1.2300817,0.53831905,-0.9044857,-0.31157416,-1.2833426,3.1519487,-0.40028182,0.41090927,0.33112043,-0.10533169,-0.32479963,1.1430447,-0.68566513,-0.36311823,0.28450906,1.7398959,-0.14685299,1.7214404,-2.6184001,0.53769499,0.05182213,-0.45467663,0.13277337,0.46135283,-0.46272954,-0.2067465,1.5916121,-0.1535303,-0.15799262,2.3800082,0.88453746,0.52919644,-1.9505004,0.52486545,-0.33425927,-0.13474981,0.80709606,2.3204775,1.6704541,-0.46239024,-0.32704979,-0.55806851,1.3751469,-0.18426703,0.99151355,-0.15204448,1.4255427,-0.99295294,-0.22576243,-0.15722811,1.2589529,-0.98122555,1.0805193,0.89523804,-0.71301931,1.3978344,-0.63869208,1.4042542,0.74147886,-0.090380304,-0.86063701,0.54483616,-2.2463684,-0.29244468,0.74196589,0.16981918,-0.45879501,-1.2322649,0.25886178,0.16527659,-0.87186074,0.4520143,0.83581662,0.67417395,1.7428302,-1.1984526,1.3761195,-0.45874214,0.69525337,2.4463785,0.42370406,0.23990515,0.52960157,0.81481892,-1.3337666,0.92166668,0.65161818,1.8641731,-0.60166377,1.1367711,-2.6509364,1.2437919,-0.45770848,0.80362058,0.63907707,1.9715977,2.3126857,0.12199975,-1.6566781,0.94803327,-1.2638648,-0.24277163,0.11544072,0.54726243,-1.2406967,0.25263676,2.1387758,0.86986011,-0.33785167,-0.036595359,-0.44273463,0.29746929,0.30350047,-0.91031796,-1.9416343,1.7162515,0.16564411,1.0294404,0.15280586,0.02761054,1.1090792,0.2548131,1.0199453,-1.0385944,-2.1992924,-0.21668777,0.61838663,-1.4090531,-0.22702637,-0.55216551,0.99925524,-1.5518141,-0.34721655,0.95430738,1.2547266,-0.19213489,0.079976752,0.96338582,1.541641,-0.74646842,1.4292508,-0.83412683,1.9858092,0.21691793,-0.7806645,1.079726,0.3508735,-0.71449739,0.26912782,0.36685047,-0.91131324,-0.45783442,1.1090914,-1.2137568,0.040828422,-1.9881945,-0.34417868,-0.021413408,0.41750062,-0.43309298,-1.9628726,-1.0396286,-0.45190445,0.66257322,-0.72937429,-0.14016636,0.5828076,0.039024428,-0.74396396,-0.73566443,-0.16808532,0.89482623,1.1206332,-0.32855129,1.5353184,1.2806587,1.145784,-0.6122148,-0.40073565,-0.034157023,1.7094448,0.8202709,-0.80385453,1.7876635,1.366696,1.7392542],
+      y: [-1.9208564,-0.1715164,0.62743628,-0.78986007,-1.582772,-0.0060466947,0.29023075,1.8448387,3.3207052,-0.73617786,-0.28974518,-1.3746791,-1.0623341,0.31309545,1.2457244,0.23060288,-0.087454207,-0.095528111,-1.1570536,1.1269699,0.18719505,1.0432005,0.77324063,1.1190362,2.4254272,3.7539949,3.6521182,2.5545294,2.0638595,2.648169,2.6194007,2.4629464,-1.6521962,-1.233952,1.3860402,1.6798353,0.52532303,0.73288548,-2.3030756,-3.5927682,-0.95994616,-1.786744,-1.964309,-0.24074379,-1.3210266,1.0151682,-0.96858531,0.38797149,0.54641628,1.0291033,1.282276,4.3994665,5.3697419,4.9714508,3.8229392,3.1157198,2.3276236,0.95873934,-0.57102466,-0.91106063,-0.40164119,-2.0689454,-3.6020823,-2.5130441,-1.3202655,-3.4704008,-1.4038889,0.35076618,0.11619115,0.713669,1.2331884,2.8348739,4.8015733,3.3470619,2.7151194,1.9858972,-0.71451741,0.25019091,-0.51668632,-1.5026312,-3.3015735,-5.2252803,-2.725837,-2.4189036,-2.8858929,-3.1449311,-2.7612224,-1.7363235,-1.0888748,-0.60954374,0.32678631,-1.9823308,0.4326157,1.7041621,0.51875156,0.66274744,1.4619855,2.0853784,-0.75684226,-0.11382281,-1.6023889,0.10535442,0.11057672,1.6554321,-0.47125512,1.8416862,2.2532048,2.336565,1.3876172,3.0651553,3.9210546,5.1099815,4.1539817,4.2573471,3.1892889,1.0479944,1.610988,2.712189,2.7218959,2.5536737,4.2022886,3.2815454,2.8573053,2.3244803,1.5830672,0.82641697,2.0775878,1.4248263,-2.2057786,0.080604486,-0.98230326,1.510849,1.955322,1.6642815,1.9384301,2.7824364,4.2020268,2.9286618,0.025584001,-0.33367139,0.42851678,-1.8847378,-2.689748,-3.632977,-1.5898343,-1.1514877,-2.7728593,-2.3151426,-0.3620216,0.22864005,-0.77312601,-1.3497202,0.48573449,-1.075296,0.083909415,-0.90735251,0.44967228,0.13153678,0.65373576,1.663958,0.16643859,-0.4736298,0.48151749,-0.27447212,-1.7513441,-1.6860539,-0.11706868,-1.5206842,-1.0657254,-3.9856362,-3.073679,-1.9243629,-0.64073706,-2.2916083,-4.9307809,-4.4411888,-2.6851616,-1.7339231,-2.4737046,-2.1690128,-2.7231812,-1.7425336,-2.0569673,-3.5413115,-2.8399608,-0.27524182,1.5762285,2.8905244,4.9060559,5.5418105,6.4985924,6.0629416,5.3080354,6.4482503,7.7838259,6.3201294,5.0562873,5.4803209,4.7369256,6.6144042],
+    },
+  },
+  mc: [
+    [0.5,50,0,0,0.97429667,0.184954649,0.699638268,1.286862423,50],
+    [0.5,50,0,1,0.472074353,0.252724702,0.069547766,0.912317705,49],
+    [0.5,50,0,2,0.19970335,0.248980489,-0.187782589,0.629346825,48],
+    [0.5,50,0,3,0.079899933,0.231149756,-0.290430184,0.454478877,47],
+    [0.5,50,0,4,0.01727558,0.246726423,-0.372742938,0.428594757,46],
+    [0.5,50,0,5,0.001315515,0.2351924,-0.414990569,0.373214524,45],
+    [0.5,50,0,6,-0.004158894,0.239195053,-0.421537825,0.397944398,44],
+    [0.5,50,0,7,-0.00772234,0.238019927,-0.379057167,0.402370599,43],
+    [0.5,50,0,8,-0.01613932,0.260945845,-0.460467231,0.41705172,42],
+    [0.5,50,0,9,-0.031828171,0.245914884,-0.454406538,0.374794213,41],
+    [0.5,50,0,10,-0.015641742,0.259283857,-0.440385979,0.394358177,40],
+    [0.5,50,0,11,-0.029586458,0.254509837,-0.450892364,0.396892802,39],
+    [0.5,50,0,12,-0.025164218,0.24384132,-0.419104506,0.358098328,38],
+    [0.5,50,1,0,0.98902625,0.144670166,0.747876131,1.219647388,49],
+    [0.5,50,1,1,0.466686235,0.234621004,0.084756211,0.845539863,48],
+    [0.5,50,1,2,0.189775205,0.246573069,-0.196565265,0.605280962,47],
+    [0.5,50,1,3,0.0703715,0.235875001,-0.326379152,0.437160168,46],
+    [0.5,50,1,4,0.007672368,0.252734165,-0.402272933,0.426286376,45],
+    [0.5,50,1,5,-0.002173881,0.237110822,-0.386930547,0.38824501,44],
+    [0.5,50,1,6,-0.007355788,0.243688273,-0.42195426,0.386190354,43],
+    [0.5,50,1,7,-0.012255974,0.235420389,-0.388813654,0.405881893,42],
+    [0.5,50,1,8,-0.018565493,0.26567469,-0.459191232,0.402126257,41],
+    [0.5,50,1,9,-0.034415643,0.250808412,-0.459436012,0.389527587,40],
+    [0.5,50,1,10,-0.015119479,0.264964952,-0.44225375,0.417018622,39],
+    [0.5,50,1,11,-0.029165368,0.256239752,-0.462431515,0.402640246,38],
+    [0.5,50,1,12,-0.027154694,0.248181091,-0.424111872,0.3781977,37],
+    [0.5,100,0,0,0.994729805,0.134234163,0.780977799,1.228322611,100],
+    [0.5,100,0,1,0.485297387,0.176583263,0.203306683,0.78249331,99],
+    [0.5,100,0,2,0.22676126,0.164015677,-0.026275203,0.490443142,98],
+    [0.5,100,0,3,0.107587556,0.168503472,-0.156282849,0.384490345,97],
+    [0.5,100,0,4,0.04676329,0.17588431,-0.237358845,0.323764252,96],
+    [0.5,100,0,5,0.017031851,0.171396469,-0.268665446,0.296534364,95],
+    [0.5,100,0,6,0.009844779,0.159421087,-0.25609997,0.285283082,94],
+    [0.5,100,0,7,-0.002618379,0.162573896,-0.266925848,0.295666359,93],
+    [0.5,100,0,8,-0.011405315,0.171135177,-0.293130229,0.285990003,92],
+    [0.5,100,0,9,-0.018014448,0.16824042,-0.302892869,0.253235373,91],
+    [0.5,100,0,10,-0.014372373,0.17233812,-0.282279623,0.249832667,90],
+    [0.5,100,0,11,-0.016960888,0.17019485,-0.294970082,0.261341499,89],
+    [0.5,100,0,12,-0.014931687,0.162873392,-0.300609871,0.248367803,88],
+    [0.5,100,1,0,1.002847369,0.104123079,0.826771812,1.171721337,99],
+    [0.5,100,1,1,0.483355158,0.160636413,0.210593913,0.740986698,98],
+    [0.5,100,1,2,0.22292547,0.157412017,-0.025593874,0.48462243,97],
+    [0.5,100,1,3,0.103003073,0.167371803,-0.160528913,0.367600744,96],
+    [0.5,100,1,4,0.041247736,0.176389463,-0.247186684,0.324232367,95],
+    [0.5,100,1,5,0.013695172,0.172508677,-0.27759382,0.305065983,94],
+    [0.5,100,1,6,0.007458413,0.162446633,-0.2604189,0.288691967,93],
+    [0.5,100,1,7,-0.004557512,0.163758727,-0.272310568,0.279027639,92],
+    [0.5,100,1,8,-0.011762447,0.170910413,-0.283181425,0.279090321,91],
+    [0.5,100,1,9,-0.018552994,0.169270333,-0.301325822,0.261031554,90],
+    [0.5,100,1,10,-0.015224464,0.174611918,-0.283471376,0.260860671,89],
+    [0.5,100,1,11,-0.016665206,0.170010372,-0.28689473,0.257066536,88],
+    [0.5,100,1,12,-0.015874366,0.16464395,-0.293515632,0.249717424,87],
+    [0.5,200,0,0,1.002742404,0.09462316,0.852297689,1.161282377,200],
+    [0.5,200,0,1,0.496172244,0.122518238,0.306117891,0.705021017,199],
+    [0.5,200,0,2,0.24160714,0.122086885,0.049235141,0.449366572,198],
+    [0.5,200,0,3,0.121798274,0.120197401,-0.073054622,0.332843374,197],
+    [0.5,200,0,4,0.055229975,0.123591036,-0.147949416,0.264574711,196],
+    [0.5,200,0,5,0.024344698,0.119269672,-0.175415899,0.218120829,195],
+    [0.5,200,0,6,0.018153308,0.110954958,-0.170548099,0.20346265,194],
+    [0.5,200,0,7,0.001799614,0.11721829,-0.19026483,0.198839149,193],
+    [0.5,200,0,8,-0.003525643,0.122918816,-0.20171321,0.209131445,192],
+    [0.5,200,0,9,-0.011678637,0.116012036,-0.205464981,0.191123924,191],
+    [0.5,200,0,10,-0.008560591,0.117370369,-0.207281648,0.162511009,190],
+    [0.5,200,0,11,-0.004620763,0.117738087,-0.200370678,0.192613235,189],
+    [0.5,200,0,12,-0.01242587,0.120772578,-0.198770595,0.183670145,188],
+    [0.5,200,1,0,1.003858274,0.073009863,0.884292895,1.124763157,199],
+    [0.5,200,1,1,0.494072225,0.108489902,0.32406554,0.668888648,198],
+    [0.5,200,1,2,0.239261057,0.114985273,0.048415644,0.425115525,197],
+    [0.5,200,1,3,0.119185387,0.11788636,-0.073805254,0.318912114,196],
+    [0.5,200,1,4,0.052330826,0.123478966,-0.155621841,0.265203289,195],
+    [0.5,200,1,5,0.022620434,0.119596964,-0.171586059,0.215088588,194],
+    [0.5,200,1,6,0.016780877,0.111976194,-0.169705747,0.207498869,193],
+    [0.5,200,1,7,0.001310844,0.11729478,-0.192439531,0.198605246,192],
+    [0.5,200,1,8,-0.00341647,0.123373842,-0.19674692,0.204976486,191],
+    [0.5,200,1,9,-0.011377625,0.115956618,-0.196545845,0.187884739,190],
+    [0.5,200,1,10,-0.008075295,0.117827936,-0.220363025,0.164700775,189],
+    [0.5,200,1,11,-0.004015664,0.117272009,-0.197534257,0.195079392,188],
+    [0.5,200,1,12,-0.012123875,0.120329863,-0.199652474,0.181640506,187],
+    [0.9,50,0,0,0.854573419,0.352730688,0.387893704,1.473590238,50],
+    [0.9,50,0,1,0.754976974,0.414908348,0.145637701,1.511962881,49],
+    [0.9,50,0,2,0.644161097,0.449345378,0.01448011,1.494883482,48],
+    [0.9,50,0,3,0.560467104,0.45905551,-0.086705318,1.383851437,47],
+    [0.9,50,0,4,0.47998794,0.473674086,-0.164618859,1.389306573,46],
+    [0.9,50,0,5,0.418649955,0.46141577,-0.223407321,1.252475798,45],
+    [0.9,50,0,6,0.37091827,0.449905027,-0.251224857,1.225418783,44],
+    [0.9,50,0,7,0.329243256,0.457508671,-0.27168097,1.24043051,43],
+    [0.9,50,0,8,0.279821177,0.474336195,-0.369047969,1.192332434,42],
+    [0.9,50,0,9,0.224631494,0.457511933,-0.403882913,1.049133303,41],
+    [0.9,50,0,10,0.196859737,0.461931969,-0.425043295,1.030128272,40],
+    [0.9,50,0,11,0.151353313,0.45896227,-0.482434961,0.939635582,39],
+    [0.9,50,0,12,0.126044978,0.440133624,-0.475221579,0.908294426,38],
+    [0.9,50,1,0,0.984398458,0.144237378,0.741666482,1.220358751,49],
+    [0.9,50,1,1,0.842813778,0.262891537,0.423211655,1.279931337,48],
+    [0.9,50,1,2,0.698499756,0.33700997,0.132937311,1.296602521,47],
+    [0.9,50,1,3,0.587307042,0.372565315,-0.009457085,1.236347512,46],
+    [0.9,50,1,4,0.489373421,0.414453331,-0.133194124,1.238648452,45],
+    [0.9,50,1,5,0.419242344,0.405776072,-0.239433928,1.122047806,44],
+    [0.9,50,1,6,0.361124709,0.416330397,-0.256051405,1.120971784,43],
+    [0.9,50,1,7,0.310587851,0.429936246,-0.301563777,1.086869057,42],
+    [0.9,50,1,8,0.255649839,0.456132173,-0.391624233,1.182057076,41],
+    [0.9,50,1,9,0.195841859,0.444150592,-0.450081309,1.028657636,40],
+    [0.9,50,1,10,0.165094901,0.45925975,-0.480116812,1.014512267,39],
+    [0.9,50,1,11,0.117235912,0.45044866,-0.509978139,0.927606449,38],
+    [0.9,50,1,12,0.090686011,0.43021207,-0.531468397,0.875361896,37],
+    [0.9,100,0,0,0.930701774,0.277393051,0.53803866,1.4618969,100],
+    [0.9,100,0,1,0.826117951,0.3075746,0.366402117,1.36358831,99],
+    [0.9,100,0,2,0.726618305,0.324571102,0.246070301,1.328927073,98],
+    [0.9,100,0,3,0.649685489,0.334797617,0.153408233,1.258772215,97],
+    [0.9,100,0,4,0.5763192,0.352707113,0.067273856,1.206883357,96],
+    [0.9,100,0,5,0.513929665,0.355471733,-0.001451902,1.158604013,95],
+    [0.9,100,0,6,0.463823152,0.346149357,-0.034784767,1.092636169,94],
+    [0.9,100,0,7,0.408446331,0.34355066,-0.092130824,1.023099126,93],
+    [0.9,100,0,8,0.356448465,0.342024933,-0.143955243,0.944050532,92],
+    [0.9,100,0,9,0.307939375,0.332886868,-0.182927261,0.870968563,91],
+    [0.9,100,0,10,0.270767626,0.334492402,-0.225923428,0.861189229,90],
+    [0.9,100,0,11,0.232068518,0.331037784,-0.262730889,0.846205844,89],
+    [0.9,100,0,12,0.201801005,0.318542481,-0.287227694,0.768605762,88],
+    [0.9,100,1,0,1.00147805,0.104049267,0.828850208,1.167983718,99],
+    [0.9,100,1,1,0.877627438,0.181763624,0.576585372,1.185808176,98],
+    [0.9,100,1,2,0.764834356,0.213048215,0.430593689,1.139421846,97],
+    [0.9,100,1,3,0.673873628,0.245291657,0.296216129,1.091989036,96],
+    [0.9,100,1,4,0.590484871,0.280342898,0.15229444,1.070397811,95],
+    [0.9,100,1,5,0.519867164,0.291878856,0.058827783,1.00349622,94],
+    [0.9,100,1,6,0.463371193,0.295894346,0.003721184,0.970711284,93],
+    [0.9,100,1,7,0.404595339,0.306458484,-0.068723746,0.925951877,92],
+    [0.9,100,1,8,0.350580522,0.315169196,-0.148272527,0.861852214,91],
+    [0.9,100,1,9,0.299903478,0.312442701,-0.175335793,0.821584627,90],
+    [0.9,100,1,10,0.260897481,0.321277473,-0.243271688,0.82793647,89],
+    [0.9,100,1,11,0.221578696,0.318914581,-0.28271913,0.779842112,88],
+    [0.9,100,1,12,0.189138066,0.311423691,-0.311074728,0.744321374,87],
+    [0.9,200,0,0,0.966631489,0.217674338,0.645045401,1.388287628,200],
+    [0.9,200,0,1,0.864972963,0.23682391,0.522717324,1.315610131,199],
+    [0.9,200,0,2,0.771481257,0.252025471,0.409804404,1.237403014,198],
+    [0.9,200,0,3,0.695099542,0.260046183,0.324520899,1.191535959,197],
+    [0.9,200,0,4,0.620102113,0.269301439,0.245925865,1.137684956,196],
+    [0.9,200,0,5,0.553606026,0.272672158,0.155485542,1.053458971,195],
+    [0.9,200,0,6,0.504129946,0.26321903,0.122673962,0.976623096,194],
+    [0.9,200,0,7,0.446638573,0.266740925,0.061824303,0.910327929,193],
+    [0.9,200,0,8,0.39790476,0.266386915,-0.003550606,0.868717322,192],
+    [0.9,200,0,9,0.347581366,0.249609317,-0.026037158,0.760525408,191],
+    [0.9,200,0,10,0.309560534,0.242949075,-0.066757273,0.701280175,190],
+    [0.9,200,0,11,0.277622426,0.238000455,-0.083778375,0.719406035,189],
+    [0.9,200,0,12,0.239031698,0.241695434,-0.135071309,0.675022891,188],
+    [0.9,200,1,0,1.003996917,0.07335766,0.879348842,1.125300167,199],
+    [0.9,200,1,1,0.89311221,0.123704076,0.69219109,1.093414772,198],
+    [0.9,200,1,2,0.793152365,0.151828485,0.553872719,1.054063634,197],
+    [0.9,200,1,3,0.710382421,0.175422629,0.427803709,1.035752984,196],
+    [0.9,200,1,4,0.629827586,0.197827965,0.319971525,0.957689451,195],
+    [0.9,200,1,5,0.560434125,0.209691199,0.203800588,0.922668526,194],
+    [0.9,200,1,6,0.507758797,0.206460087,0.177695773,0.868040151,193],
+    [0.9,200,1,7,0.447707597,0.219180439,0.098723918,0.807387927,192],
+    [0.9,200,1,8,0.397255821,0.22840343,0.046705025,0.792667538,191],
+    [0.9,200,1,9,0.34564287,0.217882643,-0.007892523,0.693560281,190],
+    [0.9,200,1,10,0.306574324,0.216780587,-0.043725023,0.658474193,189],
+    [0.9,200,1,11,0.273331212,0.217112227,-0.066248271,0.669901439,188],
+    [0.9,200,1,12,0.233538247,0.224579729,-0.106968006,0.635416568,187],
+  ],
+  rz: {
+    samples: ["full","drop1941q4","drop1950q3","dropboth","from1947q1"],
+    coef: {
+      toy: {
+        full: [[0.080313218025,504],[0.127362680545,503],[0.173288830393,502],[0.195596675037,501],[0.259140633588,500],[0.299480453919,499],[0.335976844477,498],[0.337931311562,497],[0.361905886409,496],[0.397626597079,495],[0.404210353355,494],[0.384037387667,493],[0.34267668909,492],[0.30524705132,491],[0.270833415107,490],[0.221055974661,489],[0.171907768238,488],[0.133996954771,487],[0.116266285349,486],[0.095898988747,485],[0.079551698455,484]],
+        drop1941q4: [[0.090495916986,503],[0.155373022006,502],[0.18731789712,501],[0.190745644509,500],[0.241927902893,499],[0.289947078078,498],[0.331616157992,497],[0.324433038979,496],[0.344264274666,495],[0.387208580418,494],[0.39664217933,493],[0.367588991878,492],[0.311089584471,491],[0.253437948795,490],[0.211048385698,489],[0.19174594,488],[0.179434145478,487],[0.142183281635,486],[0.114895650927,485],[0.11383566213,484],[0.113104877456,483]],
+        drop1950q3: [[0.088506018492,503],[0.14332250535,502],[0.199055376489,501],[0.223870200542,500],[0.29860420059,499],[0.352149204937,498],[0.397335340538,497],[0.403046772406,496],[0.433969079774,495],[0.468868410853,494],[0.473369189649,493],[0.449173161203,492],[0.404394370656,491],[0.368405570227,490],[0.331570566932,489],[0.273269064962,488],[0.211619725935,487],[0.160652615744,486],[0.131028789503,485],[0.103007367032,484],[0.081093580079,483]],
+        dropboth: [[0.106449135177,502],[0.189459843311,501],[0.230865761887,500],[0.231077048111,499],[0.294377384961,498],[0.36489497046,497],[0.42141325127,496],[0.416462729758,495],[0.445118420778,494],[0.48949883811,493],[0.496878939498,492],[0.458563555411,491],[0.391417955856,490],[0.328461171762,489],[0.279524181012,488],[0.258750585149,487],[0.241385474544,486],[0.184922182371,485],[0.13639443076,484],[0.131046261527,483],[0.127777801838,482]],
+        from1947q1: [[0.03924224737,276],[0.046342413884,275],[0.056665076145,274],[0.071358055532,273],[0.078561855779,272],[0.069072809436,271],[0.061231814168,270],[0.046841174563,269],[0.058667568325,268],[0.090245862653,267],[0.097654915146,266],[0.082735704024,265],[0.047024846663,264],[0.008976634098,263],[-0.010097835358,262],[-0.016408579767,261],[-0.003751836539,260],[0.025219406327,259],[0.05343008699,258],[0.066060750121,257],[0.067368299743,256]],
+      },
+      rz: {
+        full: [[0.050987642706,500],[0.074740704696,499],[0.106859590324,498],[0.1133940764,497],[0.161204513201,496],[0.194506677571,495],[0.221006240357,494],[0.203519094484,493],[0.22948027566,492],[0.275874785556,491],[0.293763851328,490],[0.28838354568,489],[0.256343270599,488],[0.228219355521,487],[0.208368670042,486],[0.168200268347,485],[0.125066441697,484],[0.096653962513,483],[0.088787812393,482],[0.080239314988,481],[0.067148142063,480]],
+        drop1941q4: [[0.058675587686,499],[0.097010096247,498],[0.115496511079,497],[0.099004760587,496],[0.134371030417,495],[0.169983724588,494],[0.201980987631,493],[0.179098499361,492],[0.201006178591,491],[0.254236914439,490],[0.274687395633,489],[0.262427058424,488],[0.217032911825,487],[0.169255853015,486],[0.142034096638,485],[0.133346449539,484],[0.129607614179,483],[0.101352956411,482],[0.084682569275,481],[0.096043688983,480],[0.099999033557,479]],
+        drop1950q3: [[0.054332643598,499],[0.083741635055,498],[0.123536493645,497],[0.125830112088,496],[0.180933925876,495],[0.227567621205,494],[0.259179075462,493],[0.241063137881,492],[0.277842309572,491],[0.327215784855,490],[0.345572235476,489],[0.340700885813,488],[0.307512476,487],[0.284103882889,486],[0.268355343645,485],[0.22330422715,484],[0.166791345153,483],[0.124623926787,482],[0.103670332211,481],[0.086871398469,480],[0.067982000024,479]],
+        dropboth: [[0.066901730591,498],[0.11982545182,497],[0.143749807058,496],[0.111122329616,495],[0.151874071702,494],[0.208098753067,493],[0.249981025944,492],[0.223854769864,491],[0.259940828138,490],[0.320493520441,489],[0.342731132677,488],[0.328263451413,487],[0.275449335181,486],[0.226159647938,485],[0.201805853672,484],[0.199472800155,483],[0.19298533822,482],[0.144549933155,481],[0.104829783758,480],[0.112615342779,479],[0.115373285284,478]],
+        from1947q1: [[0.040666279446,276],[0.036688724945,275],[0.040364717707,274],[0.058048212649,273],[0.084598997135,272],[0.073433489624,271],[0.077838042497,270],[0.058223046624,269],[0.042592466739,268],[0.071751225053,267],[0.083400833472,266],[0.077839570095,265],[0.054481595229,264],[0.019114215879,263],[0.000953725867,262],[-0.012842823038,261],[-0.015822020908,260],[0.002701264088,259],[0.027768417956,258],[0.040573679808,257],[0.050422906173,256]],
+      },
+    },
+    shares: {
+      toy: {
+        full: [[["1941Q4",0.26123857],["1950Q3",0.19586864],["1942Q3",0.10092848],["1950Q4",0.08692377],["1917Q2",0.07452575],["1941Q2",0.06176223],["1918Q2",0.03996649],["1940Q2",0.03553987],["1945Q3",0.02864567],["1944Q2",0.02311316]],[["1941Q4",0.26123522],["1950Q3",0.19586486],["1942Q3",0.10092461],["1950Q4",0.08691998],["1917Q2",0.07452207],["1941Q2",0.0617587],["1918Q2",0.03996337],["1940Q2",0.03553687],["1945Q3",0.02865013],["1944Q2",0.02311709]],[["1941Q4",0.26123186],["1950Q3",0.19586106],["1942Q3",0.10092073],["1950Q4",0.08691618],["1917Q2",0.07451838],["1941Q2",0.06175516],["1918Q2",0.03996024],["1940Q2",0.03553385],["1945Q3",0.02865461],["1944Q2",0.02312104]],[["1941Q4",0.26122849],["1950Q3",0.19585725],["1942Q3",0.10091682],["1950Q4",0.08691236],["1917Q2",0.07451466],["1941Q2",0.0617516],["1918Q2",0.03995709],["1940Q2",0.03553082],["1945Q3",0.02865911],["1944Q2",0.023125]],[["1941Q4",0.2612251],["1950Q3",0.19585342],["1942Q3",0.10091291],["1950Q4",0.08690853],["1917Q2",0.07451094],["1941Q2",0.06174803],["1918Q2",0.03995393],["1940Q2",0.03552778],["1945Q3",0.02866363],["1944Q2",0.02312899]],[["1941Q4",0.2612217],["1950Q3",0.19584958],["1942Q3",0.10090897],["1950Q4",0.08690468],["1917Q2",0.0745072],["1941Q2",0.06174444],["1918Q2",0.03995076],["1940Q2",0.03552472],["1945Q3",0.02866817],["1944Q2",0.02313298]],[["1941Q4",0.26121828],["1950Q3",0.19584572],["1942Q3",0.10090502],["1950Q4",0.08690081],["1917Q2",0.07450344],["1941Q2",0.06174084],["1918Q2",0.03994758],["1940Q2",0.03552166],["1945Q3",0.02867272],["1944Q2",0.023137]],[["1941Q4",0.26121485],["1950Q3",0.19584184],["1942Q3",0.10090106],["1950Q4",0.08689693],["1917Q2",0.07449967],["1941Q2",0.06173723],["1918Q2",0.03994438],["1940Q2",0.03551858],["1945Q3",0.0286773],["1944Q2",0.02314103]],[["1941Q4",0.26121141],["1950Q3",0.19583795],["1942Q3",0.10089708],["1950Q4",0.08689304],["1917Q2",0.07449589],["1941Q2",0.0617336],["1918Q2",0.03994117],["1940Q2",0.03551549],["1945Q3",0.02868189],["1944Q2",0.02314508]],[["1941Q4",0.26120795],["1950Q3",0.19583405],["1942Q3",0.10089308],["1950Q4",0.08688912],["1917Q2",0.07449208],["1941Q2",0.06172996],["1918Q2",0.03993795],["1940Q2",0.03551238],["1945Q3",0.0286865],["1944Q2",0.02314914]],[["1941Q4",0.26120448],["1950Q3",0.19583013],["1942Q3",0.10088907],["1950Q4",0.0868852],["1917Q2",0.07448827],["1941Q2",0.0617263],["1918Q2",0.03993471],["1940Q2",0.03550927],["1945Q3",0.02869113],["1944Q2",0.02315322]],[["1941Q4",0.261201],["1950Q3",0.19582619],["1942Q3",0.10088504],["1950Q4",0.08688125],["1917Q2",0.07448444],["1941Q2",0.06172263],["1918Q2",0.03993146],["1940Q2",0.03550614],["1945Q3",0.02869578],["1944Q2",0.02315732]],[["1941Q4",0.26133939],["1950Q3",0.19592336],["1942Q3",0.10092515],["1950Q4",0.08691344],["1917Q2",0.07450978],["1941Q2",0.06174116],["1918Q2",0.03993911],["1940Q2",0.03551174],["1945Q3",0.02873603],["1944Q2",0.02319152]],[["1941Q4",0.26133592],["1950Q3",0.19591941],["1942Q3",0.10092108],["1950Q4",0.08690945],["1917Q2",0.0745059],["1941Q2",0.06173744],["1918Q2",0.03993582],["1940Q2",0.03550857],["1945Q3",0.02874077],["1944Q2",0.0231957]],[["1941Q4",0.26133243],["1950Q3",0.19591544],["1942Q3",0.10091699],["1950Q4",0.08690545],["1917Q2",0.07450201],["1941Q2",0.06173371],["1918Q2",0.03993251],["1940Q2",0.03550539],["1945Q3",0.02874553],["1944Q2",0.02319989]],[["1941Q4",0.26132893],["1950Q3",0.19591145],["1942Q3",0.10091289],["1950Q4",0.08690143],["1917Q2",0.0744981],["1941Q2",0.06172996],["1918Q2",0.03992919],["1940Q2",0.03550219],["1945Q3",0.02875031],["1944Q2",0.0232041]],[["1941Q4",0.26132541],["1950Q3",0.19590745],["1942Q3",0.10090876],["1950Q4",0.08689739],["1917Q2",0.07449418],["1941Q2",0.06172619],["1918Q2",0.03992586],["1940Q2",0.03549898],["1945Q3",0.02875511],["1944Q2",0.02320833]],[["1941Q4",0.26132513],["1950Q3",0.19590532],["1942Q3",0.10090476],["1950Q4",0.08689326],["1917Q2",0.07448998],["1941Q2",0.06172199],["1918Q2",0.03992188],["1940Q2",0.03549509],["1945Q3",0.02876239],["1944Q2",0.02321471]],[["1941Q4",0.26142496],["1950Q3",0.1959743],["1942Q3",0.10093145],["1950Q4",0.08691415],["1917Q2",0.0745059],["1941Q2",0.06173298],["1918Q2",0.03992513],["1940Q2",0.03549692],["1945Q3",0.02879565],["1944Q2",0.02324308]],[["1941Q4",0.26142144],["1950Q3",0.19597027],["1942Q3",0.10092728],["1950Q4",0.08691005],["1917Q2",0.07450191],["1941Q2",0.06172916],["1918Q2",0.03992174],["1940Q2",0.03549366],["1945Q3",0.02880056],["1944Q2",0.0232474]],[["1941Q4",0.2614179],["1950Q3",0.19596622],["1942Q3",0.10092308],["1950Q4",0.08690594],["1917Q2",0.07449791],["1941Q2",0.06172532],["1918Q2",0.03991834],["1940Q2",0.03549038],["1945Q3",0.02880549],["1944Q2",0.02325175]]],
+        drop1941q4: [[["1950Q3",0.26653737],["1942Q3",0.13759058],["1950Q4",0.11855728],["1917Q2",0.1017032],["1941Q2",0.08434675],["1918Q2",0.05468912],["1940Q2",0.04866158],["1945Q3",0.03833802],["1944Q2",0.03089126],["1942Q2",0.02682871]],[["1950Q3",0.26653382],["1942Q3",0.13758662],["1950Q4",0.11855338],["1917Q2",0.10169938],["1941Q2",0.08434305],["1918Q2",0.0546858],["1940Q2",0.04865837],["1945Q3",0.03834299],["1944Q2",0.03089563],["1942Q2",0.02682608]],[["1950Q3",0.26653026],["1942Q3",0.13758266],["1950Q4",0.11854946],["1917Q2",0.10169553],["1941Q2",0.08433933],["1918Q2",0.05468246],["1940Q2",0.04865515],["1945Q3",0.03834798],["1944Q2",0.03090001],["1942Q2",0.02682345]],[["1950Q3",0.26652668],["1942Q3",0.13757868],["1950Q4",0.11854552],["1917Q2",0.10169167],["1941Q2",0.0843356],["1918Q2",0.05467911],["1940Q2",0.04865191],["1945Q3",0.03835299],["1944Q2",0.03090442],["1942Q2",0.0268208]],[["1950Q3",0.26652309],["1942Q3",0.13757468],["1950Q4",0.11854157],["1917Q2",0.1016878],["1941Q2",0.08433186],["1918Q2",0.05467575],["1940Q2",0.04864866],["1945Q3",0.03835802],["1944Q2",0.03090884],["1942Q2",0.02681814]],[["1950Q3",0.26651948],["1942Q3",0.13757066],["1950Q4",0.1185376],["1917Q2",0.10168391],["1941Q2",0.0843281],["1918Q2",0.05467237],["1940Q2",0.0486454],["1945Q3",0.03836307],["1944Q2",0.03091328],["1942Q2",0.02681547]],[["1950Q3",0.26651586],["1942Q3",0.13756663],["1950Q4",0.11853362],["1917Q2",0.10168001],["1941Q2",0.08432432],["1918Q2",0.05466898],["1940Q2",0.04864213],["1945Q3",0.03836814],["1944Q2",0.03091774],["1942Q2",0.0268128]],[["1950Q3",0.26651223],["1942Q3",0.13756259],["1950Q4",0.11852962],["1917Q2",0.10167609],["1941Q2",0.08432053],["1918Q2",0.05466558],["1940Q2",0.04863884],["1945Q3",0.03837323],["1944Q2",0.03092222],["1942Q2",0.02681011]],[["1950Q3",0.26650858],["1942Q3",0.13755852],["1950Q4",0.1185256],["1917Q2",0.10167215],["1941Q2",0.08431673],["1918Q2",0.05466216],["1940Q2",0.04863553],["1945Q3",0.03837835],["1944Q2",0.03092671],["1942Q2",0.02680741]],[["1950Q3",0.26650491],["1942Q3",0.13755445],["1950Q4",0.11852157],["1917Q2",0.1016682],["1941Q2",0.08431291],["1918Q2",0.05465873],["1940Q2",0.04863222],["1945Q3",0.03838348],["1944Q2",0.03093123],["1942Q2",0.0268047]],[["1950Q3",0.26650123],["1942Q3",0.13755035],["1950Q4",0.11851752],["1917Q2",0.10166423],["1941Q2",0.08430907],["1918Q2",0.05465528],["1940Q2",0.04862889],["1945Q3",0.03838864],["1944Q2",0.03093576],["1942Q2",0.02680197]],[["1950Q3",0.26649754],["1942Q3",0.13754624],["1950Q4",0.11851346],["1917Q2",0.10166025],["1941Q2",0.08430522],["1918Q2",0.05465182],["1940Q2",0.04862555],["1945Q3",0.03839381],["1944Q2",0.03094031],["1942Q2",0.02679924]],[["1950Q3",0.26668282],["1942Q3",0.13762886],["1950Q4",0.11858157],["1917Q2",0.10171574],["1941Q2",0.08434801],["1918Q2",0.05467389],["1940Q2",0.04864362],["1945Q3",0.03845419],["1944Q2",0.03099121],["1942Q2",0.02680395]],[["1950Q3",0.26667914],["1942Q3",0.13762471],["1950Q4",0.11857746],["1917Q2",0.10171171],["1941Q2",0.08434411],["1918Q2",0.05467038],["1940Q2",0.04864023],["1945Q3",0.03845948],["1944Q2",0.03099586],["1942Q2",0.02680117]],[["1950Q3",0.26667544],["1942Q3",0.13762054],["1950Q4",0.11857334],["1917Q2",0.10170766],["1941Q2",0.08434019],["1918Q2",0.05466685],["1940Q2",0.04863683],["1945Q3",0.03846479],["1944Q2",0.03100053],["1942Q2",0.02679839]],[["1950Q3",0.26667172],["1942Q3",0.13761636],["1950Q4",0.11856919],["1917Q2",0.1017036],["1941Q2",0.08433626],["1918Q2",0.05466332],["1940Q2",0.04863341],["1945Q3",0.03847013],["1944Q2",0.03100522],["1942Q2",0.02679559]],[["1950Q3",0.26666799],["1942Q3",0.13761216],["1950Q4",0.11856504],["1917Q2",0.10169952],["1941Q2",0.08433231],["1918Q2",0.05465977],["1940Q2",0.04862997],["1945Q3",0.03847548],["1944Q2",0.03100993],["1942Q2",0.02679278]],[["1950Q3",0.26666799],["1942Q3",0.13760874],["1950Q4",0.11856128],["1917Q2",0.10169553],["1941Q2",0.08432815],["1918Q2",0.05465558],["1940Q2",0.04862584],["1945Q3",0.03848434],["1944Q2",0.03101766],["1942Q2",0.02678912]],[["1950Q3",0.26680107],["1942Q3",0.13766593],["1950Q4",0.11860784],["1917Q2",0.10173287],["1941Q2",0.08435626],["1918Q2",0.05466879],["1940Q2",0.04863622],["1945Q3",0.03853331],["1944Q2",0.03105911],["1942Q2",0.0267902]],[["1950Q3",0.26679733],["1942Q3",0.13766167],["1950Q4",0.11860362],["1917Q2",0.10172873],["1941Q2",0.08435225],["1918Q2",0.05466517],["1940Q2",0.04863272],["1945Q3",0.03853881],["1944Q2",0.03106394],["1942Q2",0.02678733]],[["1950Q3",0.26679358],["1942Q3",0.1376574],["1950Q4",0.11859938],["1917Q2",0.10172457],["1941Q2",0.08434822],["1918Q2",0.05466154],["1940Q2",0.04862921],["1945Q3",0.03854432],["1944Q2",0.03106879],["1942Q2",0.02678446]]],
+        drop1950q3: [[["1941Q4",0.32614792],["1942Q3",0.12626976],["1950Q4",0.10879532],["1917Q2",0.09332214],["1941Q2",0.07738843],["1918Q2",0.05016419],["1940Q2",0.04463172],["1945Q3",0.03527079],["1944Q2",0.02842505],["1942Q2",0.02459464]],[["1941Q4",0.32614475],["1942Q3",0.12626584],["1950Q4",0.10879147],["1917Q2",0.09331839],["1941Q2",0.07738482],["1918Q2",0.05016097],["1940Q2",0.04462862],["1945Q3",0.03527545],["1944Q2",0.02842915],["1942Q2",0.02459212]],[["1941Q4",0.32614156],["1942Q3",0.12626191],["1950Q4",0.1087876],["1917Q2",0.09331461],["1941Q2",0.07738119],["1918Q2",0.05015774],["1940Q2",0.04462551],["1945Q3",0.03528013],["1944Q2",0.02843327],["1942Q2",0.02458959]],[["1941Q4",0.32613836],["1942Q3",0.12625796],["1950Q4",0.10878372],["1917Q2",0.09331083],["1941Q2",0.07737755],["1918Q2",0.0501545],["1940Q2",0.04462238],["1945Q3",0.03528482],["1944Q2",0.0284374],["1942Q2",0.02458705]],[["1941Q4",0.32613515],["1942Q3",0.12625399],["1950Q4",0.10877982],["1917Q2",0.09330703],["1941Q2",0.07737389],["1918Q2",0.05015124],["1940Q2",0.04461924],["1945Q3",0.03528954],["1944Q2",0.02844155],["1942Q2",0.0245845]],[["1941Q4",0.32613192],["1942Q3",0.12625001],["1950Q4",0.1087759],["1917Q2",0.09330321],["1941Q2",0.07737022],["1918Q2",0.05014798],["1940Q2",0.04461609],["1945Q3",0.03529428],["1944Q2",0.02844572],["1942Q2",0.02458194]],[["1941Q4",0.32612869],["1942Q3",0.12624601],["1950Q4",0.10877197],["1917Q2",0.09329938],["1941Q2",0.07736653],["1918Q2",0.05014469],["1940Q2",0.04461292],["1945Q3",0.03529904],["1944Q2",0.02844991],["1942Q2",0.02457937]],[["1941Q4",0.32612543],["1942Q3",0.12624199],["1950Q4",0.10876803],["1917Q2",0.09329553],["1941Q2",0.07736283],["1918Q2",0.0501414],["1940Q2",0.04460974],["1945Q3",0.03530381],["1944Q2",0.02845411],["1942Q2",0.02457679]],[["1941Q4",0.32612217],["1942Q3",0.12623796],["1950Q4",0.10876407],["1917Q2",0.09329166],["1941Q2",0.07735911],["1918Q2",0.05013809],["1940Q2",0.04460655],["1945Q3",0.03530861],["1944Q2",0.02845833],["1942Q2",0.0245742]],[["1941Q4",0.32611889],["1942Q3",0.12623391],["1950Q4",0.10876009],["1917Q2",0.09328779],["1941Q2",0.07735538],["1918Q2",0.05013477],["1940Q2",0.04460335],["1945Q3",0.03531342],["1944Q2",0.02846257],["1942Q2",0.02457159]],[["1941Q4",0.3261156],["1942Q3",0.12622985],["1950Q4",0.10875609],["1917Q2",0.09328389],["1941Q2",0.07735164],["1918Q2",0.05013143],["1940Q2",0.04460013],["1945Q3",0.03531826],["1944Q2",0.02846683],["1942Q2",0.02456898]],[["1941Q4",0.3261123],["1942Q3",0.12622577],["1950Q4",0.10875208],["1917Q2",0.09327998],["1941Q2",0.07734787],["1918Q2",0.05012808],["1940Q2",0.0445969],["1945Q3",0.03532312],["1944Q2",0.0284711],["1942Q2",0.02456636]],[["1941Q4",0.32632726],["1942Q3",0.12629286],["1950Q4",0.10880705],["1917Q2",0.09332442],["1941Q2",0.07738174],["1918Q2",0.05014479],["1940Q2",0.04461033],["1945Q3",0.03537639],["1944Q2",0.02851611],["1942Q2",0.02456891]],[["1941Q4",0.32632399],["1942Q3",0.12628874],["1950Q4",0.10880299],["1917Q2",0.09332046],["1941Q2",0.07737793],["1918Q2",0.05014139],["1940Q2",0.04460705],["1945Q3",0.03538135],["1944Q2",0.02852048],["1942Q2",0.02456624]],[["1941Q4",0.3263207],["1942Q3",0.1262846],["1950Q4",0.10879892],["1917Q2",0.09331649],["1941Q2",0.0773741],["1918Q2",0.05013798],["1940Q2",0.04460376],["1945Q3",0.03538633],["1944Q2",0.02852486],["1942Q2",0.02456357]],[["1941Q4",0.3263174],["1942Q3",0.12628044],["1950Q4",0.10879483],["1917Q2",0.0933125],["1941Q2",0.07737026],["1918Q2",0.05013456],["1940Q2",0.04460046],["1945Q3",0.03539133],["1944Q2",0.02852926],["1942Q2",0.02456088]],[["1941Q4",0.32631408],["1942Q3",0.12627627],["1950Q4",0.10879073],["1917Q2",0.09330849],["1941Q2",0.0773664],["1918Q2",0.05013112],["1940Q2",0.04459714],["1945Q3",0.03539635],["1944Q2",0.02853368],["1942Q2",0.02455819]],[["1941Q4",0.32631558],["1942Q3",0.12627255],["1950Q4",0.10878677],["1917Q2",0.09330437],["1941Q2",0.07736219],["1918Q2",0.05012699],["1940Q2",0.04459308],["1945Q3",0.03540452],["1944Q2",0.02854082],["1942Q2",0.02455466]],[["1941Q4",0.32647103],["1942Q3",0.12631847],["1950Q4",0.10882381],["1917Q2",0.09333375],["1941Q2",0.07738392],["1918Q2",0.05013644],["1940Q2",0.04460022],["1945Q3",0.03544791],["1944Q2",0.02857762],["1942Q2",0.0245543]],[["1941Q4",0.32646773],["1942Q3",0.12631424],["1950Q4",0.10881965],["1917Q2",0.09332968],["1941Q2",0.07737999],["1918Q2",0.05013294],["1940Q2",0.04459684],["1945Q3",0.03545305],["1944Q2",0.02858215],["1942Q2",0.02455155]],[["1941Q4",0.32646441],["1942Q3",0.12630999],["1950Q4",0.10881546],["1917Q2",0.0933256],["1941Q2",0.07737606],["1918Q2",0.05012942],["1940Q2",0.04459344],["1945Q3",0.03545822],["1944Q2",0.0285867],["1942Q2",0.02454879]]],
+        dropboth: [[["1942Q3",0.18876874],["1950Q4",0.16272535],["1917Q2",0.1396586],["1941Q2",0.1158978],["1918Q2",0.07527467],["1940Q2",0.06701358],["1945Q3",0.05175973],["1944Q2",0.04165573],["1942Q2",0.03706576],["1918Q4",0.02847227]],[["1942Q3",0.18876477],["1950Q4",0.16272138],["1917Q2",0.13965467],["1941Q2",0.11589397],["1918Q2",0.07527117],["1940Q2",0.06701018],["1945Q3",0.05176521],["1944Q2",0.04166054],["1942Q2",0.03706295],["1918Q4",0.02847611]],[["1942Q3",0.18876078],["1950Q4",0.16271739],["1917Q2",0.13965073],["1941Q2",0.11589012],["1918Q2",0.07526766],["1940Q2",0.06700678],["1945Q3",0.05177071],["1944Q2",0.04166536],["1942Q2",0.03706013],["1918Q4",0.02847997]],[["1942Q3",0.18875678],["1950Q4",0.16271339],["1917Q2",0.13964677],["1941Q2",0.11588626],["1918Q2",0.07526413],["1940Q2",0.06700336],["1945Q3",0.05177623],["1944Q2",0.04167021],["1942Q2",0.03705729],["1918Q4",0.02848384]],[["1942Q3",0.18875276],["1950Q4",0.16270937],["1917Q2",0.13964279],["1941Q2",0.11588237],["1918Q2",0.07526059],["1940Q2",0.06699992],["1945Q3",0.05178178],["1944Q2",0.04167508],["1942Q2",0.03705445],["1918Q4",0.02848773]],[["1942Q3",0.18874872],["1950Q4",0.16270534],["1917Q2",0.1396388],["1941Q2",0.11587848],["1918Q2",0.07525703],["1940Q2",0.06699648],["1945Q3",0.05178735],["1944Q2",0.04167997],["1942Q2",0.03705159],["1918Q4",0.02849163]],[["1942Q3",0.18874467],["1950Q4",0.16270129],["1917Q2",0.13963479],["1941Q2",0.11587457],["1918Q2",0.07525346],["1940Q2",0.06699302],["1945Q3",0.05179294],["1944Q2",0.04168487],["1942Q2",0.03704872],["1918Q4",0.02849555]],[["1942Q3",0.1887406],["1950Q4",0.16269722],["1917Q2",0.13963077],["1941Q2",0.11587064],["1918Q2",0.07524988],["1940Q2",0.06698954],["1945Q3",0.05179856],["1944Q2",0.0416898],["1942Q2",0.03704584],["1918Q4",0.02849949]],[["1942Q3",0.18873652],["1950Q4",0.16269314],["1917Q2",0.13962673],["1941Q2",0.1158667],["1918Q2",0.07524628],["1940Q2",0.06698605],["1945Q3",0.0518042],["1944Q2",0.04169475],["1942Q2",0.03704295],["1918Q4",0.02850344]],[["1942Q3",0.18873242],["1950Q4",0.16268904],["1917Q2",0.13962267],["1941Q2",0.11586274],["1918Q2",0.07524267],["1940Q2",0.06698255],["1945Q3",0.05180986],["1944Q2",0.04169972],["1942Q2",0.03704005],["1918Q4",0.02850741]],[["1942Q3",0.1887283],["1950Q4",0.16268492],["1917Q2",0.1396186],["1941Q2",0.11585876],["1918Q2",0.07523904],["1940Q2",0.06697903],["1945Q3",0.05181555],["1944Q2",0.0417047],["1942Q2",0.03703714],["1918Q4",0.02851139]],[["1942Q3",0.18872417],["1950Q4",0.16268079],["1917Q2",0.13961451],["1941Q2",0.11585477],["1918Q2",0.07523539],["1940Q2",0.0669755],["1945Q3",0.05182125],["1944Q2",0.04170971],["1942Q2",0.03703421],["1918Q4",0.02851539]],[["1942Q3",0.18888789],["1950Q4",0.16281786],["1917Q2",0.13972827],["1941Q2",0.1159449],["1918Q2",0.07528643],["1940Q2",0.06701887],["1945Q3",0.05191508],["1944Q2",0.04178819],["1942Q2",0.03705124],["1918Q4",0.02857316]],[["1942Q3",0.18888373],["1950Q4",0.16281368],["1917Q2",0.13972413],["1941Q2",0.11594086],["1918Q2",0.07528273],["1940Q2",0.06701529],["1945Q3",0.05192093],["1944Q2",0.04179333],["1942Q2",0.03704827],["1918Q4",0.02857727]],[["1942Q3",0.18887955],["1950Q4",0.1628095],["1917Q2",0.13971998],["1941Q2",0.1159368],["1918Q2",0.07527902],["1940Q2",0.06701168],["1945Q3",0.05192681],["1944Q2",0.04179848],["1942Q2",0.03704528],["1918Q4",0.02858138]],[["1942Q3",0.18887535],["1950Q4",0.16280529],["1917Q2",0.13971582],["1941Q2",0.11593273],["1918Q2",0.07527529],["1940Q2",0.06700807],["1945Q3",0.05193271],["1944Q2",0.04180366],["1942Q2",0.03704228],["1918Q4",0.02858552]],[["1942Q3",0.18887113],["1950Q4",0.16280107],["1917Q2",0.13971163],["1941Q2",0.11592863],["1918Q2",0.07527154],["1940Q2",0.06700444],["1945Q3",0.05193864],["1944Q2",0.04180886],["1942Q2",0.03703926],["1918Q4",0.02858967]],[["1942Q3",0.18886897],["1950Q4",0.16279824],["1917Q2",0.13970829],["1941Q2",0.11592486],["1918Q2",0.07526732],["1940Q2",0.0670002],["1945Q3",0.05194958],["1944Q2",0.04181836],["1942Q2",0.03703528],["1918Q4",0.02859714]],[["1942Q3",0.18898443],["1950Q4",0.1628942],["1917Q2",0.13978724],["1941Q2",0.11598661],["1918Q2",0.07530084],["1940Q2",0.06702822],["1945Q3",0.05202428],["1944Q2",0.0418811],["1942Q2",0.03704467],["1918Q4",0.02864366]],[["1942Q3",0.18898017],["1950Q4",0.16288992],["1917Q2",0.13978299],["1941Q2",0.11598246],["1918Q2",0.07529702],["1940Q2",0.06702452],["1945Q3",0.05203038],["1944Q2",0.04188644],["1942Q2",0.03704159],["1918Q4",0.02864793]],[["1942Q3",0.18897589],["1950Q4",0.16288563],["1917Q2",0.13977873],["1941Q2",0.11597828],["1918Q2",0.07529319],["1940Q2",0.0670208],["1945Q3",0.0520365],["1944Q2",0.04189181],["1942Q2",0.0370385],["1918Q4",0.02865222]]],
+        from1947q1: [[["1950Q3",0.64333226],["1950Q4",0.28689308],["1989Q4",0.01596496],["1980Q1",0.00625755],["1988Q1",0.00499413],["1961Q2",0.00440626],["2007Q4",0.00427239],["1967Q1",0.00362411],["1953Q3",0.00230162],["2013Q1",0.0020347]],[["1950Q3",0.6433202],["1950Q4",0.28688015],["1989Q4",0.01597086],["1980Q1",0.00625441],["1988Q1",0.00499729],["1961Q2",0.00440359],["2007Q4",0.00426976],["1967Q1",0.00362168],["1953Q3",0.00230374],["2013Q1",0.00203668]],[["1950Q3",0.64330804],["1950Q4",0.28686714],["1989Q4",0.01597681],["1980Q1",0.00625125],["1988Q1",0.00500048],["1961Q2",0.00440091],["2007Q4",0.00426712],["1967Q1",0.00361924],["1953Q3",0.00230587],["2013Q1",0.00203868]],[["1950Q3",0.6432958],["1950Q4",0.28685402],["1989Q4",0.0159828],["1980Q1",0.00624807],["1988Q1",0.0050037],["1961Q2",0.00439821],["2007Q4",0.00426446],["1967Q1",0.00361678],["1953Q3",0.00230801],["2013Q1",0.00204069]],[["1950Q3",0.64328347],["1950Q4",0.28684081],["1989Q4",0.01598883],["1980Q1",0.00624486],["1988Q1",0.00500694],["1961Q2",0.00439549],["2007Q4",0.00426178],["1967Q1",0.0036143],["1953Q3",0.00231017],["2013Q1",0.00204272]],[["1950Q3",0.64327105],["1950Q4",0.28682751],["1989Q4",0.01599491],["1980Q1",0.00624163],["1988Q1",0.0050102],["1961Q2",0.00439275],["2007Q4",0.00425908],["1967Q1",0.0036118],["1953Q3",0.00231235],["2013Q1",0.00204476]],[["1950Q3",0.64325853],["1950Q4",0.2868141],["1989Q4",0.01600104],["1980Q1",0.00623838],["1988Q1",0.00501349],["1961Q2",0.00438999],["2007Q4",0.00425636],["1967Q1",0.00360929],["1953Q3",0.00231455],["2013Q1",0.00204682]],[["1950Q3",0.64324592],["1950Q4",0.2868006],["1989Q4",0.01600722],["1980Q1",0.0062351],["1988Q1",0.00501681],["1961Q2",0.00438722],["2007Q4",0.00425362],["1967Q1",0.00360675],["1953Q3",0.00231676],["2013Q1",0.0020489]],[["1950Q3",0.64323322],["1950Q4",0.28678699],["1989Q4",0.01601344],["1980Q1",0.0062318],["1988Q1",0.00502015],["1961Q2",0.00438442],["2007Q4",0.00425086],["1967Q1",0.0036042],["1953Q3",0.002319],["2013Q1",0.002051]],[["1950Q3",0.64322042],["1950Q4",0.28677329],["1989Q4",0.01601971],["1980Q1",0.00622848],["1988Q1",0.00502352],["1961Q2",0.0043816],["2007Q4",0.00424808],["1967Q1",0.00360164],["1953Q3",0.00232125],["2013Q1",0.00205311]],[["1950Q3",0.64320753],["1950Q4",0.28675948],["1989Q4",0.01602603],["1980Q1",0.00622513],["1988Q1",0.00502692],["1961Q2",0.00437876],["2007Q4",0.00424529],["1967Q1",0.00359905],["1953Q3",0.00232351],["2013Q1",0.00205523]],[["1950Q3",0.64319454],["1950Q4",0.28674556],["1989Q4",0.01603239],["1980Q1",0.00622176],["1988Q1",0.00503034],["1961Q2",0.0043759],["2007Q4",0.00424247],["1967Q1",0.00359644],["1953Q3",0.0023258],["2013Q1",0.00205738]],[["1950Q3",0.64424947],["1950Q4",0.28715461],["1989Q4",0.0161092],["1980Q1",0.0062075],["1988Q1",0.0050652],["1961Q2",0.00436221],["2007Q4",0.00422885],["1967Q1",0.00358326],["1953Q3",0.00234725],["1968Q2",0.00182307]],[["1950Q3",0.64423658],["1950Q4",0.2871404],["1989Q4",0.01611587],["1980Q1",0.006204],["1988Q1",0.00506878],["1961Q2",0.00435924],["2007Q4",0.00422593],["1967Q1",0.00358056],["1953Q3",0.00234964],["1968Q2",0.00182517]],[["1950Q3",0.6442236],["1950Q4",0.28712608],["1989Q4",0.01612258],["1980Q1",0.00620047],["1988Q1",0.00507239],["1961Q2",0.00435625],["2007Q4",0.00422298],["1967Q1",0.00357784],["1953Q3",0.00235206],["1968Q2",0.00182729]],[["1950Q3",0.64421051],["1950Q4",0.28711165],["1989Q4",0.01612935],["1980Q1",0.00619692],["1988Q1",0.00507603],["1961Q2",0.00435324],["2007Q4",0.00422001],["1967Q1",0.00357509],["1953Q3",0.00235449],["1968Q2",0.00182943]],[["1950Q3",0.64419732],["1950Q4",0.28709712],["1989Q4",0.01613618],["1980Q1",0.00619334],["1988Q1",0.0050797],["1961Q2",0.00435021],["2007Q4",0.00421702],["1967Q1",0.00357233],["1953Q3",0.00235695],["1968Q2",0.00183158]],[["1950Q3",0.64420306],["1950Q4",0.28708532],["1989Q4",0.01614818],["1980Q1",0.00618768],["1988Q1",0.005086],["1961Q2",0.00434537],["2007Q4",0.00421225],["1967Q1",0.00356791],["1953Q3",0.00236112],["1968Q2",0.00183523]],[["1950Q3",0.64496475],["1950Q4",0.28737024],["1989Q4",0.01621237],["1980Q1",0.00617329],["1988Q1",0.00511581],["1961Q2",0.004332],["2007Q4",0.00419899],["1967Q1",0.00355522],["1953Q3",0.00237971],["1968Q2",0.00185124]],[["1950Q3",0.64495158],["1950Q4",0.28735529],["1989Q4",0.01621955],["1980Q1",0.00616956],["1988Q1",0.00511968],["1961Q2",0.00432884],["2007Q4",0.00419587],["1967Q1",0.00355234],["1953Q3",0.0023823],["1968Q2",0.00185352]],[["1950Q3",0.64493831],["1950Q4",0.28734023],["1989Q4",0.01622679],["1980Q1",0.00616579],["1988Q1",0.00512357],["1961Q2",0.00432565],["2007Q4",0.00419273],["1967Q1",0.00354943],["1953Q3",0.00238491],["1968Q2",0.00185581]]],
+      },
+      rz: {
+        full: [[["1941Q4",0.26122465],["1950Q3",0.19585326],["1942Q3",0.1009131],["1950Q4",0.08690876],["1917Q2",0.0745112],["1941Q2",0.06174831],["1918Q2",0.03995423],["1940Q2",0.03552808],["1945Q3",0.0286629],["1944Q2",0.02312835]],[["1941Q4",0.26122124],["1950Q3",0.19584942],["1942Q3",0.10090916],["1950Q4",0.08690491],["1917Q2",0.07450746],["1941Q2",0.06174472],["1918Q2",0.03995106],["1940Q2",0.03552502],["1945Q3",0.02866743],["1944Q2",0.02313234]],[["1941Q4",0.26121783],["1950Q3",0.19584556],["1942Q3",0.10090522],["1950Q4",0.08690104],["1917Q2",0.0745037],["1941Q2",0.06174113],["1918Q2",0.03994788],["1940Q2",0.03552196],["1945Q3",0.02867199],["1944Q2",0.02313636]],[["1941Q4",0.2612144],["1950Q3",0.19584168],["1942Q3",0.10090125],["1950Q4",0.08689716],["1917Q2",0.07449993],["1941Q2",0.06173751],["1918Q2",0.03994468],["1940Q2",0.03551888],["1945Q3",0.02867656],["1944Q2",0.02314038]],[["1941Q4",0.26121095],["1950Q3",0.19583779],["1942Q3",0.10089727],["1950Q4",0.08689327],["1917Q2",0.07449614],["1941Q2",0.06173388],["1918Q2",0.03994147],["1940Q2",0.03551579],["1945Q3",0.02868115],["1944Q2",0.02314443]],[["1941Q4",0.26120749],["1950Q3",0.19583389],["1942Q3",0.10089327],["1950Q4",0.08688935],["1917Q2",0.07449234],["1941Q2",0.06173024],["1918Q2",0.03993825],["1940Q2",0.03551268],["1945Q3",0.02868576],["1944Q2",0.02314849]],[["1941Q4",0.26120402],["1950Q3",0.19582996],["1942Q3",0.10088926],["1950Q4",0.08688543],["1917Q2",0.07448853],["1941Q2",0.06172658],["1918Q2",0.03993502],["1940Q2",0.03550957],["1945Q3",0.02869039],["1944Q2",0.02315257]],[["1941Q4",0.26120053],["1950Q3",0.19582603],["1942Q3",0.10088523],["1950Q4",0.08688148],["1917Q2",0.0744847],["1941Q2",0.06172291],["1918Q2",0.03993177],["1940Q2",0.03550644],["1945Q3",0.02869504],["1944Q2",0.02315667]],[["1941Q4",0.26119703],["1950Q3",0.19582207],["1942Q3",0.10088119],["1950Q4",0.08687753],["1917Q2",0.07448085],["1941Q2",0.06171922],["1918Q2",0.03992851],["1940Q2",0.0355033],["1945Q3",0.02869971],["1944Q2",0.02316078]],[["1941Q4",0.26119352],["1950Q3",0.1958181],["1942Q3",0.10087713],["1950Q4",0.08687355],["1917Q2",0.07447699],["1941Q2",0.06171552],["1918Q2",0.03992523],["1940Q2",0.03550015],["1945Q3",0.02870439],["1944Q2",0.02316491]],[["1941Q4",0.26118999],["1950Q3",0.19581412],["1942Q3",0.10087305],["1950Q4",0.08686956],["1917Q2",0.07447311],["1941Q2",0.0617118],["1918Q2",0.03992194],["1940Q2",0.03549698],["1945Q3",0.0287091],["1944Q2",0.02316906]],[["1941Q4",0.26118645],["1950Q3",0.19581011],["1942Q3",0.10086895],["1950Q4",0.08686555],["1917Q2",0.07446921],["1941Q2",0.06170807],["1918Q2",0.03991864],["1940Q2",0.0354938],["1945Q3",0.02871383],["1944Q2",0.02317323]],[["1941Q4",0.26132492],["1950Q3",0.19590727],["1942Q3",0.10090895],["1950Q4",0.08689762],["1917Q2",0.07449444],["1941Q2",0.06172648],["1918Q2",0.03992616],["1940Q2",0.03549928],["1945Q3",0.02875436],["1944Q2",0.02320767]],[["1941Q4",0.26132139],["1950Q3",0.19590326],["1942Q3",0.10090481],["1950Q4",0.08689357],["1917Q2",0.0744905],["1941Q2",0.0617227],["1918Q2",0.03992282],["1940Q2",0.03549606],["1945Q3",0.02875917],["1944Q2",0.02321192]],[["1941Q4",0.26131785],["1950Q3",0.19589922],["1942Q3",0.10090066],["1950Q4",0.0868895],["1917Q2",0.07448654],["1941Q2",0.0617189],["1918Q2",0.03991946],["1940Q2",0.03549283],["1945Q3",0.02876401],["1944Q2",0.02321618]],[["1941Q4",0.26131428],["1950Q3",0.19589517],["1942Q3",0.10089649],["1950Q4",0.08688541],["1917Q2",0.07448257],["1941Q2",0.06171509],["1918Q2",0.03991609],["1940Q2",0.03548958],["1945Q3",0.02876887],["1944Q2",0.02322046]],[["1941Q4",0.26131071],["1950Q3",0.1958911],["1942Q3",0.1008923],["1950Q4",0.08688131],["1917Q2",0.07447858],["1941Q2",0.06171127],["1918Q2",0.0399127],["1940Q2",0.03548631],["1945Q3",0.02877375],["1944Q2",0.02322476]],[["1941Q4",0.26131038],["1950Q3",0.19588891],["1942Q3",0.10088823],["1950Q4",0.0868771],["1917Q2",0.07447431],["1941Q2",0.061707],["1918Q2",0.03990865],["1940Q2",0.03548236],["1945Q3",0.02878113],["1944Q2",0.02323123]],[["1941Q4",0.26141027],["1950Q3",0.19595788],["1942Q3",0.10091482],["1950Q4",0.08689789],["1917Q2",0.07449011],["1941Q2",0.06171787],["1918Q2",0.03991179],["1940Q2",0.03548408],["1945Q3",0.02881464],["1944Q2",0.02325982]],[["1941Q4",0.26140669],["1950Q3",0.19595378],["1942Q3",0.10091057],["1950Q4",0.08689372],["1917Q2",0.07448606],["1941Q2",0.06171398],["1918Q2",0.03990834],["1940Q2",0.03548076],["1945Q3",0.02881963],["1944Q2",0.02326422]],[["1941Q4",0.26140309],["1950Q3",0.19594966],["1942Q3",0.1009063],["1950Q4",0.08688954],["1917Q2",0.07448199],["1941Q2",0.06171008],["1918Q2",0.03990488],["1940Q2",0.03547743],["1945Q3",0.02882465],["1944Q2",0.02326864]]],
+        drop1941q4: [[["1950Q3",0.26652271],["1942Q3",0.13757485],["1950Q4",0.11854181],["1917Q2",0.10168809],["1941Q2",0.08433219],["1918Q2",0.05467612],["1940Q2",0.04864904],["1945Q3",0.03835701],["1944Q2",0.03090796],["1942Q2",0.0268185]],[["1950Q3",0.2665191],["1942Q3",0.13757084],["1950Q4",0.11853784],["1917Q2",0.1016842],["1941Q2",0.08432843],["1918Q2",0.05467275],["1940Q2",0.04864578],["1945Q3",0.03836206],["1944Q2",0.0309124],["1942Q2",0.02681583]],[["1950Q3",0.26651548],["1942Q3",0.13756681],["1950Q4",0.11853386],["1917Q2",0.10168029],["1941Q2",0.08432465],["1918Q2",0.05466936],["1940Q2",0.0486425],["1945Q3",0.03836712],["1944Q2",0.03091686],["1942Q2",0.02681315]],[["1950Q3",0.26651184],["1942Q3",0.13756276],["1950Q4",0.11852986],["1917Q2",0.10167637],["1941Q2",0.08432087],["1918Q2",0.05466595],["1940Q2",0.04863922],["1945Q3",0.03837221],["1944Q2",0.03092133],["1942Q2",0.02681047]],[["1950Q3",0.26650819],["1942Q3",0.1375587],["1950Q4",0.11852584],["1917Q2",0.10167244],["1941Q2",0.08431706],["1918Q2",0.05466254],["1940Q2",0.04863591],["1945Q3",0.03837733],["1944Q2",0.03092583],["1942Q2",0.02680777]],[["1950Q3",0.26650452],["1942Q3",0.13755462],["1950Q4",0.11852181],["1917Q2",0.10166849],["1941Q2",0.08431324],["1918Q2",0.05465911],["1940Q2",0.0486326],["1945Q3",0.03838246],["1944Q2",0.03093034],["1942Q2",0.02680506]],[["1950Q3",0.26650084],["1942Q3",0.13755052],["1950Q4",0.11851776],["1917Q2",0.10166452],["1941Q2",0.0843094],["1918Q2",0.05465566],["1940Q2",0.04862927],["1945Q3",0.03838761],["1944Q2",0.03093487],["1942Q2",0.02680234]],[["1950Q3",0.26649715],["1942Q3",0.13754641],["1950Q4",0.11851369],["1917Q2",0.10166054],["1941Q2",0.08430555],["1918Q2",0.0546522],["1940Q2",0.04862593],["1945Q3",0.03839279],["1944Q2",0.03093942],["1942Q2",0.0267996]],[["1950Q3",0.26649344],["1942Q3",0.13754228],["1950Q4",0.11850961],["1917Q2",0.10165654],["1941Q2",0.08430168],["1918Q2",0.05464873],["1940Q2",0.04862258],["1945Q3",0.03839798],["1944Q2",0.03094399],["1942Q2",0.02679686]],[["1950Q3",0.26648971],["1942Q3",0.13753814],["1950Q4",0.11850552],["1917Q2",0.10165252],["1941Q2",0.0842978],["1918Q2",0.05464524],["1940Q2",0.04861921],["1945Q3",0.0384032],["1944Q2",0.03094858],["1942Q2",0.02679411]],[["1950Q3",0.26648597],["1942Q3",0.13753397],["1950Q4",0.1185014],["1917Q2",0.10164849],["1941Q2",0.0842939],["1918Q2",0.05464174],["1940Q2",0.04861582],["1945Q3",0.03840844],["1944Q2",0.03095318],["1942Q2",0.02679134]],[["1950Q3",0.26648222],["1942Q3",0.13752979],["1950Q4",0.11849727],["1917Q2",0.10164444],["1941Q2",0.08428999],["1918Q2",0.05463823],["1940Q2",0.04861243],["1945Q3",0.0384137],["1944Q2",0.03095781],["1942Q2",0.02678856]],[["1950Q3",0.26666757],["1942Q3",0.13761232],["1950Q4",0.11856527],["1917Q2",0.1016998],["1941Q2",0.08433264],["1918Q2",0.05466014],["1940Q2",0.04863036],["1945Q3",0.03847444],["1944Q2",0.03100902],["1942Q2",0.02679314]],[["1950Q3",0.26666382],["1942Q3",0.1376081],["1950Q4",0.11856109],["1917Q2",0.10169571],["1941Q2",0.08432867],["1918Q2",0.05465658],["1940Q2",0.04862691],["1945Q3",0.03847982],["1944Q2",0.03101375],["1942Q2",0.02679032]],[["1950Q3",0.26666006],["1942Q3",0.13760386],["1950Q4",0.1185569],["1917Q2",0.10169159],["1941Q2",0.08432469],["1918Q2",0.054653],["1940Q2",0.04862345],["1945Q3",0.03848522],["1944Q2",0.0310185],["1942Q2",0.02678749]],[["1950Q3",0.26665628],["1942Q3",0.13759961],["1950Q4",0.11855269],["1917Q2",0.10168746],["1941Q2",0.0843207],["1918Q2",0.0546494],["1940Q2",0.04861997],["1945Q3",0.03849064],["1944Q2",0.03102327],["1942Q2",0.02678464]],[["1950Q3",0.26665248],["1942Q3",0.13759534],["1950Q4",0.11854846],["1917Q2",0.10168332],["1941Q2",0.08431668],["1918Q2",0.05464579],["1940Q2",0.04861649],["1945Q3",0.03849608],["1944Q2",0.03102805],["1942Q2",0.02678179]],[["1950Q3",0.26665243],["1942Q3",0.13759185],["1950Q4",0.11854463],["1917Q2",0.10167925],["1941Q2",0.08431245],["1918Q2",0.05464154],["1940Q2",0.04861229],["1945Q3",0.03850506],["1944Q2",0.03103588],["1942Q2",0.02677807]],[["1950Q3",0.26678557],["1942Q3",0.13764894],["1950Q4",0.11859108],["1917Q2",0.10171648],["1941Q2",0.08434044],["1918Q2",0.05465461],["1940Q2",0.04862253],["1945Q3",0.03855436],["1944Q2",0.03107762],["1942Q2",0.02677903]],[["1950Q3",0.26678177],["1942Q3",0.13764462],["1950Q4",0.11858679],["1917Q2",0.10171226],["1941Q2",0.08433636],["1918Q2",0.05465094],["1940Q2",0.04861898],["1945Q3",0.03855994],["1944Q2",0.03108253],["1942Q2",0.02677612]],[["1950Q3",0.26677795],["1942Q3",0.13764027],["1950Q4",0.11858249],["1917Q2",0.10170804],["1941Q2",0.08433226],["1918Q2",0.05464725],["1940Q2",0.04861541],["1945Q3",0.03856555],["1944Q2",0.03108746],["1942Q2",0.0267732]]],
+        drop1950q3: [[["1941Q4",0.32613452],["1942Q3",0.1262542],["1950Q4",0.10878008],["1917Q2",0.09330733],["1941Q2",0.07737422],["1918Q2",0.05015161],["1940Q2",0.0446196],["1945Q3",0.03528863],["1944Q2",0.02844076],["1942Q2",0.02458484]],[["1941Q4",0.32613129],["1942Q3",0.12625022],["1950Q4",0.10877617],["1917Q2",0.09330351],["1941Q2",0.07737055],["1918Q2",0.05014834],["1940Q2",0.04461645],["1945Q3",0.03529336],["1944Q2",0.02844493],["1942Q2",0.02458228]],[["1941Q4",0.32612805],["1942Q3",0.12624622],["1950Q4",0.10877224],["1917Q2",0.09329968],["1941Q2",0.07736687],["1918Q2",0.05014506],["1940Q2",0.04461329],["1945Q3",0.03529812],["1944Q2",0.02844911],["1942Q2",0.02457971]],[["1941Q4",0.3261248],["1942Q3",0.1262422],["1950Q4",0.10876829],["1917Q2",0.09329583],["1941Q2",0.07736317],["1918Q2",0.05014176],["1940Q2",0.04461011],["1945Q3",0.03530289],["1944Q2",0.02845331],["1942Q2",0.02457713]],[["1941Q4",0.32612153],["1942Q3",0.12623817],["1950Q4",0.10876433],["1917Q2",0.09329197],["1941Q2",0.07735945],["1918Q2",0.05013846],["1940Q2",0.04460692],["1945Q3",0.03530769],["1944Q2",0.02845753],["1942Q2",0.02457454]],[["1941Q4",0.32611825],["1942Q3",0.12623412],["1950Q4",0.10876035],["1917Q2",0.09328809],["1941Q2",0.07735572],["1918Q2",0.05013514],["1940Q2",0.04460372],["1945Q3",0.0353125],["1944Q2",0.02846177],["1942Q2",0.02457194]],[["1941Q4",0.32611496],["1942Q3",0.12623006],["1950Q4",0.10875636],["1917Q2",0.0932842],["1941Q2",0.07735197],["1918Q2",0.0501318],["1940Q2",0.0446005],["1945Q3",0.03531733],["1944Q2",0.02846602],["1942Q2",0.02456932]],[["1941Q4",0.32611166],["1942Q3",0.12622598],["1950Q4",0.10875235],["1917Q2",0.09328029],["1941Q2",0.07734821],["1918Q2",0.05012845],["1940Q2",0.04459727],["1945Q3",0.03532219],["1944Q2",0.0284703],["1942Q2",0.0245667]],[["1941Q4",0.32610834],["1942Q3",0.12622188],["1950Q4",0.10874832],["1917Q2",0.09327636],["1941Q2",0.07734444],["1918Q2",0.05012509],["1940Q2",0.04459403],["1945Q3",0.03532706],["1944Q2",0.02847459],["1942Q2",0.02456407]],[["1941Q4",0.326105],["1942Q3",0.12621777],["1950Q4",0.10874428],["1917Q2",0.09327242],["1941Q2",0.07734064],["1918Q2",0.05012171],["1940Q2",0.04459077],["1945Q3",0.03533196],["1944Q2",0.02847889],["1942Q2",0.02456143]],[["1941Q4",0.32610166],["1942Q3",0.12621364],["1950Q4",0.10874022],["1917Q2",0.09326846],["1941Q2",0.07733684],["1918Q2",0.05011833],["1940Q2",0.0445875],["1945Q3",0.03533687],["1944Q2",0.02848322],["1942Q2",0.02455877]],[["1941Q4",0.3260983],["1942Q3",0.12620949],["1950Q4",0.10873614],["1917Q2",0.09326449],["1941Q2",0.07733301],["1918Q2",0.05011492],["1940Q2",0.04458422],["1945Q3",0.03534181],["1944Q2",0.02848756],["1942Q2",0.02455611]],[["1941Q4",0.3263134],["1942Q3",0.12627647],["1950Q4",0.10879099],["1917Q2",0.09330879],["1941Q2",0.07736674],["1918Q2",0.05013149],["1940Q2",0.04459751],["1945Q3",0.03539541],["1944Q2",0.02853286],["1942Q2",0.02455853]],[["1941Q4",0.32631007],["1942Q3",0.12627228],["1950Q4",0.10878687],["1917Q2",0.09330477],["1941Q2",0.07736287],["1918Q2",0.05012804],["1940Q2",0.04459418],["1945Q3",0.03540045],["1944Q2",0.0285373],["1942Q2",0.02455582]],[["1941Q4",0.32630673],["1942Q3",0.12626808],["1950Q4",0.10878273],["1917Q2",0.09330073],["1941Q2",0.07735898],["1918Q2",0.05012457],["1940Q2",0.04459083],["1945Q3",0.03540551],["1944Q2",0.02854175],["1942Q2",0.02455311]],[["1941Q4",0.32630337],["1942Q3",0.12626385],["1950Q4",0.10877857],["1917Q2",0.09329667],["1941Q2",0.07735507],["1918Q2",0.05012109],["1940Q2",0.04458748],["1945Q3",0.03541059],["1944Q2",0.02854623],["1942Q2",0.02455038]],[["1941Q4",0.3263],["1942Q3",0.12625961],["1950Q4",0.1087744],["1917Q2",0.0932926],["1941Q2",0.07735115],["1918Q2",0.05011759],["1940Q2",0.0445841],["1945Q3",0.0354157],["1944Q2",0.02855072],["1942Q2",0.02454764]],[["1941Q4",0.32630146],["1942Q3",0.12625582],["1950Q4",0.10877036],["1917Q2",0.09328841],["1941Q2",0.07734687],["1918Q2",0.0501134],["1940Q2",0.04457999],["1945Q3",0.03542398],["1944Q2",0.02855795],["1942Q2",0.02454406]],[["1941Q4",0.32645702],["1942Q3",0.12630163],["1950Q4",0.1088073],["1917Q2",0.09331767],["1941Q2",0.07736847],["1918Q2",0.05012272],["1940Q2",0.04458699],["1945Q3",0.03546766],["1944Q2",0.02859502],["1942Q2",0.02454359]],[["1941Q4",0.32645367],["1942Q3",0.12629733],["1950Q4",0.10880306],["1917Q2",0.09331353],["1941Q2",0.07736448],["1918Q2",0.05011916],["1940Q2",0.04458355],["1945Q3",0.03547289],["1944Q2",0.02859962],["1942Q2",0.02454079]],[["1941Q4",0.3264503],["1942Q3",0.12629301],["1950Q4",0.10879881],["1917Q2",0.09330938],["1941Q2",0.07736048],["1918Q2",0.05011559],["1940Q2",0.04458011],["1945Q3",0.03547815],["1944Q2",0.02860425],["1942Q2",0.02453799]]],
+        dropboth: [[["1942Q3",0.1887529],["1950Q4",0.16270961],["1917Q2",0.13964311],["1941Q2",0.11588276],["1918Q2",0.07526106],["1940Q2",0.06700041],["1945Q3",0.05178038],["1944Q2",0.04167387],["1942Q2",0.03705492],["1918Q4",0.02848678]],[["1942Q3",0.18874886],["1950Q4",0.16270558],["1917Q2",0.13963912],["1941Q2",0.11587887],["1918Q2",0.07525751],["1940Q2",0.06699696],["1945Q3",0.05178595],["1944Q2",0.04167875],["1942Q2",0.03705206],["1918Q4",0.02849068]],[["1942Q3",0.18874481],["1950Q4",0.16270153],["1917Q2",0.13963511],["1941Q2",0.11587496],["1918Q2",0.07525394],["1940Q2",0.0669935],["1945Q3",0.05179154],["1944Q2",0.04168365],["1942Q2",0.0370492],["1918Q4",0.0284946]],[["1942Q3",0.18874074],["1950Q4",0.16269746],["1917Q2",0.13963109],["1941Q2",0.11587103],["1918Q2",0.07525035],["1940Q2",0.06699003],["1945Q3",0.05179715],["1944Q2",0.04168858],["1942Q2",0.03704632],["1918Q4",0.02849853]],[["1942Q3",0.18873666],["1950Q4",0.16269338],["1917Q2",0.13962705],["1941Q2",0.11586709],["1918Q2",0.07524676],["1940Q2",0.06698654],["1945Q3",0.05180279],["1944Q2",0.04169352],["1942Q2",0.03704343],["1918Q4",0.02850248]],[["1942Q3",0.18873256],["1950Q4",0.16268928],["1917Q2",0.13962299],["1941Q2",0.11586313],["1918Q2",0.07524314],["1940Q2",0.06698304],["1945Q3",0.05180845],["1944Q2",0.04169849],["1942Q2",0.03704053],["1918Q4",0.02850645]],[["1942Q3",0.18872844],["1950Q4",0.16268516],["1917Q2",0.13961892],["1941Q2",0.11585915],["1918Q2",0.07523952],["1940Q2",0.06697952],["1945Q3",0.05181413],["1944Q2",0.04170348],["1942Q2",0.03703761],["1918Q4",0.02851043]],[["1942Q3",0.1887243],["1950Q4",0.16268103],["1917Q2",0.13961483],["1941Q2",0.11585516],["1918Q2",0.07523587],["1940Q2",0.06697599],["1945Q3",0.05181983],["1944Q2",0.04170848],["1942Q2",0.03703469],["1918Q4",0.02851443]],[["1942Q3",0.18872015],["1950Q4",0.16267688],["1917Q2",0.13961072],["1941Q2",0.11585115],["1918Q2",0.07523222],["1940Q2",0.06697244],["1945Q3",0.05182556],["1944Q2",0.04171351],["1942Q2",0.03703175],["1918Q4",0.02851845]],[["1942Q3",0.18871598],["1950Q4",0.16267271],["1917Q2",0.1396066],["1941Q2",0.11584713],["1918Q2",0.07522854],["1940Q2",0.06696889],["1945Q3",0.05183132],["1944Q2",0.04171856],["1942Q2",0.0370288],["1918Q4",0.02852248]],[["1942Q3",0.1887118],["1950Q4",0.16266853],["1917Q2",0.13960246],["1941Q2",0.11584309],["1918Q2",0.07522486],["1940Q2",0.06696531],["1945Q3",0.0518371],["1944Q2",0.04172363],["1942Q2",0.03702584],["1918Q4",0.02852653]],[["1942Q3",0.1887076],["1950Q4",0.16266433],["1917Q2",0.1395983],["1941Q2",0.11583903],["1918Q2",0.07522116],["1940Q2",0.06696172],["1945Q3",0.0518429],["1944Q2",0.04172872],["1942Q2",0.03702287],["1918Q4",0.0285306]],[["1942Q3",0.18887124],["1950Q4",0.16280129],["1917Q2",0.13971193],["1941Q2",0.11592902],["1918Q2",0.07527202],["1940Q2",0.06700492],["1945Q3",0.0519372],["1944Q2",0.04180761],["1942Q2",0.03703974],["1918Q4",0.02858869]],[["1942Q3",0.18886701],["1950Q4",0.16279705],["1917Q2",0.13970773],["1941Q2",0.11592491],["1918Q2",0.07526826],["1940Q2",0.06700128],["1945Q3",0.05194315],["1944Q2",0.04181283],["1942Q2",0.03703671],["1918Q4",0.02859286]],[["1942Q3",0.18886276],["1950Q4",0.16279279],["1917Q2",0.13970351],["1941Q2",0.11592078],["1918Q2",0.07526449],["1940Q2",0.06699762],["1945Q3",0.05194912],["1944Q2",0.04181807],["1942Q2",0.03703367],["1918Q4",0.02859705]],[["1942Q3",0.18885849],["1950Q4",0.16278852],["1917Q2",0.13969928],["1941Q2",0.11591664],["1918Q2",0.0752607],["1940Q2",0.06699394],["1945Q3",0.05195512],["1944Q2",0.04182333],["1942Q2",0.03703062],["1918Q4",0.02860125]],[["1942Q3",0.18885421],["1950Q4",0.16278422],["1917Q2",0.13969502],["1941Q2",0.11591248],["1918Q2",0.07525689],["1940Q2",0.06699025],["1945Q3",0.05196115],["1944Q2",0.04182862],["1942Q2",0.03702756],["1918Q4",0.02860547]],[["1942Q3",0.18885197],["1950Q4",0.16278133],["1917Q2",0.13969161],["1941Q2",0.11590863],["1918Q2",0.0752526],["1940Q2",0.06698594],["1945Q3",0.05197222],["1944Q2",0.04183824],["1942Q2",0.03702352],["1918Q4",0.02861304]],[["1942Q3",0.18896736],["1950Q4",0.16287718],["1917Q2",0.13977043],["1941Q2",0.11597025],["1918Q2",0.07528596],["1940Q2",0.06701381],["1945Q3",0.05204735],["1944Q2",0.04190135],["1942Q2",0.03703276],["1918Q4",0.02865985]],[["1942Q3",0.18896303],["1950Q4",0.16287283],["1917Q2",0.13976612],["1941Q2",0.11596602],["1918Q2",0.07528208],["1940Q2",0.06701005],["1945Q3",0.05205355],["1944Q2",0.04190678],["1942Q2",0.03702963],["1918Q4",0.02866419]],[["1942Q3",0.18895868],["1950Q4",0.16286847],["1917Q2",0.13976178],["1941Q2",0.11596178],["1918Q2",0.07527819],["1940Q2",0.06700627],["1945Q3",0.05205977],["1944Q2",0.04191224],["1942Q2",0.03702649],["1918Q4",0.02866855]]],
+        from1947q1: [[["1950Q3",0.64333226],["1950Q4",0.28689308],["1989Q4",0.01596496],["1980Q1",0.00625755],["1988Q1",0.00499413],["1961Q2",0.00440626],["2007Q4",0.00427239],["1967Q1",0.00362411],["1953Q3",0.00230162],["2013Q1",0.0020347]],[["1950Q3",0.6433202],["1950Q4",0.28688015],["1989Q4",0.01597086],["1980Q1",0.00625441],["1988Q1",0.00499729],["1961Q2",0.00440359],["2007Q4",0.00426976],["1967Q1",0.00362168],["1953Q3",0.00230374],["2013Q1",0.00203668]],[["1950Q3",0.64330804],["1950Q4",0.28686714],["1989Q4",0.01597681],["1980Q1",0.00625125],["1988Q1",0.00500048],["1961Q2",0.00440091],["2007Q4",0.00426712],["1967Q1",0.00361924],["1953Q3",0.00230587],["2013Q1",0.00203868]],[["1950Q3",0.6432958],["1950Q4",0.28685402],["1989Q4",0.0159828],["1980Q1",0.00624807],["1988Q1",0.0050037],["1961Q2",0.00439821],["2007Q4",0.00426446],["1967Q1",0.00361678],["1953Q3",0.00230801],["2013Q1",0.00204069]],[["1950Q3",0.64328347],["1950Q4",0.28684081],["1989Q4",0.01598883],["1980Q1",0.00624486],["1988Q1",0.00500694],["1961Q2",0.00439549],["2007Q4",0.00426178],["1967Q1",0.0036143],["1953Q3",0.00231017],["2013Q1",0.00204272]],[["1950Q3",0.64327105],["1950Q4",0.28682751],["1989Q4",0.01599491],["1980Q1",0.00624163],["1988Q1",0.0050102],["1961Q2",0.00439275],["2007Q4",0.00425908],["1967Q1",0.0036118],["1953Q3",0.00231235],["2013Q1",0.00204476]],[["1950Q3",0.64325853],["1950Q4",0.2868141],["1989Q4",0.01600104],["1980Q1",0.00623838],["1988Q1",0.00501349],["1961Q2",0.00438999],["2007Q4",0.00425636],["1967Q1",0.00360929],["1953Q3",0.00231455],["2013Q1",0.00204682]],[["1950Q3",0.64324592],["1950Q4",0.2868006],["1989Q4",0.01600722],["1980Q1",0.0062351],["1988Q1",0.00501681],["1961Q2",0.00438722],["2007Q4",0.00425362],["1967Q1",0.00360675],["1953Q3",0.00231676],["2013Q1",0.0020489]],[["1950Q3",0.64323322],["1950Q4",0.28678699],["1989Q4",0.01601344],["1980Q1",0.0062318],["1988Q1",0.00502015],["1961Q2",0.00438442],["2007Q4",0.00425086],["1967Q1",0.0036042],["1953Q3",0.002319],["2013Q1",0.002051]],[["1950Q3",0.64322042],["1950Q4",0.28677329],["1989Q4",0.01601971],["1980Q1",0.00622848],["1988Q1",0.00502352],["1961Q2",0.0043816],["2007Q4",0.00424808],["1967Q1",0.00360164],["1953Q3",0.00232125],["2013Q1",0.00205311]],[["1950Q3",0.64320753],["1950Q4",0.28675948],["1989Q4",0.01602603],["1980Q1",0.00622513],["1988Q1",0.00502692],["1961Q2",0.00437876],["2007Q4",0.00424529],["1967Q1",0.00359905],["1953Q3",0.00232351],["2013Q1",0.00205523]],[["1950Q3",0.64319454],["1950Q4",0.28674556],["1989Q4",0.01603239],["1980Q1",0.00622176],["1988Q1",0.00503034],["1961Q2",0.0043759],["2007Q4",0.00424247],["1967Q1",0.00359644],["1953Q3",0.0023258],["2013Q1",0.00205738]],[["1950Q3",0.64424947],["1950Q4",0.28715461],["1989Q4",0.0161092],["1980Q1",0.0062075],["1988Q1",0.0050652],["1961Q2",0.00436221],["2007Q4",0.00422885],["1967Q1",0.00358326],["1953Q3",0.00234725],["1968Q2",0.00182307]],[["1950Q3",0.64423658],["1950Q4",0.2871404],["1989Q4",0.01611587],["1980Q1",0.006204],["1988Q1",0.00506878],["1961Q2",0.00435924],["2007Q4",0.00422593],["1967Q1",0.00358056],["1953Q3",0.00234964],["1968Q2",0.00182517]],[["1950Q3",0.6442236],["1950Q4",0.28712608],["1989Q4",0.01612258],["1980Q1",0.00620047],["1988Q1",0.00507239],["1961Q2",0.00435625],["2007Q4",0.00422298],["1967Q1",0.00357784],["1953Q3",0.00235206],["1968Q2",0.00182729]],[["1950Q3",0.64421051],["1950Q4",0.28711165],["1989Q4",0.01612935],["1980Q1",0.00619692],["1988Q1",0.00507603],["1961Q2",0.00435324],["2007Q4",0.00422001],["1967Q1",0.00357509],["1953Q3",0.00235449],["1968Q2",0.00182943]],[["1950Q3",0.64419732],["1950Q4",0.28709712],["1989Q4",0.01613618],["1980Q1",0.00619334],["1988Q1",0.0050797],["1961Q2",0.00435021],["2007Q4",0.00421702],["1967Q1",0.00357233],["1953Q3",0.00235695],["1968Q2",0.00183158]],[["1950Q3",0.64420306],["1950Q4",0.28708532],["1989Q4",0.01614818],["1980Q1",0.00618768],["1988Q1",0.005086],["1961Q2",0.00434537],["2007Q4",0.00421225],["1967Q1",0.00356791],["1953Q3",0.00236112],["1968Q2",0.00183523]],[["1950Q3",0.64496475],["1950Q4",0.28737024],["1989Q4",0.01621237],["1980Q1",0.00617329],["1988Q1",0.00511581],["1961Q2",0.004332],["2007Q4",0.00419899],["1967Q1",0.00355522],["1953Q3",0.00237971],["1968Q2",0.00185124]],[["1950Q3",0.64495158],["1950Q4",0.28735529],["1989Q4",0.01621955],["1980Q1",0.00616956],["1988Q1",0.00511968],["1961Q2",0.00432884],["2007Q4",0.00419587],["1967Q1",0.00355234],["1953Q3",0.0023823],["1968Q2",0.00185352]],[["1950Q3",0.64493831],["1950Q4",0.28734023],["1989Q4",0.01622679],["1980Q1",0.00616579],["1988Q1",0.00512357],["1961Q2",0.00432565],["2007Q4",0.00419273],["1967Q1",0.00354943],["1953Q3",0.00238491],["1968Q2",0.00185581]]],
+      },
+    }
+  }
+})
+```
+
+```{ojs}
+//| echo: false
+// ————— Shared helpers (copy verbatim into every lab; do not import) —————
+plotStyle = ({
+  background: "transparent",
+  color: "var(--bs-body-color)",
+  fontFamily: "Archivo, system-ui, sans-serif"
+})
+
+function formatSigned(value, digits = 2) {
+  if (Math.abs(value) < 0.5 * Math.pow(10, -digits)) return (0).toFixed(digits);
+  return (value > 0 ? "+" : "−") + Math.abs(value).toFixed(digits);
+}
+
+// Deterministic PRNG: the same seed gives the same draws on every load, so a
+// toggled control changes only what it is meant to change.
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function gaussian(rng) {
+  let spare = null;
+  return function () {
+    if (spare !== null) { const v = spare; spare = null; return v; }
+    let u = 0; while (u === 0) u = rng();
+    const r = Math.sqrt(-2 * Math.log(u)), th = 2 * Math.PI * rng();
+    spare = r * Math.sin(th);
+    return r * Math.cos(th);
+  };
+}
+
+// OLS by solving the normal equations with Gaussian elimination and partial
+// pivoting. X is an array of rows; the first column should be 1 for an
+// intercept. Returns coefficients, residuals, and (X'X)^{-1}.
+function ols(y, X) {
+  const n = y.length, k = X[0].length;
+  const XtX = Array.from({ length: k }, () => new Array(k).fill(0));
+  const Xty = new Array(k).fill(0);
+  for (let i = 0; i < n; i++) {
+    const xi = X[i];
+    for (let a = 0; a < k; a++) {
+      Xty[a] += xi[a] * y[i];
+      for (let b = a; b < k; b++) XtX[a][b] += xi[a] * xi[b];
+    }
+  }
+  for (let a = 0; a < k; a++) for (let b = 0; b < a; b++) XtX[a][b] = XtX[b][a];
+  const inv = invert(XtX);
+  const beta = inv.map(row => row.reduce((s, v, j) => s + v * Xty[j], 0));
+  const resid = y.map((yi, i) => yi - X[i].reduce((s, v, j) => s + v * beta[j], 0));
+  return { beta, resid, XtXinv: inv, n, k };
+}
+
+function invert(A) {
+  const n = A.length;
+  const M = A.map((row, i) => [...row, ...Array.from({ length: n }, (_, j) => (i === j ? 1 : 0))]);
+  for (let c = 0; c < n; c++) {
+    let p = c;
+    for (let r = c + 1; r < n; r++) if (Math.abs(M[r][c]) > Math.abs(M[p][c])) p = r;
+    [M[c], M[p]] = [M[p], M[c]];
+    const piv = M[c][c];
+    for (let j = 0; j < 2 * n; j++) M[c][j] /= piv;
+    for (let r = 0; r < n; r++) if (r !== c) {
+      const f = M[r][c];
+      for (let j = 0; j < 2 * n; j++) M[r][j] -= f * M[c][j];
+    }
+  }
+  return M.map(row => row.slice(n));
+}
+
+// Heteroskedasticity-robust (HC1) standard errors for an ols() result.
+function hcSe(fit, X) {
+  const { resid, XtXinv, n, k } = fit;
+  const meat = Array.from({ length: k }, () => new Array(k).fill(0));
+  for (let i = 0; i < n; i++) {
+    const e2 = resid[i] * resid[i];
+    for (let a = 0; a < k; a++) for (let b = 0; b < k; b++) meat[a][b] += e2 * X[i][a] * X[i][b];
+  }
+  const V = matmul(matmul(XtXinv, meat), XtXinv);
+  const c = n / (n - k);
+  return V.map((row, j) => Math.sqrt(c * row[j]));
+}
+
+// Newey–West (Bartlett kernel) standard errors with bandwidth m.
+function neweyWestSe(fit, X, m) {
+  const { resid, XtXinv, n, k } = fit;
+  const S = Array.from({ length: k }, () => new Array(k).fill(0));
+  const g = resid.map((e, i) => X[i].map(x => x * e));
+  for (let l = 0; l <= m; l++) {
+    const w = l === 0 ? 1 : 1 - l / (m + 1);
+    for (let t = l; t < n; t++) {
+      for (let a = 0; a < k; a++) for (let b = 0; b < k; b++) {
+        const v = g[t][a] * g[t - l][b];
+        S[a][b] += w * (l === 0 ? v : v + g[t - l][a] * g[t][b]);
+      }
+    }
+  }
+  const V = matmul(matmul(XtXinv, S), XtXinv);
+  return V.map((row, j) => Math.sqrt(row[j]));
+}
+
+function matmul(A, B) {
+  return A.map(row => B[0].map((_, j) => row.reduce((s, v, i) => s + v * B[i][j], 0)));
+}
+
+// One local projection at horizon h: regress y[t+h] on 1, s[t], and the
+// listed controls (each an array aligned with t). Returns the coefficient on
+// s, its HC1 and Newey–West(h) standard errors, and the row count.
+function localProjection(y, s, controls, h, opts = {}) {
+  const rows = [], Y = [];
+  for (let t = 0; t + h < y.length; t++) {
+    const row = [1, s[t], ...controls.map(c => c[t])];
+    if (row.some(v => v === null || Number.isNaN(v)) || y[t + h] == null) continue;
+    rows.push(row); Y.push(y[t + h]);
+  }
+  const fit = ols(Y, rows);
+  return {
+    beta: fit.beta[1],
+    seHC: hcSe(fit, rows)[1],
+    seNW: neweyWestSe(fit, rows, opts.bandwidth ?? h)[1],
+    n: rows.length
+  };
+}
+```

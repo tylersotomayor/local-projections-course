@@ -1,0 +1,420 @@
+------------------------------------------------------------------------------------------------------------------------
+      name:  checks
+       log:  /Users/tylersotomayor/local-projections-course/practica/p01-question-to-projection/lab-project/output/check
+> s.log
+  log type:  text
+ opened on:  13 Sep 2026, 22:46:54
+
+. global LP_STEP checks
+
+. local npass0 = cond("$LP_NPASS" == "", 0, $LP_NPASS)
+
+. 
+. *==========================================================================
+. * 1. The helper programs
+. *==========================================================================
+. lp_assert "helpers: lp_assert passes a true statement" : 2 + 2 == 4
+pass  helpers: lp_assert passes a true statement
+(file output/assertions.csv not found)
+
+. 
+. global LP_SELFTEST 1
+
+. capture lp_assert "helpers: a deliberately false statement" : 2 + 2 == 5
+
+. local rc_assert = _rc
+
+. capture lp_close 1 1.1, tol(1e-6) label(helpers: two numbers that differ)
+
+. local rc_close = _rc
+
+. global LP_SELFTEST 0
+
+. lp_assert "helpers: lp_assert stops with r(9) on a false statement" : `rc_assert' == 9
+pass  helpers: lp_assert stops with r(9) on a false statement
+
+. lp_assert "helpers: lp_close stops with r(9) when two numbers differ by more than tol" : `rc_close' == 9
+pass  helpers: lp_close stops with r(9) when two numbers differ by more than tol
+
+. lp_close 0.617322 (0.61732178 + 2e-7), tol(1e-6) label(helpers: lp_close accepts a difference below tol)
+helpers: lp_close accepts a difference below tol
+      value      0.61732200   target      0.61732198   |diff|  2.00e-08   tol  1.0e-06
+pass  helpers: lp_close accepts a difference below tol
+
+. 
+. * lp_sha256 on a text whose SHA-256 is known
+. tempfile known
+
+. tempname fh
+
+. file open `fh' using "`known'", write binary replace
+(file /var/folders/bk/6srdc2qx62b56c7594wqt1yw0000gn/T//St53173.000001 not found)
+
+. file write `fh' %17s "local projections" %1bu (10)
+
+. file close `fh'
+
+. lp_sha256 "`known'"
+
+
+. local sha "`r(sha256)'"
+
+. lp_assert "helpers: lp_sha256 returns the SHA-256 of a known text" : ///
+>     "`sha'" == "d38550f8bb1ce55e64840a41105667865068f82bcada6c073fee3184649717e0"
+pass  helpers: lp_sha256 returns the SHA-256 of a known text
+
+. 
+. * lp_json_get on a small record laid out as the Explorer writes it
+. tempfile json
+
+. file open `fh' using "`json'", write text replace
+(file /var/folders/bk/6srdc2qx62b56c7594wqt1yw0000gn/T//St53173.000002 not found)
+
+. file write `fh' "{" _n
+
+. file write `fh' `"  "lecture": "01","' _n
+
+. file write `fh' `"  "lab2": {"' _n
+
+. file write `fh' `"    "settings": {"' _n
+
+. file write `fh' `"      "h": 1,"' _n
+
+. file write `fh' `"      "control_y_lag": true"' _n
+
+. file write `fh' `"    },"' _n
+
+. file write `fh' `"    "beta_h": -1.050405,"' _n
+
+. file write `fh' `"    "intervention_rows": ["' _n
+
+. file write `fh' `"      5,"' _n
+
+. file write `fh' `"      10"' _n
+
+. file write `fh' `"    ]"' _n
+
+. file write `fh' `"  },"' _n
+
+. file write `fh' `"  "lab4": {"' _n
+
+. file write `fh' `"    "hypothesis": "It will raise the estimate to about 0.43.","' _n
+
+. file write `fh' `"    "used_in": 9"' _n
+
+. file write `fh' `"  }"' _n
+
+. file write `fh' "}" _n
+
+. file close `fh'
+
+. 
+. lp_json_get using "`json'", key(lecture)
+
+. local v "`r(value)'"
+
+. local f = r(found)
+
+. lp_assert "helpers: lp_json_get reads a top-level string" : "`v'" == "01" & `f' == 1
+pass  helpers: lp_json_get reads a top-level string
+
+. lp_json_get using "`json'", key(lab2.settings.h)
+
+. local v "`r(value)'"
+
+. lp_assert "helpers: lp_json_get reads a nested number" : `v' == 1
+pass  helpers: lp_json_get reads a nested number
+
+. lp_json_get using "`json'", key(lab2.settings.control_y_lag)
+
+. local v "`r(value)'"
+
+. lp_assert "helpers: lp_json_get reads a boolean" : "`v'" == "true"
+pass  helpers: lp_json_get reads a boolean
+
+. lp_json_get using "`json'", key(lab2.beta_h)
+
+. local v "`r(value)'"
+
+. lp_assert "helpers: lp_json_get reads a negative number exactly" : abs(`v' - (-1.050405)) < 1e-12
+pass  helpers: lp_json_get reads a negative number exactly
+
+. lp_json_get using "`json'", key(lab2.intervention_rows)
+
+. local v "`r(value)'"
+
+. local n = r(n)
+
+. lp_assert "helpers: lp_json_get reads an array" : "`v'" == "5 10" & `n' == 2
+pass  helpers: lp_json_get reads an array
+
+. lp_json_get using "`json'", key(lab4.hypothesis)
+
+. local d "`r(direction)'"
+
+. local x "`r(number)'"
+
+. lp_assert "helpers: lp_json_get finds the direction and the number in a hypothesis" : "`d'" == "raise" & "`x'" == "0.4
+> 3"
+pass  helpers: lp_json_get finds the direction and the number in a hypothesis
+
+. lp_json_get using "`json'", key(lab9.missing)
+
+. local f = r(found)
+
+. lp_assert "helpers: lp_json_get reports a missing key" : `f' == 0
+pass  helpers: lp_json_get reports a missing key
+
+. 
+. *==========================================================================
+. * 2. The simulated inputs in data/raw
+. *==========================================================================
+. local sha_hand_table          "d58b48a56e73d38c682ee621250d25c64ce542bc11c73c73da281edb8a98041f"
+
+. local sha_onedraw_rho05_seed2 "5c85f2054698ca65681045ec0e8092460ae44e10867e30a23dc6f242b47232cd"
+
+. local sha_onedraw_rho09_seed2 "202051448cb02e7ab55f5cf0af399a76d29969b4de6cdb0a2d0699e725aa34cb"
+
+. 
+. lp_sha256 "data/raw/hand_table.csv"
+
+
+. local s "`r(sha256)'"
+
+. lp_assert "data: hand_table.csv has the SHA-256 in PROVENANCE.md" : "`s'" == "`sha_hand_table'"
+pass  data: hand_table.csv has the SHA-256 in PROVENANCE.md
+
+. import delimited using "data/raw/hand_table.csv", clear
+(encoding automatically selected: ISO-8859-2)
+(4 vars, 12 obs)
+
+. capture confirm numeric variable t s v y
+
+. local rc = _rc
+
+. lp_assert "data: hand_table.csv has 12 rows and the variables t, s, v, y" : `rc' == 0 & c(k) == 4 & _N == 12
+pass  data: hand_table.csv has 12 rows and the variables t, s, v, y
+
+. lp_assert "data: hand_table.csv dates run t = 1, ..., 12" : t == _n
+pass  data: hand_table.csv dates run t = 1, ..., 12
+
+. lp_assert "data: interventions exactly at t = 1, 5, 10, 12" : s == inlist(t, 1, 5, 10, 12)
+pass  data: interventions exactly at t = 1, 5, 10, 12
+
+. lp_assert "data: v is rounded to one decimal" : abs(v - round(v, 0.1)) < 1e-6
+pass  data: v is rounded to one decimal
+
+. generate double yrule = cond(t == 1, s + v, 0.5*y[_n-1] + s + v)
+
+. lp_assert "data: y follows y_t = 0.5 y_(t-1) + s_t + v_t with y_0 = 0 (1e-6)" : abs(y - yrule) < 1e-6
+pass  data: y follows y_t = 0.5 y_(t-1) + s_t + v_t with y_0 = 0 (1e-6)
+
+. 
+. foreach tag in 05 09 {
+  2.     local rho "0.`=substr("`tag'", 2, 1)'"
+  3.     lp_sha256 "data/raw/onedraw_rho`tag'_seed2.csv"
+  4.     local s "`r(sha256)'"
+  5.     lp_assert "data: onedraw_rho`tag'_seed2.csv has the SHA-256 in PROVENANCE.md" : "`s'" == "`sha_onedraw_rho`tag'
+> _seed2'"
+  6.     import delimited using "data/raw/onedraw_rho`tag'_seed2.csv", clear
+  7.     capture confirm numeric variable t s v y
+  8.     local rc = _rc
+  9.     lp_assert "data: onedraw_rho`tag'_seed2.csv has 200 rows and the variables t, s, v, y" : `rc' == 0 & c(k) == 4 
+> & _N == 200
+ 10.     lp_assert "data: onedraw_rho`tag'_seed2.csv dates run t = 1, ..., 200" : t == _n
+ 11.     generate double yrule = `rho'*y[_n-1] + s + v
+ 12.     lp_assert "data: y follows y_t = `rho' y_(t-1) + s_t + v_t (1e-5, float storage)" : abs(y - yrule) < 1e-5 if _n
+>  > 1
+ 13.     quietly summarize s
+ 14.     local ms = r(mean)
+ 15.     local ss = r(sd)
+ 16.     lp_assert "data: s in onedraw_rho`tag' has mean near 0 and standard deviation near 1" : abs(`ms') < 0.25 & `ss'
+>  > 0.8 & `ss' < 1.2
+ 17. }
+
+pass  data: onedraw_rho05_seed2.csv has the SHA-256 in PROVENANCE.md
+(encoding automatically selected: ISO-8859-2)
+(4 vars, 200 obs)
+pass  data: onedraw_rho05_seed2.csv has 200 rows and the variables t, s, v, y
+pass  data: onedraw_rho05_seed2.csv dates run t = 1, ..., 200
+(1 missing value generated)
+pass  data: y follows y_t = 0.5 y_(t-1) + s_t + v_t (1e-5, float storage)
+pass  data: s in onedraw_rho05 has mean near 0 and standard deviation near 1
+
+pass  data: onedraw_rho09_seed2.csv has the SHA-256 in PROVENANCE.md
+(encoding automatically selected: ISO-8859-2)
+(4 vars, 200 obs)
+pass  data: onedraw_rho09_seed2.csv has 200 rows and the variables t, s, v, y
+pass  data: onedraw_rho09_seed2.csv dates run t = 1, ..., 200
+(1 missing value generated)
+pass  data: y follows y_t = 0.9 y_(t-1) + s_t + v_t (1e-5, float storage)
+pass  data: s in onedraw_rho09 has mean near 0 and standard deviation near 1
+
+. 
+. * The generator reproduces all three files byte for byte.
+. local simdir "`c(tmpdir)'/p01_simcheck"
+
+. capture mkdir "`simdir'"
+
+. quietly do "data/raw/make_sim_data.do" "`simdir'"
+
+. foreach f in hand_table onedraw_rho05_seed2 onedraw_rho09_seed2 {
+  2.     lp_sha256 "`simdir'/`f'.csv"
+  3.     local s "`r(sha256)'"
+  4.     lp_assert "data: make_sim_data.do regenerates `f'.csv byte for byte" : "`s'" == "`sha_`f''"
+  5. }
+
+pass  data: make_sim_data.do regenerates hand_table.csv byte for byte
+
+pass  data: make_sim_data.do regenerates onedraw_rho05_seed2.csv byte for byte
+
+pass  data: make_sim_data.do regenerates onedraw_rho09_seed2.csv byte for byte
+
+. 
+. *==========================================================================
+. * 3. The authors' files in vendor/jel-code (CC0)
+. *==========================================================================
+. local sha_ssbias "07116508f0d0c633a6a0942e04867290a0fe808f254ea8b7bf3e0c4682a1e7e2"
+
+. local sha_allsim "730dae2639931ccab9b24cdbc198db8dadf731da6c540bf80065780d0303a6df"
+
+. local sha_means  "720462bff571cccca5e504bda2eb7b230cfacc82abfc23c923088c8366f102a4"
+
+. local sha_cc0    "a2010f343487d3f7618affe54f789f5487602331c0a8d03f49e9a7c547cf0499"
+
+. foreach pair in "SSBias_IntcpYLagdiffN_95.do ssbias" "all-simulate.do allsim" "SSBias_IntcpYLagdiffN_95.dta means" "LI
+> CENSE cc0" {
+  2.     gettoken f key : pair
+  3.     local key = strtrim("`key'")
+  4.     lp_sha256 "vendor/jel-code/`f'"
+  5.     local s "`r(sha256)'"
+  6.     lp_assert "vendor: `f' is the file of JEL-Code commit 655696c (SHA-256)" : "`s'" == "`sha_`key''"
+  7. }
+
+pass  vendor: SSBias_IntcpYLagdiffN_95.do is the file of JEL-Code commit 655696c (SHA-256)
+
+pass  vendor: all-simulate.do is the file of JEL-Code commit 655696c (SHA-256)
+
+pass  vendor: SSBias_IntcpYLagdiffN_95.dta is the file of JEL-Code commit 655696c (SHA-256)
+
+pass  vendor: LICENSE is the file of JEL-Code commit 655696c (SHA-256)
+
+. use "vendor/jel-code/SSBias_IntcpYLagdiffN_95.dta", clear
+
+. capture confirm numeric variable t rl rt
+
+. local rc = _rc
+
+. lp_assert "vendor: the authors' shipped means hold 11 horizons with t, rl, rt" : `rc' == 0 & _N == 11
+pass  vendor: the authors' shipped means hold 11 horizons with t, rl, rt
+
+. lp_assert "vendor: horizons 0 to 10 and true response 0.95^h (1e-6)" : t == _n - 1 & abs(rt - 0.95^t) < 1e-6
+pass  vendor: horizons 0 to 10 and true response 0.95^h (1e-6)
+
+. 
+. *==========================================================================
+. * 4. The benchmark files in replication/benchmark
+. *==========================================================================
+. lp_sha256 "replication/benchmark/REP01-levels-lp.csv"
+
+
+. local s "`r(sha256)'"
+
+. lp_assert "benchmark: REP01-levels-lp.csv has the SHA-256 in PROVENANCE.md" : ///
+>     "`s'" == "1899da92df8a682ec9e13a45c7d9bebf307d2ccce78e71f31d4e9eb135ccdb30"
+pass  benchmark: REP01-levels-lp.csv has the SHA-256 in PROVENANCE.md
+
+. import delimited using "replication/benchmark/REP01-levels-lp.csv", clear varnames(1) encoding(utf8)
+(21 vars, 11 obs)
+
+. lp_assert "benchmark: REP01-levels-lp.csv holds 11 REP01 rows" : _N == 11 & replication == "REP01"
+pass  benchmark: REP01-levels-lp.csv holds 11 REP01 rows
+
+. lp_assert "benchmark: horizons 0 to 10 with n = 99 - h" : horizon == _n - 1 & n == 99 - horizon
+pass  benchmark: horizons 0 to 10 with n = 99 - h
+
+. lp_assert "benchmark: every horizon has a mean" : coefficient < .
+pass  benchmark: every horizon has a mean
+
+. 
+. lp_sha256 "replication/benchmark/REP01-author-R200-v195.csv"
+
+
+. local s "`r(sha256)'"
+
+. lp_assert "benchmark: REP01-author-R200-v195.csv has the SHA-256 in PROVENANCE.md" : ///
+>     "`s'" == "72cea43bb335f4c572c1ab3fcc97d8ec1a740278ae059593f447edf5341346c5"
+pass  benchmark: REP01-author-R200-v195.csv has the SHA-256 in PROVENANCE.md
+
+. import delimited using "replication/benchmark/REP01-author-R200-v195.csv", clear varnames(1)
+(encoding automatically selected: UTF-8)
+(3 vars, 11 obs)
+
+. lp_assert "benchmark: REP01-author-R200-v195.csv holds horizons 0 to 10 with rl and rt" : _N == 11 & h == _n - 1 & rl 
+> < . & rt < .
+pass  benchmark: REP01-author-R200-v195.csv holds horizons 0 to 10 with rl and rt
+
+. 
+. *==========================================================================
+. * 5. Files that may or may not be present yet
+. *==========================================================================
+. capture confirm file "handoff/l01-explorer-handoff.json"
+
+. if _rc == 0 {
+.     lp_json_get using "handoff/l01-explorer-handoff.json", key(lecture)
+.     local v "`r(value)'"
+.     lp_assert "handoff: l01-explorer-handoff.json is a Lecture 01 record" : "`v'" == "01"
+pass  handoff: l01-explorer-handoff.json is a Lecture 01 record
+.     lp_json_get using "handoff/l01-explorer-handoff.json", key(lab3.beta_h)
+.     local n = r(n)
+.     lp_assert "handoff: the record holds thirteen Lab 3 estimates" : `n' == 13
+pass  handoff: the record holds thirteen Lab 3 estimates
+. }
+
+. else display as text "handoff: no record in handoff/ yet; the Explorer's Transfer to Stata section writes one."
+
+. 
+. capture confirm file "data/raw/RZDAT.xlsx"
+
+. if _rc == 0 {
+.     lp_sha256 "data/raw/RZDAT.xlsx"
+
+.     local s "`r(sha256)'"
+.     lp_assert "data: RZDAT.xlsx is the file of the February 2018 package (SHA-256)" : ///
+>         "`s'" == "b2d850872e566ebc6b95a1e057dac2226ef18b58d5a21548594f5ba86c8c6120"
+pass  data: RZDAT.xlsx is the file of the February 2018 package (SHA-256)
+.     import excel using "data/raw/RZDAT.xlsx", sheet("rzdat") firstrow clear
+(28 vars, 564 obs)
+.     capture confirm numeric variable quarter rgdp rgdp_pott6 pgdp news ngov
+.     local rc = _rc
+.     lp_assert "data: sheet rzdat has quarter, rgdp, rgdp_pott6, pgdp, news, ngov" : `rc' == 0
+pass  data: sheet rzdat has quarter, rgdp, rgdp_pott6, pgdp, news, ngov
+.     drop if quarter < 1889
+(56 observations deleted)
+.     lp_assert "data: 508 quarters from 1889Q1 to 2015Q4" : ///
+>         _N == 508 & abs(quarter[1] - 1889) < 1e-6 & abs(quarter[_N] - 2015.75) < 1e-6
+pass  data: 508 quarters from 1889Q1 to 2015Q4
+.     quietly count if news < .
+.     local nn = r(N)
+.     lp_assert "data: news is recorded in 504 of those quarters" : `nn' == 504
+pass  data: news is recorded in 504 of those quarters
+. }
+
+. else display as text "data: RZDAT.xlsx is not in data/raw yet; Task 5 runs data/raw/get_rz.do to fetch and verify it."
+
+. 
+. clear
+
+. local npass = $LP_NPASS - `npass0'
+
+. display as text _n "Checks complete: " as result `npass' as text " assertions passed."
+
+Checks complete: 49 assertions passed.
+
+. log close checks
+      name:  checks
+       log:  /Users/tylersotomayor/local-projections-course/practica/p01-question-to-projection/lab-project/output/check
+> s.log
+  log type:  text
+ closed on:  13 Sep 2026, 22:46:55
+------------------------------------------------------------------------------------------------------------------------

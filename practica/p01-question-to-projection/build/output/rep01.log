@@ -1,0 +1,768 @@
+------------------------------------------------------------------------------------------------------------------------
+      name:  rep01
+       log:  /Users/tylersotomayor/local-projections-course/practica/p01-question-to-projection/lab-project/output/rep01
+> .log
+  log type:  text
+ opened on:  13 Sep 2026, 22:46:55
+
+. if "$R" == "" global R 200
+
+. if "$AUTHOR_CHECK" == "" global AUTHOR_CHECK 1
+
+. global LP_STEP rep01
+
+. local R = $R
+
+. confirm integer number `R'
+
+. timer clear 11
+
+. timer on 11
+
+. local npass0 = cond("$LP_NPASS" == "", 0, $LP_NPASS)
+
+. 
+. *==========================================================================
+. * 0. Settings, with the lines of SSBias_IntcpYLagdiffN_95.do they come from
+. *==========================================================================
+. local nobs = 100                  // all-simulate.do line 18
+
+. local burn = 500                  // line 20
+
+. local tobs = `nobs' + `burn'      // line 21
+
+. local hmax = 10                   // line 24
+
+. local rho  = 0.95                 // line 27
+
+. local seed = 12345                // line 39
+
+. display as text _n "REP01: levels LP, rho = `rho', T = `nobs', burn-in `burn', h = 0,...,`hmax', R = `R'"
+
+REP01: levels LP, rho = .95, T = 100, burn-in 500, h = 0,...,10, R = 500
+
+. 
+. *==========================================================================
+. * 1. One realization, one horizon: draw 1 of the authors' loop, rebuilt
+. *    outside the loop
+. *==========================================================================
+. clear
+
+. set seed `seed'
+
+. set obs `tobs'
+Number of observations (_N) was 0, now 600.
+
+. generate t = _n
+
+. tsset t
+
+Time variable: t, 1 to 600
+        Delta: 1 unit
+
+. generate vy = rnormal()           // line 52: the intervention s_t, drawn first
+
+. generate y  = 0                   // line 53: stored as float, as in the authors' code
+
+. generate e  = rnormal()           // line 56: the disturbance v_t, drawn second
+
+. * line 59 reads  y = $rho*l.y + $a*l.d.y + vy + e  if _n > 2,  with $a = 0.00 (line 57)
+. replace y = `rho'*L.y + vy + e if _n > 2
+(598 real changes made)
+
+. drop if _n <= `burn'              // line 62: keep the last 100 periods
+(500 observations deleted)
+
+. replace t = _n
+(100 real changes made)
+
+. tsset t
+
+Time variable: t, 1 to 100
+        Delta: 1 unit
+
+. 
+. regress F0.y vy L.y               // line 87 at h = 0
+
+      Source |       SS           df       MS      Number of obs   =        99
+-------------+----------------------------------   F(2, 96)        =    251.99
+       Model |  501.423656         2  250.711828   Prob > F        =    0.0000
+    Residual |  95.5114248        96  .994910675   R-squared       =    0.8400
+-------------+----------------------------------   Adj R-squared   =    0.8367
+       Total |   596.93508        98  6.09117429   Root MSE        =    .99745
+
+------------------------------------------------------------------------------
+           y | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+          vy |   1.060351   .1026716    10.33   0.000     .8565499    1.264153
+             |
+           y |
+         L1. |    .909107   .0428413    21.22   0.000     .8240676    .9941464
+             |
+       _cons |   .1509078   .1147404     1.32   0.192    -.0768501    .3786656
+------------------------------------------------------------------------------
+
+. lp_assert "REP01 step 1: the h = 0 regression has T_0 = 99 rows" : e(N) == 99
+pass  REP01 step 1: the h = 0 regression has T_0 = 99 rows
+
+. lp_close _b[vy] 1.06035137, tol(1e-6) label(REP01 step 1: draw 1 at h = 0)
+REP01 step 1: draw 1 at h = 0
+      value      1.06035143   target      1.06035137   |diff|  5.95e-08   tol  1.0e-06
+pass  REP01 step 1: draw 1 at h = 0
+
+. 
+. *==========================================================================
+. * 2. The same draw at every horizon: one regression per point of the curve
+. *==========================================================================
+. tempfile draw1
+
+. tempname D
+
+. postfile `D' h double b_draw1 T_draw1 using `draw1'
+
+. forvalues h = 0/`hmax' {
+  2.     quietly regress F`h'.y vy L.y
+  3.     post `D' (`h') (_b[vy]) (e(N))
+  4. }
+
+. postclose `D'
+
+. preserve
+
+. use `draw1', clear
+
+. format b_draw1 %12.8f
+
+. list, clean noobs
+
+     h       b_draw1   T_draw1  
+     0    1.06035143        99  
+     1    0.99981716        98  
+     2    0.59646150        97  
+     3    0.55573121        96  
+     4    0.40316077        95  
+     5    0.21355944        94  
+     6    0.08826523        93  
+     7   -0.14803844        92  
+     8   -0.28229347        91  
+     9   -0.25071169        90  
+    10    0.24310038        89  
+
+. matrix input DRAW1 = (1.06035137, 0.99981713, 0.59646147, 0.55573124, 0.40316078, ///
+>     0.21355943, 0.08826523, -0.14803843, -0.28229347, -0.25071168, 0.24310037)
+
+. lp_assert "REP01 step 2: T_h = 99 - h in draw 1" : T_draw1 == 99 - h
+pass  REP01 step 2: T_h = 99 - h in draw 1
+
+. forvalues h = 0/`hmax' {
+  2.     local i = `h' + 1
+  3.     lp_close b_draw1[`i'] DRAW1[1,`i'], tol(1e-6) label(REP01 step 2: draw 1 at h = `h')
+  4. }
+REP01 step 2: draw 1 at h = 0
+      value      1.06035143   target      1.06035137   |diff|  5.95e-08   tol  1.0e-06
+pass  REP01 step 2: draw 1 at h = 0
+REP01 step 2: draw 1 at h = 1
+      value      0.99981716   target      0.99981713   |diff|  2.89e-08   tol  1.0e-06
+pass  REP01 step 2: draw 1 at h = 1
+REP01 step 2: draw 1 at h = 2
+      value      0.59646150   target      0.59646147   |diff|  2.94e-08   tol  1.0e-06
+pass  REP01 step 2: draw 1 at h = 2
+REP01 step 2: draw 1 at h = 3
+      value      0.55573121   target      0.55573124   |diff|  2.53e-08   tol  1.0e-06
+pass  REP01 step 2: draw 1 at h = 3
+REP01 step 2: draw 1 at h = 4
+      value      0.40316077   target      0.40316078   |diff|  9.07e-09   tol  1.0e-06
+pass  REP01 step 2: draw 1 at h = 4
+REP01 step 2: draw 1 at h = 5
+      value      0.21355944   target      0.21355943   |diff|  1.04e-08   tol  1.0e-06
+pass  REP01 step 2: draw 1 at h = 5
+REP01 step 2: draw 1 at h = 6
+      value      0.08826523   target      0.08826523   |diff|  9.84e-10   tol  1.0e-06
+pass  REP01 step 2: draw 1 at h = 6
+REP01 step 2: draw 1 at h = 7
+      value     -0.14803844   target     -0.14803843   |diff|  6.90e-09   tol  1.0e-06
+pass  REP01 step 2: draw 1 at h = 7
+REP01 step 2: draw 1 at h = 8
+      value     -0.28229347   target     -0.28229347   |diff|  4.16e-09   tol  1.0e-06
+pass  REP01 step 2: draw 1 at h = 8
+REP01 step 2: draw 1 at h = 9
+      value     -0.25071169   target     -0.25071168   |diff|  1.04e-08   tol  1.0e-06
+pass  REP01 step 2: draw 1 at h = 9
+REP01 step 2: draw 1 at h = 10
+      value      0.24310038   target      0.24310037   |diff|  1.20e-08   tol  1.0e-06
+pass  REP01 step 2: draw 1 at h = 10
+
+. restore
+
+. 
+. *==========================================================================
+. * 3. The Monte Carlo: R draws from one seeded stream (line 39), the levels
+. *    LP at h = 0,...,10 in each (lines 84-90)
+. *==========================================================================
+. display as text _n "Monte Carlo with R = `R' draws ..."
+
+Monte Carlo with R = 500 draws ...
+
+. timer clear 12
+
+. timer on 12
+
+. tempname M
+
+. postfile `M' rep h double b T_h using "output/rep01-draws.dta", replace
+(file output/rep01-draws.dta not found)
+
+. set seed `seed'
+
+. quietly forvalues r = 1/`R' {
+
+. postclose `M'
+
+. timer off 12
+
+. quietly timer list 12
+
+. local mc_seconds = r(t12)
+
+. display as text "Monte Carlo runtime: " as result %8.2f `mc_seconds' as text " seconds for R = `R'"
+Monte Carlo runtime:    15.10 seconds for R = 500
+
+. 
+. use "output/rep01-draws.dta", clear
+
+. lp_assert "REP01: every draw has T_h = 99 - h rows" : T_h == 99 - h
+pass  REP01: every draw has T_h = 99 - h rows
+
+. lp_assert "REP01: R draws at each of 11 horizons" : _N == 11*`R'
+pass  REP01: R draws at each of 11 horizons
+
+. 
+. *--------------------------------------------------------------------------
+. * 4. Means over all R draws, and over the first 200 and 500 draws, which are
+. *    the matched counts of the two exact benchmarks
+. *--------------------------------------------------------------------------
+. preserve
+
+. collapse (mean) mean_R=b (sd) sd_R=b (p5) p5_R=b (p95) p95_R=b (count) draws=b, by(h)
+
+. tempfile summary
+
+. save `summary'
+file /var/folders/bk/6srdc2qx62b56c7594wqt1yw0000gn/T//St53173.000004 saved as .dta format
+
+. restore
+
+. foreach m in 200 500 {
+  2.     tempfile sum`m'
+  3.     preserve
+  4.     if `R' >= `m' {
+  5.         keep if rep <= `m'
+  6.         collapse (mean) mean_`m'=b, by(h)
+  7.     }
+  8.     else {
+  9.         keep if rep == 1
+ 10.         keep h
+ 11.         generate double mean_`m' = .
+ 12.     }
+ 13.     save `sum`m''
+ 14.     restore
+ 15. }
+(3,300 observations deleted)
+file /var/folders/bk/6srdc2qx62b56c7594wqt1yw0000gn/T//St53173.000005 saved as .dta format
+(0 observations deleted)
+file /var/folders/bk/6srdc2qx62b56c7594wqt1yw0000gn/T//St53173.000007 saved as .dta format
+
+. 
+. import delimited using "replication/benchmark/REP01-levels-lp.csv", clear varnames(1) encoding(utf8)
+(21 vars, 11 obs)
+
+. lp_assert "REP01 benchmark file: 11 rows of the levels series" : _N == 11 & series == "levels"
+pass  REP01 benchmark file: 11 rows of the levels series
+
+. keep horizon coefficient true_response n
+
+. rename (horizon coefficient true_response n) (h published_500 published_theta published_T_h)
+
+. tempfile bench
+
+. save `bench'
+file /var/folders/bk/6srdc2qx62b56c7594wqt1yw0000gn/T//St53173.000009 saved as .dta format
+
+. 
+. import delimited using "replication/benchmark/REP01-author-R200-v195.csv", clear varnames(1)
+(encoding automatically selected: UTF-8)
+(3 vars, 11 obs)
+
+. rename (rl rt) (author_200 author_theta_200)
+
+. tempfile author200
+
+. save `author200'
+file /var/folders/bk/6srdc2qx62b56c7594wqt1yw0000gn/T//St53173.00000a saved as .dta format
+
+. 
+. use "vendor/jel-code/SSBias_IntcpYLagdiffN_95.dta", clear
+
+. keep t rl rt
+
+. rename (t rl rt) (h author_10000 author_theta)
+
+. tempfile author10000
+
+. save `author10000'
+file /var/folders/bk/6srdc2qx62b56c7594wqt1yw0000gn/T//St53173.00000b saved as .dta format
+
+. 
+. use `summary', clear
+
+. foreach f in sum200 sum500 bench author200 author10000 {
+  2.     merge 1:1 h using ``f'', nogenerate assert(match)
+  3. }
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                             0
+    Matched                                11  
+    -----------------------------------------
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                             0
+    Matched                                11  
+    -----------------------------------------
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                             0
+    Matched                                11  
+    -----------------------------------------
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                             0
+    Matched                                11  
+    -----------------------------------------
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                             0
+    Matched                                11  
+    -----------------------------------------
+
+. generate double theta_h = `rho'^h
+
+. generate T_h = 99 - h
+
+. generate double mcse_R = sd_R/sqrt(`R')
+
+. generate double diff_500 = mean_500 - published_500
+
+. generate double diff_200 = mean_200 - author_200
+
+. generate double se_10000 = sd_R*sqrt(1/`R' + 1/10000)
+
+. generate double z_10000 = (mean_R - author_10000)/se_10000
+
+. generate double se_500 = sd_R*sqrt(abs(1/`R' - 1/500))
+
+. generate double z_500 = cond(`R' == 500, 0, (mean_R - published_500)/se_500)
+
+. 
+. format theta_h published_500 mean_500 diff_500 author_200 mean_200 diff_200 author_10000 mean_R sd_R mcse_R %11.8f
+
+. format z_10000 z_500 %6.2f
+
+. display as text _n "REP01 comparison by horizon"
+
+REP01 comparison by horizon
+
+. list h T_h theta_h published_500 mean_500 diff_500 author_200 mean_200 diff_200, clean noobs
+
+     h   T_h      theta_h   publis~500     mean_500      diff_500   author_200     mean_200      diff_200  
+     0    99   1.00000000   1.00175750   1.00175746   -0.00000004   0.99686521   0.99686519   -0.00000003  
+     1    98   0.95000000   0.92489529   0.92489526   -0.00000002   0.91357774   0.91357771   -0.00000003  
+     2    97   0.90250000   0.86787397   0.86787396   -0.00000001   0.85901380   0.85901381    0.00000002  
+     3    96   0.85737500   0.79257834   0.79257836    0.00000002   0.78925842   0.78925840   -0.00000002  
+     4    95   0.81450625   0.73754936   0.73754938    0.00000002   0.74316418   0.74316419    0.00000000  
+     5    94   0.77378094   0.67800373   0.67800374    0.00000001   0.68870902   0.68870901   -0.00000001  
+     6    93   0.73509189   0.62550861   0.62550860   -0.00000000   0.62830913   0.62830915    0.00000002  
+     7    92   0.69833730   0.57830870   0.57830868   -0.00000002   0.57235688   0.57235686   -0.00000002  
+     8    91   0.66342043   0.51882571   0.51882570   -0.00000001   0.50967115   0.50967116    0.00000001  
+     9    90   0.63024941   0.48049915   0.48049915    0.00000000   0.48197576   0.48197576    0.00000000  
+    10    89   0.59873694   0.43152007   0.43152008    0.00000001   0.42771590   0.42771590   -0.00000000  
+
+. list h author_10000 mean_R sd_R mcse_R z_10000 z_500, clean noobs
+
+     h   auth~10000       mean_R         sd_R       mcse_R   z_10000   z_500  
+     0   0.99697095   1.00175746   0.10465395   0.00468027      1.00    0.00  
+     1   0.92157829   0.92489526   0.17283519   0.00772942      0.42    0.00  
+     2   0.84994626   0.86787396   0.22938530   0.01025842      1.71    0.00  
+     3   0.78295529   0.79257836   0.26442179   0.01182530      0.79    0.00  
+     4   0.72164255   0.73754938   0.30159171   0.01348759      1.15    0.00  
+     5   0.66630644   0.67800374   0.33255860   0.01487247      0.77    0.00  
+     6   0.61206740   0.62550860   0.35454376   0.01585568      0.83    0.00  
+     7   0.56319672   0.57830868   0.37134603   0.01660710      0.89    0.00  
+     8   0.51815391   0.51882570   0.39521070   0.01767436      0.04    0.00  
+     9   0.47492251   0.48049915   0.39662619   0.01773766      0.31    0.00  
+    10   0.42890212   0.43152008   0.39692485   0.01775102      0.14    0.00  
+
+. 
+. *--------------------------------------------------------------------------
+. * 5. Assertions against the benchmarks
+. *--------------------------------------------------------------------------
+. lp_assert "REP01: the benchmark's derived row count is T_h = 99 - h" : published_T_h == 99 - h
+pass  REP01: the benchmark's derived row count is T_h = 99 - h
+
+. lp_assert "REP01: the true response equals the authors' rt (1e-6)" : abs(author_theta - theta_h) < 1e-6
+pass  REP01: the true response equals the authors' rt (1e-6)
+
+. lp_assert "REP01: the true response equals the benchmark's true_response (1e-6)" : abs(published_theta - theta_h) < 1e
+> -6
+pass  REP01: the true response equals the benchmark's true_response (1e-6)
+
+. 
+. if `R' >= 500 {
+.     forvalues h = 0/`hmax' {
+  2.         local i = `h' + 1
+  3.         lp_close mean_500[`i'] published_500[`i'], tol(1e-6) ///
+>             label(REP01 exact: first 500 draws against the published benchmark at h = `h')
+  4.     }
+REP01 exact: first 500 draws against the published benchmark at h = 0
+      value      1.00175746   target      1.00175750   |diff|  4.02e-08   tol  1.0e-06
+pass  REP01 exact: first 500 draws against the published benchmark at h = 0
+REP01 exact: first 500 draws against the published benchmark at h = 1
+      value      0.92489526   target      0.92489529   |diff|  2.40e-08   tol  1.0e-06
+pass  REP01 exact: first 500 draws against the published benchmark at h = 1
+REP01 exact: first 500 draws against the published benchmark at h = 2
+      value      0.86787396   target      0.86787397   |diff|  1.06e-08   tol  1.0e-06
+pass  REP01 exact: first 500 draws against the published benchmark at h = 2
+REP01 exact: first 500 draws against the published benchmark at h = 3
+      value      0.79257836   target      0.79257834   |diff|  2.22e-08   tol  1.0e-06
+pass  REP01 exact: first 500 draws against the published benchmark at h = 3
+REP01 exact: first 500 draws against the published benchmark at h = 4
+      value      0.73754938   target      0.73754936   |diff|  1.84e-08   tol  1.0e-06
+pass  REP01 exact: first 500 draws against the published benchmark at h = 4
+REP01 exact: first 500 draws against the published benchmark at h = 5
+      value      0.67800374   target      0.67800373   |diff|  8.83e-09   tol  1.0e-06
+pass  REP01 exact: first 500 draws against the published benchmark at h = 5
+REP01 exact: first 500 draws against the published benchmark at h = 6
+      value      0.62550860   target      0.62550861   |diff|  2.99e-09   tol  1.0e-06
+pass  REP01 exact: first 500 draws against the published benchmark at h = 6
+REP01 exact: first 500 draws against the published benchmark at h = 7
+      value      0.57830868   target      0.57830870   |diff|  2.02e-08   tol  1.0e-06
+pass  REP01 exact: first 500 draws against the published benchmark at h = 7
+REP01 exact: first 500 draws against the published benchmark at h = 8
+      value      0.51882570   target      0.51882571   |diff|  8.14e-09   tol  1.0e-06
+pass  REP01 exact: first 500 draws against the published benchmark at h = 8
+REP01 exact: first 500 draws against the published benchmark at h = 9
+      value      0.48049915   target      0.48049915   |diff|  1.40e-09   tol  1.0e-06
+pass  REP01 exact: first 500 draws against the published benchmark at h = 9
+REP01 exact: first 500 draws against the published benchmark at h = 10
+      value      0.43152008   target      0.43152007   |diff|  7.71e-09   tol  1.0e-06
+pass  REP01 exact: first 500 draws against the published benchmark at h = 10
+. }
+
+. else display as text "Fewer than 500 draws: the exact comparison with the 500-draw benchmark is skipped."
+
+. 
+. if `R' >= 200 {
+.     forvalues h = 0/`hmax' {
+  2.         local i = `h' + 1
+  3.         lp_close mean_200[`i'] author_200[`i'], tol(1e-6) ///
+>             label(REP01 exact: first 200 draws against the authors' script at 200 draws at h = `h')
+  4.     }
+REP01 exact: first 200 draws against the authors' script at 200 draws at h = 0
+      value      0.99686519   target      0.99686521   |diff|  2.58e-08   tol  1.0e-06
+pass  REP01 exact: first 200 draws against the authors' script at 200 draws at h = 0
+REP01 exact: first 200 draws against the authors' script at 200 draws at h = 1
+      value      0.91357771   target      0.91357774   |diff|  2.69e-08   tol  1.0e-06
+pass  REP01 exact: first 200 draws against the authors' script at 200 draws at h = 1
+REP01 exact: first 200 draws against the authors' script at 200 draws at h = 2
+      value      0.85901381   target      0.85901380   |diff|  1.54e-08   tol  1.0e-06
+pass  REP01 exact: first 200 draws against the authors' script at 200 draws at h = 2
+REP01 exact: first 200 draws against the authors' script at 200 draws at h = 3
+      value      0.78925840   target      0.78925842   |diff|  2.21e-08   tol  1.0e-06
+pass  REP01 exact: first 200 draws against the authors' script at 200 draws at h = 3
+REP01 exact: first 200 draws against the authors' script at 200 draws at h = 4
+      value      0.74316419   target      0.74316418   |diff|  3.31e-09   tol  1.0e-06
+pass  REP01 exact: first 200 draws against the authors' script at 200 draws at h = 4
+REP01 exact: first 200 draws against the authors' script at 200 draws at h = 5
+      value      0.68870901   target      0.68870902   |diff|  1.19e-08   tol  1.0e-06
+pass  REP01 exact: first 200 draws against the authors' script at 200 draws at h = 5
+REP01 exact: first 200 draws against the authors' script at 200 draws at h = 6
+      value      0.62830915   target      0.62830913   |diff|  1.99e-08   tol  1.0e-06
+pass  REP01 exact: first 200 draws against the authors' script at 200 draws at h = 6
+REP01 exact: first 200 draws against the authors' script at 200 draws at h = 7
+      value      0.57235686   target      0.57235688   |diff|  2.28e-08   tol  1.0e-06
+pass  REP01 exact: first 200 draws against the authors' script at 200 draws at h = 7
+REP01 exact: first 200 draws against the authors' script at 200 draws at h = 8
+      value      0.50967116   target      0.50967115   |diff|  1.17e-08   tol  1.0e-06
+pass  REP01 exact: first 200 draws against the authors' script at 200 draws at h = 8
+REP01 exact: first 200 draws against the authors' script at 200 draws at h = 9
+      value      0.48197576   target      0.48197576   |diff|  4.29e-10   tol  1.0e-06
+pass  REP01 exact: first 200 draws against the authors' script at 200 draws at h = 9
+REP01 exact: first 200 draws against the authors' script at 200 draws at h = 10
+      value      0.42771590   target      0.42771590   |diff|  6.81e-10   tol  1.0e-06
+pass  REP01 exact: first 200 draws against the authors' script at 200 draws at h = 10
+. }
+
+. else display as text "Fewer than 200 draws: the exact comparison with the 200-draw run is skipped."
+
+. 
+. * Statistical comparisons. The published figure's 10,000 draws are treated as
+. * an independent stream, which gives the wider of the two possible bounds.
+. forvalues h = 0/`hmax' {
+  2.     local i = `h' + 1
+  3.     local z = z_10000[`i']
+  4.     lp_assert "REP01 statistical: mean of `R' draws within 3 Monte Carlo SE of the 10,000-draw mean at h = `h' (z =
+>  `: display %5.2f `z'')" : abs(`z') < 3
+  5. }
+pass  REP01 statistical: mean of 500 draws within 3 Monte Carlo SE of the 10,000-draw mean at h = 0 (z =  1.00)
+pass  REP01 statistical: mean of 500 draws within 3 Monte Carlo SE of the 10,000-draw mean at h = 1 (z =  0.42)
+pass  REP01 statistical: mean of 500 draws within 3 Monte Carlo SE of the 10,000-draw mean at h = 2 (z =  1.71)
+pass  REP01 statistical: mean of 500 draws within 3 Monte Carlo SE of the 10,000-draw mean at h = 3 (z =  0.79)
+pass  REP01 statistical: mean of 500 draws within 3 Monte Carlo SE of the 10,000-draw mean at h = 4 (z =  1.15)
+pass  REP01 statistical: mean of 500 draws within 3 Monte Carlo SE of the 10,000-draw mean at h = 5 (z =  0.77)
+pass  REP01 statistical: mean of 500 draws within 3 Monte Carlo SE of the 10,000-draw mean at h = 6 (z =  0.83)
+pass  REP01 statistical: mean of 500 draws within 3 Monte Carlo SE of the 10,000-draw mean at h = 7 (z =  0.89)
+pass  REP01 statistical: mean of 500 draws within 3 Monte Carlo SE of the 10,000-draw mean at h = 8 (z =  0.04)
+pass  REP01 statistical: mean of 500 draws within 3 Monte Carlo SE of the 10,000-draw mean at h = 9 (z =  0.31)
+pass  REP01 statistical: mean of 500 draws within 3 Monte Carlo SE of the 10,000-draw mean at h = 10 (z =  0.14)
+
+. if `R' != 500 {
+.     forvalues h = 0/`hmax' {
+  2.         local i = `h' + 1
+  3.         local z = z_500[`i']
+  4.         lp_assert "REP01 statistical: mean of `R' draws within 3 nested Monte Carlo SE of the 500-draw benchmark at
+>  h = `h' (z = `: display %5.2f `z'')" : abs(`z') < 3
+  5.     }
+. }
+
+. tempfile results
+
+. save `results'
+file /var/folders/bk/6srdc2qx62b56c7594wqt1yw0000gn/T//St53173.00000c saved as .dta format
+
+. 
+. *--------------------------------------------------------------------------
+. * 6. Cross-check: the authors' script, unchanged, at the same number of draws
+. *--------------------------------------------------------------------------
+. local author_seconds = .
+
+. if "$AUTHOR_CHECK" == "1" {
+.     save `results', replace
+file /var/folders/bk/6srdc2qx62b56c7594wqt1yw0000gn/T//St53173.00000c saved as .dta format
+.     local here = c(pwd)
+.     capture mkdir "output/rep01-author"
+.     quietly cd "output/rep01-author"
+.     global nobs = `nobs'
+.     global nreps = `R'
+.     display as text _n "Running vendor/jel-code/SSBias_IntcpYLagdiffN_95.do with nreps = `R' (progress counter follows
+> )"
+
+Running vendor/jel-code/SSBias_IntcpYLagdiffN_95.do with nreps = 500 (progress counter follows)
+.     timer clear 13
+.     timer on 13
+.     capture noisily quietly do "`here'/vendor/jel-code/SSBias_IntcpYLagdiffN_95.do"
+.     local rc = _rc
+.     timer off 13
+.     quietly cd "`here'"
+.     if `rc' {
+.         display as error "The authors' script stopped with r(`rc')."
+.         exit `rc'
+.     }
+.     quietly timer list 13
+.     local author_seconds = r(t13)
+.     display as text _n "Authors' script runtime: " as result %8.2f `author_seconds' as text " seconds"
+
+Authors' script runtime:    46.39 seconds
+.     keep t rl rt
+.     rename (t rl rt) (h author_script_R author_script_theta)
+.     merge 1:1 h using `results', nogenerate assert(match)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                             0
+    Matched                                11  
+    -----------------------------------------
+.     sort h
+.     forvalues h = 0/`hmax' {
+  2.         local i = `h' + 1
+  3.         lp_close author_script_R[`i'] mean_R[`i'], tol(1e-6) ///
+>             label(REP01 cross-check: authors' script against this file at R = `R' and h = `h')
+  4.     }
+REP01 cross-check: authors' script against this file at R = 500 and h = 0
+      value      1.00175750   target      1.00175746   |diff|  4.02e-08   tol  1.0e-06
+pass  REP01 cross-check: authors' script against this file at R = 500 and h = 0
+REP01 cross-check: authors' script against this file at R = 500 and h = 1
+      value      0.92489529   target      0.92489526   |diff|  2.40e-08   tol  1.0e-06
+pass  REP01 cross-check: authors' script against this file at R = 500 and h = 1
+REP01 cross-check: authors' script against this file at R = 500 and h = 2
+      value      0.86787397   target      0.86787396   |diff|  1.06e-08   tol  1.0e-06
+pass  REP01 cross-check: authors' script against this file at R = 500 and h = 2
+REP01 cross-check: authors' script against this file at R = 500 and h = 3
+      value      0.79257834   target      0.79257836   |diff|  2.22e-08   tol  1.0e-06
+pass  REP01 cross-check: authors' script against this file at R = 500 and h = 3
+REP01 cross-check: authors' script against this file at R = 500 and h = 4
+      value      0.73754936   target      0.73754938   |diff|  1.84e-08   tol  1.0e-06
+pass  REP01 cross-check: authors' script against this file at R = 500 and h = 4
+REP01 cross-check: authors' script against this file at R = 500 and h = 5
+      value      0.67800373   target      0.67800374   |diff|  8.83e-09   tol  1.0e-06
+pass  REP01 cross-check: authors' script against this file at R = 500 and h = 5
+REP01 cross-check: authors' script against this file at R = 500 and h = 6
+      value      0.62550861   target      0.62550860   |diff|  2.99e-09   tol  1.0e-06
+pass  REP01 cross-check: authors' script against this file at R = 500 and h = 6
+REP01 cross-check: authors' script against this file at R = 500 and h = 7
+      value      0.57830870   target      0.57830868   |diff|  2.02e-08   tol  1.0e-06
+pass  REP01 cross-check: authors' script against this file at R = 500 and h = 7
+REP01 cross-check: authors' script against this file at R = 500 and h = 8
+      value      0.51882571   target      0.51882570   |diff|  8.14e-09   tol  1.0e-06
+pass  REP01 cross-check: authors' script against this file at R = 500 and h = 8
+REP01 cross-check: authors' script against this file at R = 500 and h = 9
+      value      0.48049915   target      0.48049915   |diff|  1.40e-09   tol  1.0e-06
+pass  REP01 cross-check: authors' script against this file at R = 500 and h = 9
+REP01 cross-check: authors' script against this file at R = 500 and h = 10
+      value      0.43152007   target      0.43152008   |diff|  7.71e-09   tol  1.0e-06
+pass  REP01 cross-check: authors' script against this file at R = 500 and h = 10
+.     lp_assert "REP01 cross-check: the authors' true response equals 0.95^h (1e-6)" : abs(author_script_theta - theta_h
+> ) < 1e-6
+pass  REP01 cross-check: the authors' true response equals 0.95^h (1e-6)
+.     macro drop nobs nreps burn tobs hmax rho a
+. }
+
+. else {
+.     display as text "AUTHOR_CHECK = 0: the authors' script was not run."
+.     generate double author_script_R = .
+. }
+
+. generate double diff_author = author_script_R - mean_R
+
+. sort h
+
+. 
+. *--------------------------------------------------------------------------
+. * 7. The benchmark record, one row per horizon
+. *--------------------------------------------------------------------------
+. tempname B
+
+. postfile `B' h T_h double(theta_h published_R500 reproduced_R500 diff_R500      ///
+>     author_R200_v195 reproduced_R200 diff_R200 author_R10000 reproduced_R      ///
+>     sd_R mcse_R z_vs_R10000 author_script diff_author_script) draws            ///
+>     double tolerance using "output/rep01-benchmark.dta", replace
+(file output/rep01-benchmark.dta not found)
+
+. forvalues i = 1/11 {
+  2.     post `B' (h[`i']) (T_h[`i']) (theta_h[`i']) (published_500[`i'])            ///
+>         (mean_500[`i']) (diff_500[`i']) (author_200[`i']) (mean_200[`i'])      ///
+>         (diff_200[`i']) (author_10000[`i']) (mean_R[`i']) (sd_R[`i'])          ///
+>         (mcse_R[`i']) (z_10000[`i']) (author_script_R[`i']) (diff_author[`i']) ///
+>         (`R') (1e-6)
+  3. }
+
+. postclose `B'
+
+. preserve
+
+. use "output/rep01-benchmark.dta", clear
+
+. format theta_h-diff_author_script %12.8f
+
+. export delimited using "output/rep01-benchmark.csv", replace datafmt
+(file output/rep01-benchmark.csv not found)
+file output/rep01-benchmark.csv saved
+
+. restore
+
+. 
+. *--------------------------------------------------------------------------
+. * 8. Figures
+. *--------------------------------------------------------------------------
+. set scheme stcolor
+
+. merge 1:1 h using `draw1', nogenerate assert(match)
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                             0
+    Matched                                11  
+    -----------------------------------------
+
+. local ink    "82 81 78"
+
+. local muted  "137 135 129"
+
+. local blue   "42 120 214"
+
+. local orange "217 96 31"
+
+. local rule   "195 194 183"
+
+. 
+. twoway (line theta_h h, lcolor("`ink'") lwidth(medthick))                              ///
+>        (line author_10000 h, lcolor("`muted'") lpattern(dash) lwidth(medium))          ///
+>        (scatter published_500 h, msymbol(Oh) mcolor("`orange'") msize(large) mlwidth(medthick)) ///
+>        (connected mean_R h, lcolor("`blue'") mcolor("`blue'") msymbol(O) msize(small) lwidth(medthick)), ///
+>        xlabel(0(1)10, nogrid)                                                          ///
+>        ylabel(0.4(0.1)1.0, format(%3.1f) angle(0) glcolor("`rule'") glpattern(solid) glwidth(vthin)) ///
+>        xtitle("Horizon h (periods after the intervention)")                            ///
+>        ytitle("Mean of the estimate across draws")                                     ///
+>        legend(order(1 "True response 0.95{sup:h}"                                      ///
+>                     2 "Authors' shipped mean, 10,000 draws"                            ///
+>                     3 "Course benchmark, 500 draws (Stata 18.5)"                       ///
+>                     4 "This run, `R' draws (StataNow 19.5)")                           ///
+>               cols(1) position(1) ring(0) region(lstyle(none) fcolor(white)) size(small)) ///
+>        graphregion(color(white)) plotregion(color(white)) xsize(6.5) ysize(4.2)
+
+. graph export "output/fig-rep01-levels-mean.svg", replace
+(file output/fig-rep01-levels-mean.svg not found)
+file output/fig-rep01-levels-mean.svg saved as SVG format
+
+. graph export "output/fig-rep01-levels-mean.png", replace width(1950)
+(file output/fig-rep01-levels-mean.png not found)
+file output/fig-rep01-levels-mean.png written in PNG format
+
+. 
+. twoway (rarea p5_R p95_R h, color("`blue'%15") lwidth(none))                           ///
+>        (line theta_h h, lcolor("`ink'") lwidth(medthick))                              ///
+>        (connected mean_R h, lcolor("`blue'") mcolor("`blue'") msymbol(O) msize(small) lwidth(medthick)) ///
+>        (connected b_draw1 h, lcolor("`orange'") mcolor("`orange'") msymbol(D) msize(small) lwidth(medium)), ///
+>        yline(0, lcolor("`rule'")) xlabel(0(1)10, nogrid)                               ///
+>        ylabel(-0.4(0.2)1.4, format(%3.1f) angle(0) glcolor("`rule'") glpattern(solid) glwidth(vthin)) ///
+>        xtitle("Horizon h (periods after the intervention)")                            ///
+>        ytitle("Estimate (units of y per unit of s)")                                   ///
+>        legend(order(2 "True response 0.95{sup:h}" 3 "Mean of `R' draws"                ///
+>                     4 "Draw 1 (seed 12345)" 1 "Middle 90 percent of the `R' draws")    ///
+>               cols(2) position(6) region(lstyle(none)) size(small))                    ///
+>        graphregion(color(white)) plotregion(color(white)) xsize(6.5) ysize(4.4)
+
+. graph export "output/fig-rep01-first-draw.svg", replace
+(file output/fig-rep01-first-draw.svg not found)
+file output/fig-rep01-first-draw.svg saved as SVG format
+
+. graph export "output/fig-rep01-first-draw.png", replace width(1950)
+(file output/fig-rep01-first-draw.png not found)
+file output/fig-rep01-first-draw.png written in PNG format
+
+. 
+. *--------------------------------------------------------------------------
+. timer off 11
+
+. quietly timer list 11
+
+. local total_seconds = r(t11)
+
+. local npass = $LP_NPASS - `npass0'
+
+. display as text _n "REP01 complete: " as result `npass' as text " assertions passed; R = `R'; Monte Carlo " ///
+>     as result %7.2f `mc_seconds' as text " s; authors' script " as result %7.2f `author_seconds' ///
+>     as text " s; total " as result %7.2f `total_seconds' as text " s"
+
+REP01 complete: 65 assertions passed; R = 500; Monte Carlo   15.10 s; authors' script   46.39 s; total   63.71 s
+
+. log close rep01
+      name:  rep01
+       log:  /Users/tylersotomayor/local-projections-course/practica/p01-question-to-projection/lab-project/output/rep01
+> .log
+  log type:  text
+ closed on:  13 Sep 2026, 22:47:59
+------------------------------------------------------------------------------------------------------------------------

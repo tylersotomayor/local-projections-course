@@ -15,7 +15,7 @@ estimated uncertainty.
 
 | Lab | Misconception it exposes | Lecture | Status |
 |-----|--------------------------|---------|--------|
-| Shock-to-Response Explorer | That a response is estimated from one episode | 1 | in development |
+| [Shock-to-Response Explorer](01-shock-to-response-explorer.qmd) | That a response is estimated from one episode | [1](../lectures/01-question-to-projection/notes.qmd) | live |
 | Transformation Workbench | That an accumulated change is an accumulated level | 2 | in development |
 | Identification and Controls Sandbox | That "I included controls" is an identification argument | 3 | in development |
 | Instrument and Multiplier Laboratory | That a strong first stage establishes causality | 4 | in development |

@@ -73,6 +73,42 @@ local function transform_div(el)
   return nil
 end
 
+-- Hints and solutions are Quarto callouts so that the website can collapse
+-- them. In LaTeX a callout becomes a breakable tcolorbox, and a code listing
+-- or long table nested inside it cannot break with the box: the listing is
+-- clipped at the foot of the page and a table is pushed to the next one,
+-- leaving half-empty pages. The solutions PDF therefore prints each hint and
+-- solution as ordinary text under its label.
+local exercise_callout_classes = {
+  ["exercise-hint"] = true,
+  ["exercise-solution"] = true
+}
+
+local function unwrap_exercise_callout(el)
+  if not (FORMAT:match("latex") and solutions_document) then return nil end
+  local classes = (el.attr and el.attr.classes) or el.classes or {}
+  local is_exercise = false
+  for _, class in ipairs(classes) do
+    if exercise_callout_classes[class] then is_exercise = true end
+  end
+  if not is_exercise then return nil end
+
+  local label = el.title and pandoc.utils.stringify(el.title) or ""
+  local blocks = {
+    pandoc.RawBlock("latex",
+      "\\par\\addvspace{\\medskipamount}\\noindent " ..
+      label:gsub("([%%#$&_{}])", "\\%1") .. "\\par\\nopagebreak")
+  }
+  -- Quarto 1.10 stores a callout's body as one Div block; older versions
+  -- used a list of blocks.
+  if pandoc.utils.type(el.content) == "Block" then
+    table.insert(blocks, el.content)
+  else
+    for _, block in ipairs(el.content) do table.insert(blocks, block) end
+  end
+  return pandoc.Div(blocks, pandoc.Attr("", { "exercise-printed" }))
+end
+
 local function transform_span(el)
   if not FORMAT:match("latex") then return nil end
 
@@ -118,5 +154,6 @@ end
 
 return {
   { Meta = read_metadata },
-  { Div = transform_div, Span = transform_span }
+  { Div = transform_div, Span = transform_span,
+    Callout = unwrap_exercise_callout }
 }

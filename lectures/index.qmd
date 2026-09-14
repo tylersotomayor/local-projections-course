@@ -11,24 +11,24 @@ solutions companion prints them in full.
 The course handbook will bind the finished lectures into one PDF, followed by
 the course glossary and index.
 
-| # | Lecture | Practicum | Status |
+| # | Lecture | Materials | Status |
 |---|---------|-----------|--------|
-| 1 | From an Economic Question to a Local Projection | P01 | in development |
-| 2 | Levels, Differences, Cumulative Responses, and Units | P02 | in development |
-| 3 | Identification, Controls, and the Pre-Shock Information Set | P03 | in development |
-| 4 | LP-IV and Cumulative Multipliers | P04 | in development |
-| 5 | Pointwise Inference, Persistence, and Lag Augmentation | P05 | in development |
-| 6 | Inference About the Response Path | P06 | in development |
-| 7 | LPs versus VARs: Estimands, Bias, and Variance | P07 | in development |
-| 8 | Smoothing and Restrictions Across Horizons | P08 | in development |
-| 9 | State Dependence and Asymmetric Responses | P09 | in development |
-| 10 | What Linear LPs Mean in Nonlinear Economies | P10 | in development |
-| 11 | Panel LPs and Common Macroeconomic Shocks | P11 | in development |
-| 12 | LP Difference-in-Differences | P12 | in development |
-| 13 | Sensitivity Analysis and Policy Counterfactuals | P13 | in development |
-| 14 | Research Synthesis, Replication Audit, and Defense | P14 | in development |
+| 1 | From an Economic Question to a Local Projection | [notes](01-question-to-projection/notes.qmd) · [solutions](01-question-to-projection/solutions.qmd) · [slides](01-question-to-projection/slides.qmd) · [lab](../interactives/01-shock-to-response-explorer.qmd) · [practicum](../practica/p01-question-to-projection/index.qmd) | live |
+| 2 | Levels, Differences, Cumulative Responses, and Units | — | in development |
+| 3 | Identification, Controls, and the Pre-Shock Information Set | — | in development |
+| 4 | LP-IV and Cumulative Multipliers | — | in development |
+| 5 | Pointwise Inference, Persistence, and Lag Augmentation | — | in development |
+| 6 | Inference About the Response Path | — | in development |
+| 7 | LPs versus VARs: Estimands, Bias, and Variance | — | in development |
+| 8 | Smoothing and Restrictions Across Horizons | — | in development |
+| 9 | State Dependence and Asymmetric Responses | — | in development |
+| 10 | What Linear LPs Mean in Nonlinear Economies | — | in development |
+| 11 | Panel LPs and Common Macroeconomic Shocks | — | in development |
+| 12 | LP Difference-in-Differences | — | in development |
+| 13 | Sensitivity Analysis and Policy Counterfactuals | — | in development |
+| 14 | Research Synthesis, Replication Audit, and Defense | — | in development |
 
-: {tbl-colwidths="[5,60,15,20]"}
+: {tbl-colwidths="[4,40,44,12]"}
 
 ## The four parts {.unnumbered}
 

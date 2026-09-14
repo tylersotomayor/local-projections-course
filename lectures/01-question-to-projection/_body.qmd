@@ -1,0 +1,1563 @@
+
+::: {.content-visible unless-format="pdf"}
+::: {.callout-note appearance="simple" icon=false}
+These notes pair with the [slides](slides.qmd), the
+[Shock-to-Response Explorer](../../interactives/01-shock-to-response-explorer.qmd) browser lab, and
+[Practicum 01](../../practica/p01-question-to-projection/index.qmd). The PDF
+version, compiled from the same source, is under "Other Formats."
+:::
+:::
+
+In late June 1950, North Korean forces crossed into South Korea. Within weeks,
+American newspapers and business magazines were reporting plans for a large and
+lasting rise in military spending. Ramey's narrative series prices such reports
+as the change in the expected [present value]{.footnote-term
+data-index="present value"}^[The present value of a stream of future spending is
+its sum after each year's amount has been discounted back to the present. A
+report that raises planned spending for the next three years moves the present
+value at once, even though the spending itself arrives later.] of government
+spending [@ramey2011]. For the third quarter of 1950 it records news worth 179.4
+billion dollars, which is 0.600 of the previous quarter's nominal
+[trend GDP]{.footnote-term data-index="trend GDP"}^[Ramey and Zubairy call the
+series potential GDP and estimate it as a sixth-degree polynomial trend in real
+GDP. The fit runs over 1889Q1–2015Q4 and leaves out 1930Q1–1946Q4, the Great
+Depression and World War II; in their workbook the series is `rgdp_pott6`. It is multiplied by
+the GDP deflator when a nominal value is needed. Lecture 2 explains why dividing
+output and spending by trend GDP puts them in common units.] at an annual rate
+[@rameyzubairy2018]. A policymaker reading
+those reports would want to know what the buildup would do to output over the
+next three years.
+
+The path that followed is easy to read. Real GDP stood 2.75 percent below trend
+in 1950Q2 and 5.12 percent above it in 1953Q1, ten quarters after the news
+arrived: a rise of 7.87 points of trend GDP. It is tempting to call those 7.87
+points the effect of the news. Many other things happened in the same quarters,
+though. Taxes rose; in the postwar tax record assembled by @romerromer2010, the
+largest increases motivated by spending came during the Korean War. The March
+1951 [Treasury–Federal Reserve Accord]{.footnote-term
+data-index="Treasury–Federal Reserve Accord"}^[The agreement that ended the
+Federal Reserve's wartime commitment to peg the prices of government bonds,
+leaving it free to let interest rates rise [@hetzelleach2001].] freed monetary
+policy. Wage and price controls were imposed in January 1951 and dismantled
+early in 1953 [@rockoff1984]. The rise of 7.87 points mixes the news with all of
+these.
+
+So the question is not what happened next. It is what happened *because of* the
+news, and answering it requires a path nobody observed: the one GDP would have
+followed had the news not arrived, with everything else as it was. This lecture
+turns that comparison into a regression. We start in an economy small enough
+that the unobserved path can be computed exactly and derive a regression whose
+coefficient recovers the comparison there. Then we build that regression's rows
+by hand and return to the quarterly data with one estimated response and a list
+of what it has not yet earned.
+
+By the end of the lecture, you should be able to:
+
+1. define the causal response at horizon $h$ as the gap between the realized
+   path and the path without the intervention, and distinguish it from the
+   change since the date before the intervention;
+2. iterate $y_t=\rho y_{t-1}+\theta_0 s_t+v_t$ forward to derive
+   $\theta_h=\theta_0\rho^h$, and show that the horizon-$h$ regression of
+   $y_{t+h}$ on a constant, $s_t$, and $y_{t-1}$ has $\beta_h=\theta_h$,
+   $\gamma_h=\rho^{h+1}$, and a residual built from disturbances dated $t$
+   through $t+h$ and shocks dated $t+1$ through $t+h$;
+3. build the regression rows for $h=0,1,2$ by hand, state $T_h=T-h-p$, and
+   compute $\hat\beta_h$ from those rows;
+4. estimate $\hat\beta_h$ for $h=0,\dots,H$ in a Stata loop that stores
+   $\hat\beta_h$ and $T_h$, and draw a response graph whose caption names the
+   intervention, the units, and the counterfactual; and
+5. explain what one estimated coefficient measures and where its variation
+   comes from, why a single episode cannot identify it, and which claims a
+   first data application has not yet earned.
+
+The lecture assumes ordinary least squares (the slope as a covariance over a
+variance, and the slope on a 0–1 regressor as a difference in means),
+expectation and independence, and elementary Stata: `tsset`, time-series
+operators, loops, `regress`, and stored results. No time-series course is
+assumed; the one autoregression we need is built from scratch and iterated by
+hand. Standard errors, instruments, and vector autoregressions come later.
+
+## The Question: An Intervention, an Outcome, and a Path We Never See {#sec-l01-question}
+
+The Korean episode has three parts that recur in every problem of this course.
+Something happens at a date: news arrives, a policy rate moves, a state changes
+its banking law. An outcome is measured at that date and afterwards. And the
+question compares that outcome with what it would otherwise have been. The
+first two parts can be measured. The third cannot, and an economy small enough
+to compute by hand shows why no single observed path supplies it.
+
+### Intervention, Outcome, and Two Paths
+
+Write $s_t$ for the
+[**intervention variable**]{.glossary-term data-term="intervention-variable"}
+dated $t$ and $y_t$ for the outcome. In the opening, $s_t$ is a quarter's
+military news measured as a fraction of trend GDP, and $y_t$ is real GDP divided
+by trend GDP. The name is deliberately neutral. Calling $s_t$ a shock would
+claim that nothing else systematically moves with it, and that claim needs an
+argument, which Lecture 3 supplies. Until then $s_t$ is simply the variable
+whose effect we want.
+
+The data record one sequence of outcomes, the
+[**realized path**]{.glossary-term data-term="realized-path"}. It carries the
+effect of $s_t$ together with the effect of every other disturbance that arrived
+before and after. The [**counterfactual**]{.glossary-term
+data-term="counterfactual"} path, written $y^{c}_t$, is the sequence the same
+economy would have produced without the intervention at date $t$ and with every
+other disturbance exactly as it was. The superscript $c$ marks counterfactual
+objects throughout the course. Nobody observes $y^{c}_t$.
+
+The [**causal response**]{.glossary-term data-term="causal-response"} $h$
+periods after the intervention is the gap between the two paths at the same
+date:
+
+$$
+\theta_h=y_{t+h}-y^{c}_{t+h}.
+$$ {#eq-l01-causal-response}
+
+Read @eq-l01-causal-response across, not down the calendar. Both terms are
+dated $t+h$, so the equation compares two versions of one period, not one period
+with an earlier one. The units of $\theta_h$ are the units of $y$; when the
+intervention is a one-unit change in $s_t$, they are units of $y$ per unit of
+$s$. In the Korean example the gap would be measured in points of trend GDP.
+The response carries no date subscript here because, in the economies of this
+lecture, the gap does not depend on when the intervention arrives;
+@sec-l01-two-clocks and @sec-l01-smallest-model show why. This is the sense in
+which @stockwatson2018 define dynamic causal effects in macroeconomics: a
+comparison of the outcomes that would follow different values of the
+intervention, not a description of what followed the one value that occurred.
+
+### The Change Since the Date Before
+
+The number the opening read off the data was a different object: the change in
+the realized path since the period before the news, $y_{t+h}-y_{t-1}$. To see
+how it relates to $\theta_h$, add and subtract $y^{c}_{t+h}$:
+
+$$
+y_{t+h}-y_{t-1}
+=\underbrace{\bigl(y_{t+h}-y^{c}_{t+h}\bigr)}_{\theta_h}
++\underbrace{\bigl(y^{c}_{t+h}-y_{t-1}\bigr)}_{\text{change without the intervention}}.
+$$ {#eq-l01-change-decomposition}
+
+The first bracket is the causal response. The second is the change the economy
+would have made anyway, driven by everything except the intervention. The left
+side of @eq-l01-change-decomposition equals $\theta_h$ only when the second
+bracket is zero, that is, only when the counterfactual path would have stayed at
+its pre-intervention level. Nothing guarantees that. A wartime economy with
+rising taxes, a newly independent central bank, and price controls had many
+reasons to move.
+
+The decomposition relies on one fact about timing. An intervention at $t$
+cannot change $y_{t-1}$, so the realized and counterfactual paths coincide
+before $t$ and the same $y_{t-1}$ appears in both brackets. If people act on
+news before it is recorded, that fact fails; Lecture 3 treats the consequences
+under the name of anticipation.
+
+### A Twelve-Period Economy Where the Counterfactual Is Known
+
+To watch the two objects diverge with actual numbers, we need an economy in
+which the counterfactual can be computed. Take twelve periods and the rule
+
+$$
+y_t=0.5\,y_{t-1}+s_t+v_t,\qquad t=1,\dots,12,\qquad y_0=0.
+$$
+
+Each period's outcome is half of the previous outcome, plus the intervention,
+plus a [disturbance]{.footnote-term data-index="disturbance"}^[A disturbance is a
+random term that stands for everything moving the outcome other than the
+variables written in the equation. In a simulation the computer draws it; in
+data it is whatever the model leaves out.] $v_t$ that stands for everything
+else. The intervention is binary: $s_t=1$ in a period when it occurs and $0$
+otherwise. Both inputs were drawn once in Stata with
+[seed]{.footnote-term data-index="random-number seed"}^[A seed fixes the
+starting point of Stata's pseudo-random number generator, so the same commands
+reproduce the same draws on every run. The course fixes each seed before
+looking at any result and keeps the draw it produces.] 1. Each $v_t$ is a
+standard normal draw rounded to one decimal, and each $s_t$ is an independent
+draw equal to one with probability 0.3. The interventions happen to fall at
+$t=1,5,10,12$. @sec-l01-smallest-model returns to this rule with general
+coefficients; here it only has to generate numbers.
+
+<!-- D32: binary intervention, so every slope in the hand calculations is a
+     difference in means; seed 1 was fixed before any result was seen. -->
+
+@tbl-l01-hand-table lists the draws and the realized path. To build the
+counterfactual for the intervention at $t=5$, set $s_5=0$, hold every $v_t$ at
+its drawn value, and run the rule again.
+
+| $t$ | $s_t$ | $v_t$ | $y_t$ | $y^{c}_t$ | $y_t-y^{c}_t$ | $y_t-y_4$ |
+|---:|---:|---:|---:|---:|---:|---:|
+| 1 | 1 | 0.9 | 1.9000 | 1.9000 | 0 | — |
+| 2 | 0 | 0.5 | 1.4500 | 1.4500 | 0 | — |
+| 3 | 0 | 0.6 | 1.3250 | 1.3250 | 0 | — |
+| 4 | 0 | −0.6 | 0.0625 | 0.0625 | 0 | 0.0000 |
+| 5 | 1 | −1.7 | −0.6688 | −1.6688 | 1 | −0.7313 |
+| 6 | 0 | 0.2 | −0.1344 | −0.6344 | 0.5 | −0.1969 |
+| 7 | 0 | 2.1 | 2.0328 | 1.7828 | 0.25 | 1.9703 |
+| 8 | 0 | −1.3 | −0.2836 | −0.4086 | 0.125 | −0.3461 |
+| 9 | 0 | 0.8 | 0.6582 | 0.5957 | 0.0625 | 0.5957 |
+| 10 | 1 | 0.6 | 1.9291 | 1.8979 | 0.03125 | 1.8666 |
+| 11 | 0 | −0.9 | 0.0646 | 0.0489 | 0.015625 | 0.0021 |
+| 12 | 1 | 1.5 | 2.5323 | 2.5245 | 0.0078125 | 2.4698 |
+
+: The twelve-period economy. The counterfactual $y^{c}_t$ removes only the intervention at $t=5$ and keeps every $v_t$. Outcome columns are displayed to four decimals with ties rounded away from zero; the gap column is exact, and every calculation in the notes uses exact values. {#tbl-l01-hand-table}
+
+Before period 5 the two paths are identical, as the timing argument requires.
+At $t=5$ the realized outcome is $y_5=0.5(0.0625)+1-1.7=-0.66875$, while the
+counterfactual is $y^{c}_5=0.5(0.0625)+0-1.7=-1.66875$. The gap is exactly one:
+the intervention added one unit. Yet the realized outcome *fell* by 0.73125 from
+$y_4=0.0625$, because a disturbance of $-1.7$ arrived in the same period.
+
+From then on the gap halves every period. At $t=6$ both paths carry forward half
+of their own previous value and receive the same $v_6=0.2$, so the only
+difference left is half of the previous gap, $0.5\times1=0.5$. At $t=7$ the gap
+is 0.25 and at $t=8$ it is 0.125. The change since $t=4$ behaves erratically by
+comparison: $-0.196875$, then $1.9703125$, then $-0.34609375$.
+@fig-l01-realized-counterfactual shows both comparisons.
+
+::: {#fig-l01-realized-counterfactual}
+::: {.content-visible when-format="html"}
+![](/lectures/01-question-to-projection/figures/fig-l01-realized-counterfactual.svg){fig-alt="Two twelve-period outcome paths coincide through period 4, separate by exactly one unit at period 5, and the gap then halves each period, while the realized path swings well above and below its period-4 value."}
+:::
+::: {.content-visible unless-format="html"}
+![](/lectures/01-question-to-projection/figures/fig-l01-realized-counterfactual.pdf)
+:::
+[Two paths, one gap]{.smallcaps}. The causal response to the $t=5$ intervention is the vertical distance between the realized and counterfactual paths at the same date: 1, 0.5, 0.25, and 0.125 at $t=5,\dots,8$. The change from the pre-intervention value $y_4$ is a different quantity, $-0.731$ at $t=5$ and $1.970$ at $t=7$, because it also contains every disturbance that arrived after $t=4$.
+:::
+
+@eq-l01-change-decomposition accounts for the difference exactly. At $t=7$ the
+realized change of 1.9703125 splits into the causal response 0.25 and a
+counterfactual change $y^{c}_7-y_4=1.7828125-0.0625=1.7203125$, which the
+disturbance $v_7=2.1$ more than accounts for. Reading the realized change as the
+effect would overstate the effect nearly eightfold at $t=7$ and get its sign
+wrong at $t=5$.
+[Exercise 1](#exercise-l01-1) rebuilds the counterfactual path by hand.
+
+Two features of the example will be needed again. First, the gaps
+1, 0.5, 0.25, 0.125 do not depend on any $v_t$. Change the disturbances and the
+realized path moves, but the gap sequence does not. Second, the gaps were
+computable only because we knew the rule and every disturbance. With real data
+neither is available, so the counterfactual has to be reconstructed from other
+information. The rest of the lecture is about how a regression does that, and
+about what it has to assume.
+
+A regression will not switch off one intervention; it pools many. Pooling forces
+a choice that the table could avoid: how to date a gap.
+
+## Two Clocks {#sec-l01-two-clocks}
+
+A statement such as "the response at $t=7$ is 0.25" hides that choice. It could
+be a fact about period 7, or a fact about what happens two periods after an
+intervention. In the twelve-period economy the readings coincide because only
+one intervention was switched off. They separate as soon as a second
+intervention is considered.
+
+### Calendar Time and Horizon
+
+[**Calendar time**]{.glossary-term data-term="calendar-time"} $t$ is the date of
+an observation: a quarter such as 1950Q3, or a period in a simulation. In this
+course it also dates the intervention and, later, the regression row built
+around it. The [**horizon**]{.glossary-term data-term="horizon"} $h$ counts the
+periods after the intervention at which the outcome is measured, so $y_{t+h}$ is
+read "the outcome $h$ periods after date $t$." The horizon is measured in the
+data's own periods: quarters in the Ramey–Zubairy data and abstract periods in
+the simulations. The opening's 1953Q1 is horizon 10 for news dated 1950Q3.
+
+The response at $h=0$ is the
+[**impact response**]{.glossary-term data-term="impact-response"}, the effect
+within the period of the intervention. In the twelve-period economy it is the
+gap of 1 at $t=5$. Horizons count upward to a largest horizon $H$ chosen by the
+researcher: $H=2$ for the hand calculations of @sec-l01-rows-by-hand, $H=12$ for
+the simulations, and $H=20$ quarters for the military-news data.
+
+Now switch off the intervention at $t=10$ instead of the one at $t=5$, again
+holding every $v_t$ fixed. The gaps at $t=10,11,12$ are 1, 0.5, and 0.25. On
+the calendar these are new numbers at new dates. On the horizon clock they are
+the same numbers as before: 1 at $h=0$, 0.5 at $h=1$, 0.25 at $h=2$. The rule
+treats an intervention the same way whenever it arrives, so the gap depends on
+the horizon and not on the date. That property is what allows a single sequence
+$\theta_0,\theta_1,\dots$ to describe the response to every intervention in a
+sample. It is an assumption about the economy, stated formally as
+[A1](#assumption-l01-a1) below; if the effect of news depended on the state of
+the economy, the response would carry a date as well, which is the subject of
+Lecture 9.
+
+### The Impulse-Response Function
+
+The sequence of causal responses read as a function of the horizon,
+
+$$
+h\longmapsto\theta_h,\qquad h=0,1,\dots,H,
+$$
+
+is the [**impulse-response function**]{.glossary-term
+data-term="impulse-response-function"}. It answers "how does the effect evolve
+after the intervention?" with a curve rather than a number. In the twelve-period
+economy the curve starts at 1 and halves each period.
+
+The two clocks sort the objects of this course into two kinds. The realized
+path of GDP after 1950Q3 is a function of calendar time and belongs to one
+episode. The impulse-response function is a function of horizon and describes
+what an intervention does whenever it happens. The rise of 7.87 points was a
+calendar-time fact about 1950–1953. The policymaker's question was a
+horizon-time question.
+
+The distinction has a practical consequence. A regression that estimates the
+response at one horizon returns one number, so it estimates one point on the
+curve. Drawing the whole curve takes one estimate per horizon, and each estimate
+uses its own rows of data, a fact that @sec-l01-rows-by-hand makes concrete.
+Before estimating anything, though, we need to know what the curve looks like
+in an economy where it can be derived rather than simulated.
+
+## The Smallest Model {#sec-l01-smallest-model}
+
+The twelve-period economy produced a gap that halved every period and ignored
+the disturbances. Neither fact was an accident of the draws. Both follow from
+the rule, and seeing why requires writing the rule with general coefficients.
+The model we use is the smallest one in which an intervention has a response
+that unfolds over time and in which that response can be derived exactly.
+
+### An Autoregression with an Observed Shock
+
+Let the outcome follow
+
+$$
+y_t=\rho\,y_{t-1}+\theta_0 s_t+v_t .
+$$ {#eq-l01-toy}
+
+Read @eq-l01-toy from left to right as a recipe for this period's outcome:
+carry forward the fraction $\rho$ of last period's outcome, add $\theta_0$
+units for each unit of the intervention, and add the disturbance $v_t$. A
+series that equals a linear function of its own past plus new disturbances is
+an [**autoregressive process**]{.glossary-term data-term="autoregressive-process"};
+this one is first order, written AR(1), because a single lag of $y$ appears.
+The coefficient $\rho$ measures
+[**persistence**]{.glossary-term data-term="persistence"}, the share of any
+deviation of $y$ that survives into the next period, and it has no units. The
+coefficient $\theta_0$ is the impact response, in units of $y$ per unit of $s$.
+The twelve-period economy is the case $\rho=0.5$ and $\theta_0=1$.
+
+The intervention $s_t$ is drawn independently each period with mean zero and
+standard deviation $\sigma_s$. The disturbance $v_t$ is drawn the same way, with
+mean zero and standard deviation $\sigma_v$ measured in units of $y$. The two
+sequences are independent of each other. Generated this way, $s_t$ is an
+[**observed shock**]{.glossary-term data-term="observed-shock"}: a variable we
+measure directly, that cannot be predicted from the past, and that is
+independent of every other disturbance moving the outcome. In a simulation
+this holds by construction. For the military-news series it is a claim, and
+Lecture 3 examines what would make it believable. (The binary intervention of
+the twelve-period economy has mean 0.3 rather than zero; a nonzero mean changes
+only the regression intercept, as @sec-l01-model-to-regression notes.)
+
+The derivations below use four assumptions. Each is stated once here and cited
+by number where it does its work.
+
+::: {#assumptions-l01 .assumptions}
+[]{#assumption-l01-a1}**A1 (Linear, time-invariant dynamics).** The outcome
+follows @eq-l01-toy with the same $\rho$ and $\theta_0$ at every date.
+*Meaning.* An intervention of a given size has the same effect whenever it
+arrives, and the effects of interventions and disturbances add up. *Used in.*
+The forward substitution @eq-l01-forward, the response formula @eq-l01-theta,
+and the date-free reading of the response in @sec-l01-two-clocks. *Without
+it.* The gap between paths depends on the date, the state of the economy, or
+the size of the intervention, so no single sequence $\theta_h$ exists; a
+regression coefficient then averages different responses with weights the
+researcher did not choose (Lectures 9 and 10). *Kind.* A modeling convenience
+in the simulations and an empirical claim in data.
+
+[]{#assumption-l01-a2}**A2 (Unpredictable intervention).** The interventions
+$\{s_t\}$ are independent over time and identically distributed, with mean zero
+and variance $\sigma_s^2>0$. *Meaning.* Nothing in the past, including past
+interventions, helps forecast today's intervention, and the intervention
+actually varies. *Used in.* The step $\mathbb E[s_tu_{t,h}]=0$ in
+@sec-l01-model-to-regression, which needs $s_t$ to be unrelated to the later
+interventions inside $u_{t,h}$, and, together with [A3](#assumption-l01-a3), the
+step $\operatorname{Cov}(s_t,y_{t-1})=0$, which leaves $\beta_h$ unchanged when the
+lagged outcome is dropped. *Without it.* If interventions are serially correlated, $s_t$
+forecasts the later interventions in $u_{t,h}$ and its coefficient absorbs their
+effects along with its own. Lagged interventions among the controls, as in Ramey
+and Zubairy's specification, remove the part of $s_t$ that earlier interventions
+predict, but they cannot stop $s_t$ from forecasting the interventions that
+follow it. If $\sigma_s^2=0$ there is no variation to estimate from. *Kind.* An
+identifying restriction.
+
+[]{#assumption-l01-a3}**A3 (Independent disturbances).** The disturbances
+$\{v_t\}$ are independent over time and identically distributed, with mean zero
+and variance $\sigma_v^2$, and the whole sequence is independent of $\{s_t\}$.
+*Meaning.* Whatever moves the outcome through $v_t$ neither causes nor is
+caused by the intervention, at any lead or lag. *Used in.* The steps
+$\mathbb E[s_tv_{t+j}]=0$ and $\mathbb E[y_{t-1}u_{t,h}]=0$ in
+@sec-l01-model-to-regression. *Without it.* A disturbance correlated with $s_t$
+is a common cause of the intervention and the outcome, and the regression
+coefficient moves away from $\theta_h$; Lecture 3 derives the size of that
+bias. If the disturbances are serially correlated but still independent of the
+interventions, $\beta_h$ still equals $\theta_h$, but $\gamma_h$ no longer
+equals $\rho^{h+1}$, because $y_{t-1}$ then also forecasts later disturbances.
+*Kind.* Independence from the interventions is an identifying restriction;
+independence over time is a convenience that keeps the control's coefficient
+simple.
+
+[]{#assumption-l01-a4}**A4 (Stationarity).** $|\rho|<1$, and the process has
+run long enough that $y_{t-1}$ has the same distribution at every date.
+*Meaning.* Deviations fade, and the averages that define a population
+regression are the same whichever date we examine. *Used in.* Treating the
+regression coefficients of @sec-l01-model-to-regression as constants rather
+than functions of $t$, and the variance
+$\operatorname{Var}(y_t)=(\theta_0^2\sigma_s^2+\sigma_v^2)/(1-\rho^2)$ used there.
+*Without it.* The response formula @eq-l01-theta survives, but with $\rho=1$ a
+response never fades and $\operatorname{Var}(y_t)$ grows with $t$; Lectures 2
+and 5 study how estimates and standard errors behave as $\rho$ approaches one.
+*Kind.* A mathematical convenience, and in data an empirical claim about
+persistence.
+:::
+
+The twelve-period economy bends [A4](#assumption-l01-a4) slightly, because it
+starts from $y_0=0$ rather than from a draw of the long-run distribution. The
+larger simulations later in the lecture use a
+[burn-in]{.footnote-term data-index="burn-in"}^[A burn-in is a stretch of
+simulated periods that is generated and then discarded so that an arbitrary
+starting value no longer matters. Starting from $y_0=0$ makes early outcomes
+less variable than later ones: the variance of $y_t$ is its long-run value
+times $1-\rho^{2t}$. The simulations draw 300 periods and
+keep the last 200, and $0.9^{200}\approx7\times10^{-10}$.] of 100 periods. For
+the hand calculations the start is harmless, since two paths that share $y_0$
+have a gap that does not depend on it.
+
+### Iterating Forward
+
+We want the gap at $t+h$ caused by $s_t$. The model gives $y_t$ in terms of
+$y_{t-1}$; substituting it into itself repeatedly expresses $y_{t+h}$ in terms
+of $y_{t-1}$ and everything that arrives from $t$ onward.
+
+The case $h=0$ is @eq-l01-toy itself. For $h=1$, write the rule one period
+later and replace $y_t$ by @eq-l01-toy:
+
+$$
+\begin{aligned}
+y_{t+1}&=\rho\,y_t+\theta_0s_{t+1}+v_{t+1}\\
+&=\rho\bigl(\rho\,y_{t-1}+\theta_0s_t+v_t\bigr)+\theta_0s_{t+1}+v_{t+1}\\
+&=\rho^2y_{t-1}+\rho\,\theta_0s_t+\rho\,v_t+\theta_0s_{t+1}+v_{t+1}.
+\end{aligned}
+$$
+
+One more substitution gives
+
+$$
+y_{t+2}=\rho^3y_{t-1}+\rho^2\theta_0s_t+\rho^2v_t+\rho\,\theta_0s_{t+1}
++\rho\,v_{t+1}+\theta_0s_{t+2}+v_{t+2}.
+$$
+
+The pattern is visible after two steps. Each substitution multiplies everything
+already present by $\rho$ and appends the new period's intervention and
+disturbance with coefficient one. After $h+1$ steps,
+
+$$
+y_{t+h}=\rho^{h+1}y_{t-1}+\sum_{j=0}^{h}\rho^{h-j}\bigl(\theta_0s_{t+j}+v_{t+j}\bigr).
+$$ {#eq-l01-forward}
+
+To confirm @eq-l01-forward at every horizon, argue by
+[induction]{.footnote-term data-index="induction"}^[A proof by induction shows
+that a formula holds in a first case and that, whenever it holds in one case,
+it also holds in the next. Together the two steps cover every case.]. It holds
+at $h=0$. If it holds at $h$, then
+$y_{t+h+1}=\rho\,y_{t+h}+\theta_0s_{t+h+1}+v_{t+h+1}$ multiplies every term of
+the formula by $\rho$ and appends the $j=h+1$ term with weight $\rho^0=1$, which
+is the formula at $h+1$.
+
+@eq-l01-forward is an account of where $y_{t+h}$ comes from. The first
+term is the outcome just before the intervention, discounted by $\rho^{h+1}$
+because it has had $h+1$ periods to fade. The sum collects every intervention
+and every disturbance dated $t$ through $t+h$, each discounted by $\rho$ raised
+to the number of periods it has had to fade. The newest arrivals count fully and
+the oldest count least.
+
+### The Response Is $\theta_0\rho^h$
+
+Now run the counterfactual experiment on @eq-l01-forward. Remove a one-unit
+intervention at $t$, and hold $y_{t-1}$, every disturbance, and every other
+intervention fixed. Only the $j=0$ term of the sum changes, and it changes by
+$\rho^h\theta_0$. By the definition @eq-l01-causal-response,
+
+$$
+\theta_h=\theta_0\rho^{h}.
+$$ {#eq-l01-theta}
+
+The impulse-response function of this economy starts at the impact response
+$\theta_0$ and shrinks by the factor $\rho$ each period. Its units are those of
+$\theta_0$, units of $y$ per unit of $s$, at every horizon. Because
+[A1](#assumption-l01-a1) makes the rule linear, a two-unit intervention has
+twice this response, and the response does not depend on the date.
+
+Three checks confirm the formula. With $\rho=0.5$ and $\theta_0=1$,
+@eq-l01-theta gives 1, 0.5, 0.25, 0.125, exactly the gaps in
+@tbl-l01-hand-table. No disturbance appears in @eq-l01-theta, which is why
+changing the $v_t$ moved the realized path but not the gaps. And the limiting
+cases do what persistence should: with $\rho=0$ the response lasts a single
+period, as $\rho$ approaches one it barely fades, and with $\rho<0$ it
+alternates in sign.
+
+@fig-l01-persistence isolates the role of persistence. It holds the impact
+fixed at $\theta_0=1$ and changes only $\rho$.
+
+::: {#fig-l01-persistence}
+::: {.content-visible when-format="html"}
+![](/lectures/01-question-to-projection/figures/fig-l01-persistence.svg){fig-alt="Two geometric decay curves start from the same value of 1 at horizon 0; the curve for rho equal to 0.5 is close to zero by horizon 5, while the curve for rho equal to 0.9 is still near 0.3 at horizon 12."}
+:::
+::: {.content-visible unless-format="html"}
+![](/lectures/01-question-to-projection/figures/fig-l01-persistence.pdf)
+:::
+[Persistence sets the shape]{.smallcaps}. Both economies have the same impact response, $\theta_0=1$, and the same size of intervention. With $\rho=0.5$ the response has fallen to 0.0078 by $h=7$; with $\rho=0.9$ it is still 0.478 there. The difference comes entirely from the outcome's own persistence.
+:::
+
+With $\rho=0.9$ the response first falls below half of its impact value at
+$h=7$; with $\rho=0.5$ it reaches exactly half at $h=1$ and falls below it at
+$h=2$. In this model the intervention contributes only the size of the first
+step. Everything after that is the outcome's own dynamics carrying the
+deviation forward. A central bank's surprise and a war's news, if they hit the
+same outcome with the same impact, would trace the same curve.
+
+That conclusion depends on the single lag. An AR(1) can produce only geometric
+decay, or an alternating version of it; a response that rises for several
+periods before it falls, a hump, needs richer dynamics. The military-news
+response in @sec-l01-first-contact has exactly such a hump. A method that
+required the researcher to write down the correct dynamics before estimating
+anything would be fragile for that reason, and the regression derived next
+does not require it.
+
+The derivation also used two things that data never provide: the rule itself,
+and the freedom to hold every other term fixed while changing $s_t$. Data
+provide rows of $(s_t,y_{t-1},y_{t+h})$. But @eq-l01-forward already writes
+$y_{t+h}$ as a coefficient times $y_{t-1}$, plus a coefficient times $s_t$,
+plus everything else.
+
+## From the Model to a Regression {#sec-l01-model-to-regression}
+
+In the twelve-period economy we found $\theta_h$ by rerunning the rule with one
+intervention removed. A researcher with data cannot rerun anything. The move
+available instead is to collect those rows for many dates $t$ and regress the
+later outcome on the intervention and the earlier outcome. In the economy of
+@eq-l01-toy that regression recovers $\theta_h$ exactly in population. The work
+lies in finding which step makes that true.
+
+### Estimands and Population Projections
+
+Three objects need separate names. The
+[**estimand**]{.glossary-term data-term="estimand"} is the population quantity a
+procedure is meant to recover, fixed before any data are drawn; here the causal
+estimand is $\theta_h$. A regression targets a population coefficient of its
+own, defined next, which may or may not equal the estimand. An estimate is a
+number computed from one sample, and it differs from the coefficient it targets
+by an amount that changes from sample to sample. The notation keeps population
+objects and estimates apart: population objects carry no hat, and estimates do.
+
+The population object a regression estimates is a
+[**population projection**]{.glossary-term data-term="population-projection"}.
+For an outcome and a set of regressors that includes a constant, it is the
+linear combination of the regressors with the smallest expected squared
+prediction error, the
+[best linear predictor]{.footnote-term data-index="best linear predictor"}^["Best"
+means smallest mean squared error among all linear combinations of the
+regressors. Setting the derivative of the expected squared error with respect to
+each coefficient to zero gives the three conditions in @eq-l01-projection.
+Ordinary least squares solves the same conditions with sample averages in place
+of expectations.]. For the outcome $y_{t+h}$ and the regressors
+$(1,s_t,y_{t-1})$ it is written
+
+$$
+y_{t+h}=\mu_h+\beta_h s_t+\gamma_h y_{t-1}+u_{t,h},
+\qquad
+\mathbb E[u_{t,h}]=\mathbb E[s_tu_{t,h}]=\mathbb E[y_{t-1}u_{t,h}]=0.
+$$ {#eq-l01-projection}
+
+The display has two parts. The first equation splits $y_{t+h}$ into a part
+explained linearly by the regressors and a residual $u_{t,h}$. The three
+conditions after it define the split: the residual has mean zero and is
+uncorrelated with each regressor. Three conditions pin down three coefficients,
+provided $s_t$ and $y_{t-1}$ both vary and neither is an exact linear function
+of the other. The intercept $\mu_h$, the coefficient $\beta_h$ on the
+intervention, and the coefficient $\gamma_h$ on the lagged outcome are the
+numbers that satisfy them. The residual carries two subscripts because it
+belongs to row $t$ of the horizon-$h$ regression.
+
+The coefficient $\beta_h$ is a
+[**projection coefficient**]{.glossary-term data-term="projection-coefficient"},
+and it is what the regression targets. It is a feature of the joint distribution
+of $y_{t+h}$, $s_t$, and $y_{t-1}$, and it exists in any economy with finite
+variances, causal or not. A projection of next year's GDP on this year's
+stock-market return has a coefficient, and nobody would read it as the effect of
+stock prices on GDP without further argument. Whether $\beta_h$ equals the
+estimand $\theta_h$ is a separate question, and the answer depends on the economy.
+
+### The Forward Equation Is the Projection
+
+The three conditions also give a way to find the projection: propose values for
+the coefficients, compute the residual they imply, and check the conditions. If
+the conditions hold, the proposal is the projection, because only one set of
+coefficients satisfies them. @eq-l01-forward supplies the proposal. Matching it
+term by term with @eq-l01-projection suggests $\mu_h=0$,
+$\beta_h=\theta_0\rho^h$, $\gamma_h=\rho^{h+1}$, and a residual equal to
+everything else in the forward equation:
+
+$$
+u_{t,h}=\sum_{j=0}^{h}\rho^{h-j}v_{t+j}+\theta_0\sum_{j=1}^{h}\rho^{h-j}s_{t+j}.
+$$ {#eq-l01-residual}
+
+Sort @eq-l01-residual by date. It contains the disturbances
+$v_t,\dots,v_{t+h}$ and the interventions $s_{t+1},\dots,s_{t+h}$. It contains
+nothing dated $t-1$ or earlier, and it does not contain $s_t$, which the
+proposal has moved into the $\beta_h$ term. At $h=0$ it is simply $v_t$.
+
+Now check the conditions one at a time.
+
+1. *Mean zero.* Every term of @eq-l01-residual has mean zero by
+   [A2](#assumption-l01-a2) and [A3](#assumption-l01-a3), so
+   $\mathbb E[u_{t,h}]=0$.
+2. *Uncorrelated with the intervention.* The product $s_tu_{t,h}$ is a sum of
+   terms of the form $s_tv_{t+j}$ with $j\ge0$ and $s_ts_{t+j}$ with $j\ge1$.
+   Terms of the first kind have expectation zero because the interventions are
+   independent of the disturbances ([A3](#assumption-l01-a3)); terms of the second kind
+   because interventions are independent over time with mean zero
+   ([A2](#assumption-l01-a2)). So $\mathbb E[s_tu_{t,h}]=0$.
+3. *Uncorrelated with the lagged outcome.* Iterating @eq-l01-toy backward writes
+   $y_{t-1}$ as a discounted sum of interventions and disturbances dated $t-1$
+   and earlier, a sum that settles down because $|\rho|<1$
+   ([A4](#assumption-l01-a4)). Every term of $u_{t,h}$ is dated $t$ or later,
+   and by [A2](#assumption-l01-a2) and [A3](#assumption-l01-a3) each such term
+   is independent of everything dated $t-1$ or earlier. So
+   $\mathbb E[y_{t-1}u_{t,h}]=0$.
+
+All three conditions hold, so the proposal is the projection:
+
+$$
+y_{t+h}=\mu_h+\beta_h s_t+\gamma_h y_{t-1}+u_{t,h},\qquad
+\beta_h=\theta_h=\theta_0\rho^{h},\quad
+\gamma_h=\rho^{h+1},\quad
+\mu_h=0.
+$$ {#eq-l01-lp-toy}
+
+@eq-l01-lp-toy answers the lecture's guiding question in its simplest setting.
+The population regression of the outcome $h$ periods ahead on a constant,
+today's intervention, and yesterday's outcome has a coefficient on the
+intervention equal to the causal response at horizon $h$: under
+[A1](#assumption-l01-a1)–[A4](#assumption-l01-a4), the coefficient the
+regression targets and the estimand coincide. Running that regression separately
+for each $h=0,1,\dots,H$ and collecting the coefficients traces out the
+impulse-response function, one point per regression.
+[Exercise 2](#exercise-l01-2) carries out the substitution for $h=1$ and $h=2$
+and then in general.
+
+A regression estimated horizon by horizon in this way is a
+[**local projection**]{.glossary-term data-term="local-projection"}. In general
+form, with a vector $\mathbf w_t$ of predetermined controls containing $p$ lags,
+
+$$
+y_{t+h}=\mu_h+\beta_h s_t+\boldsymbol\gamma_h'\mathbf w_t+u_{t,h},\qquad h=0,1,\dots,H,
+$$ {#eq-l01-lp}
+
+and the estimated response is the sequence $\hat\beta_0,\dots,\hat\beta_H$
+[@jorda2005; @jordataylor2025]. In this lecture $\mathbf w_t=y_{t-1}$ and
+$p=1$. The word [local]{.footnote-term data-index="local projection (name)"}^[@jorda2005
+introduced the name. The method estimates "local projections at each period of
+interest rather than extrapolating into increasingly distant horizons from a
+given model," as a vector autoregression does. Because each horizon has its own
+regression, errors in a model of short-run dynamics are not compounded at longer
+horizons. Lecture 7 compares the two approaches.] refers to estimating each
+horizon on its own rather than iterating one model forward.
+
+### What Made the Coefficient Causal
+
+The hand counterfactual changed $s_t$ while holding every other term fixed. A
+regression cannot hold anything fixed. It compares outcomes across dates with
+different interventions, and it succeeds here because of what $u_{t,h}$
+contains. Across the many dates of a long sample, the disturbances and later
+interventions inside $u_{t,h}$ are unrelated to $s_t$. Dates with large and
+small interventions therefore differ, on average, only through $s_t$ itself; the
+regression also adjusts for differences in $y_{t-1}$ that arise by chance. The
+counterfactual is reconstructed from other dates rather than rerun.
+
+That argument locates the causal content exactly. Steps 2 and 3 of the check
+used [A2](#assumption-l01-a2) and [A3](#assumption-l01-a3); nothing about
+regression did. Least squares would have returned a projection coefficient in
+any economy. If the intervention were correlated with a disturbance inside
+$u_{t,h}$, the same regression on the same kind of data would converge to a
+number other than $\theta_h$, and nothing in its output would announce the
+difference. Calling $s_t$ an intervention variable rather than a shock keeps
+that possibility in view until Lecture 3 can address it.
+
+The other two coefficients carry no causal reading. $\gamma_h=\rho^{h+1}$ is
+the fading echo of the pre-intervention outcome, not a response to anything.
+$\mu_h=0$ only because the interventions and disturbances have mean zero. With
+the binary intervention of the twelve-period economy, whose mean is 0.3, the
+intercept absorbs that mean and neither $\beta_h$ nor $\gamma_h$ changes. The
+course reports intercepts and control coefficients but does not interpret them.
+
+A long simulated sample confirms the algebra. With $\rho=0.9$,
+$\theta_0=\sigma_s=\sigma_v=1$, and $T=100{,}000$ periods (seed 4), the
+regression gives $\hat\beta_h=0.9985$, 0.9013, 0.8117, 0.6498, and 0.4249 at
+$h=0,1,2,4,8$, against $\theta_h=1$, 0.9, 0.81, 0.6561, and 0.4305. The control
+coefficients are $\hat\gamma_h=0.8990$, 0.8068, 0.7235, 0.5825, and 0.3792,
+against $\rho^{h+1}=0.9$, 0.81, 0.729, 0.5905, and 0.3874. Every estimate lies
+within 0.01 of its population value.
+
+### Why Include the Lagged Outcome?
+
+Condition 2 of the check never mentioned $y_{t-1}$. What happens, then, if the
+control is dropped and $y_{t+h}$ is regressed on a constant and $s_t$ alone?
+
+Nothing happens to the coefficient the regression targets. The omitted term
+$\rho^{h+1}y_{t-1}$ moves into
+the residual, but $s_t$ is uncorrelated with it, because $y_{t-1}$ depends only
+on earlier dates. A regressor that is uncorrelated with an omitted term keeps
+its population coefficient, so the projection of $y_{t+h}$ on $(1,s_t)$ still
+has coefficient $\theta_h$ on $s_t$.
+
+The residual, however, grows. Its variance gains
+$\rho^{2(h+1)}\operatorname{Var}(y_{t-1})$. Under [A4](#assumption-l01-a4) the
+variance of $y$ is the same at every date, so taking variances of both sides of
+@eq-l01-toy gives
+$\operatorname{Var}(y)=\rho^2\operatorname{Var}(y)+\theta_0^2\sigma_s^2+\sigma_v^2$,
+or $\operatorname{Var}(y)=(\theta_0^2\sigma_s^2+\sigma_v^2)/(1-\rho^2)$. With
+$\rho=0.9$ and unit variances, $\operatorname{Var}(y)=2/0.19=10.53$, and at
+$h=0$ the residual variance rises from $\sigma_v^2=1$ to
+$1+0.81\times10.53=9.53$. At $h=0$, $s_t$ is independent of every term in
+either residual and neither residual contains a later intervention, so the
+standard deviation of $\hat\beta_0$ in large samples is approximately the
+residual standard deviation divided by $\sigma_s\sqrt{T_0}$. The regression with
+the control has 199 rows, and the one without it can also use the first period,
+which gives $1/\sqrt{199}=0.071$ with the control and
+$\sqrt{9.53}/\sqrt{200}=0.218$ without it.
+
+A Monte Carlo experiment checks the approximation in samples of realistic size.
+Draw $R=500$ samples from @eq-l01-toy, each of 300 periods with the first 100
+discarded, so $T=200$ (seed 3). In each sample run both regressions at every
+horizon, then summarize the 500 estimates. @tbl-l01-control-precision reports
+their means and standard deviations.
+
+<!-- D2: the instructor build uses R = 500; students default to R = 200. -->
+
+| $\rho$ | $h$ | $\theta_h$ | Mean, with $y_{t-1}$ | SD, with $y_{t-1}$ | Mean, without | SD, without |
+|---:|---:|---:|---:|---:|---:|---:|
+| 0.5 | 0 | 1.0000 | 1.0039 | 0.0730 | 1.0027 | 0.0946 |
+| 0.5 | 4 | 0.0625 | 0.0523 | 0.1235 | 0.0552 | 0.1236 |
+| 0.5 | 8 | 0.0039 | −0.0034 | 0.1234 | −0.0035 | 0.1229 |
+| 0.9 | 0 | 1.0000 | 1.0040 | 0.0734 | 0.9666 | 0.2177 |
+| 0.9 | 4 | 0.6561 | 0.6298 | 0.1978 | 0.6201 | 0.2693 |
+| 0.9 | 8 | 0.4305 | 0.3973 | 0.2284 | 0.3979 | 0.2664 |
+
+: Estimates of $\beta_h$ across $R=500$ simulated samples with $T=200$, with and without the lagged outcome as a control (seed 3; rounded to four decimals). Both regressions target the same coefficient, $\beta_h=\theta_h$; the control changes how widely the estimates spread around it. {#tbl-l01-control-precision}
+
+At $\rho=0.9$ and $h=0$ the control cuts the standard deviation from 0.2177 to
+0.0734, a factor of three, close to the large-sample values 0.218 and 0.071. The
+gain shrinks as $h$ grows, because the omitted term $\rho^{h+1}y_{t-1}$ fades.
+At $\rho=0.5$ it has essentially vanished after impact: at $h=4$ the added
+variance $\rho^{10}\operatorname{Var}(y)$ is 0.003. The means sit near
+$\theta_h$ but not exactly on it, and at $\rho=0.9$ the gaps are larger than
+simulation noise. The regression without the control averages 0.9666 at $h=0$,
+and the one with it falls short by 0.026 at $h=4$ and 0.033 at $h=8$. These are
+small-sample biases, properties of estimates from 200 periods rather than of the
+population coefficient, and Lecture 2 takes them up.
+
+The control can be dropped without changing $\beta_h$ only because
+[A2](#assumption-l01-a2) and [A3](#assumption-l01-a3) make $s_t$ unrelated to
+$y_{t-1}$. An intervention that responds to past outcomes, such as a policy rate
+set with an eye on recent output, breaks that link: dropping $y_{t-1}$ then
+changes what the coefficient measures, and the control becomes part of the
+identification argument. In this
+lecture $y_{t-1}$ is there for precision; in most of the course controls do both
+jobs.
+
+@tbl-l01-notation collects the notation introduced so far. Each symbol returns
+below where it does its work.
+
+| Symbol | Meaning | Timing | Units |
+|:--------|:--------------------------------|:-----------------------|:-----------------------|
+| $t$, $T$ | Calendar date of an observation and of a regression row; length of the series | — | periods |
+| $h$, $H$ | Horizon; largest horizon estimated | outcome dated $t+h$ | periods |
+| $y_t$, $s_t$ | Outcome; intervention variable | $t$ | units of $y$; units of $s$ |
+| $y^{c}_t$ | Counterfactual path with one intervention removed | dates of $y_t$ | units of $y$ |
+| $\theta_h$, $\theta_0$ | Causal response at horizon $h$, the estimand; impact response | $t+h$; $t$ | units of $y$ per unit of $s$ |
+| $\rho$ | Persistence of the AR(1) outcome | — | none |
+| $v_t$ | Outcome disturbance | $t$ | units of $y$ |
+| $\sigma_s$, $\sigma_v$ | Standard deviations of $s_t$ and $v_t$ | — | units of $s$; units of $y$ |
+| $\beta_h$, $\hat\beta_h$ | Projection coefficient on $s_t$, the regression's target; its least-squares estimate | row $t$, outcome $t+h$ | units of $y$ per unit of $s$ |
+| $\mu_h$, $\gamma_h$ | Intercept; coefficient on the control $y_{t-1}$ | — | units of $y$; none here |
+| $\mathbf w_t$, $p$ | Predetermined controls; number of lags they contain | dated $t-1$ or earlier | units of each control; lags |
+| $u_{t,h}$ | Horizon-$h$ residual in row $t$ | disturbances $t,\dots,t+h$; interventions $t+1,\dots,t+h$ | units of $y$ |
+| $\mathcal T_h$, $T_h$ | Estimation sample at horizon $h$ and its size | — | rows |
+| $R$ | Number of Monte Carlo replications | — | count |
+
+: Notation used in Lecture 1. $\mathcal T_h$ and $T_h$ are defined in @sec-l01-rows-by-hand. {#tbl-l01-notation}
+
+The population regression is settled. A sample, though, contains a finite
+number of dates, and the estimate depends on which of those dates had
+interventions and how far each intervention was from the average.
+
+## Why Many Shock Dates {#sec-l01-many-shock-dates}
+
+The argument of the previous section averaged over "the many dates of a long
+sample." The opening situation had, in effect, one. To see what a finite sample
+can and cannot deliver, we look inside the least-squares slope and ask how it
+uses each row.
+
+### How a Slope Uses Its Rows
+
+Take the simplest version first: the regression of $y_{t+h}$ on a constant and
+$s_t$ alone, over whatever rows are available at horizon $h$. Write $\bar s$
+and $\bar y$ for the means of $s_t$ and $y_{t+h}$ over those rows. The familiar
+slope is $\sum_t(s_t-\bar s)(y_{t+h}-\bar y)/\sum_t(s_t-\bar s)^2$. Because the
+deviations $s_t-\bar s$ sum to zero, the $\bar y$ term contributes nothing, and
+the slope can be written as a weighted sum of outcomes:
+
+$$
+\hat\beta_h=\frac{\sum_t(s_t-\bar s)\,y_{t+h}}{\sum_t(s_t-\bar s)^2}
+=\sum_t\omega_t\,y_{t+h},
+\qquad
+\omega_t=\frac{s_t-\bar s}{\sum_\tau(s_\tau-\bar s)^2}.
+$$ {#eq-l01-ols-slope}
+
+Read @eq-l01-ols-slope as a vote. Each row contributes its outcome, weighted by
+how far its intervention was from the average. A row with an average
+intervention has no say. Rows with unusually large interventions pull the slope
+toward their outcomes, and rows with small ones pull it the other way. The
+[weights]{.footnote-term data-index="regression weights with controls"}^[With
+$y_{t-1}$ also in the regression, the same formula holds with $s_t-\bar s$
+replaced by the residual from regressing $s_t$ on a constant and $y_{t-1}$ over
+the same rows. That is the Frisch–Waugh–Lovell result, developed in Lecture 3.
+In the AR(1) economy the residual is close to $s_t-\bar s$ in long samples,
+because $s_t$ is unrelated to $y_{t-1}$.] sum to zero and satisfy
+$\sum_t\omega_ts_t=1$, which are the two properties that make the slope ignore
+any constant added to the outcomes and recover the slope exactly when every
+outcome lies on a line in $s_t$.
+
+Together, the two properties isolate the estimation error. Write the
+outcome as $y_{t+h}=\tilde\mu_h+\beta_hs_t+\tilde u_{t,h}$, where $\tilde u_{t,h}$ is everything in
+$y_{t+h}$ that the intervention does not explain; without the control, it holds
+both $u_{t,h}$ and $\rho^{h+1}y_{t-1}$. Substituting into
+@eq-l01-ols-slope and using the two properties,
+
+$$
+\hat\beta_h=\beta_h+\sum_t\omega_t\,\tilde u_{t,h}.
+$$ {#eq-l01-estimation-error}
+
+The estimate equals the population coefficient plus a weighted sum of
+everything else that happened in the rows. When many rows carry interventions
+of different sizes, and [A2](#assumption-l01-a2) and [A3](#assumption-l01-a3)
+make those interventions unrelated to everything else, the weighted sum
+averages toward zero. When few rows carry interventions, it need not.
+
+The denominator of @eq-l01-ols-slope also says where the information comes
+from. Row $t$ supplies the share $(s_t-\bar s)^2/\sum_\tau(s_\tau-\bar s)^2$ of
+the variation the slope is estimated from. A sample in which a handful of dates
+had very large interventions and every other date had none is, for the
+purposes of this slope, a sample of a handful of dates. @sec-l01-first-contact
+measures those shares in the military-news data.
+
+### One Episode
+
+Now push the argument to the opening's situation. Suppose exactly one row $\tau$
+has an intervention, $s_\tau=1$, and the other $n-1$ rows have $s_t=0$. Then
+$\bar s=1/n$ and $\sum_t(s_t-\bar s)^2=(1-1/n)^2+(n-1)/n^2=(n-1)/n$. The weight on
+row $\tau$ is $(1-1/n)\big/\bigl((n-1)/n\bigr)=1$, and the weight on each other
+row is $-(1/n)\big/\bigl((n-1)/n\bigr)=-1/(n-1)$. The slope is therefore
+
+$$
+\hat\beta_h=y_{\tau+h}-\frac{1}{n-1}\sum_{t\neq\tau}y_{t+h}
+=y_{\tau+h}-\bar y_{\text{others}}.
+$$ {#eq-l01-one-episode}
+
+Taken literally, @eq-l01-one-episode is the episode's outcome $h$ periods later
+minus the average outcome $h$ periods after every other date. Substitute the
+forward equation for the episode's outcome. With $\theta_0=1$ and $s_\tau=1$,
+@eq-l01-forward gives $y_{\tau+h}=\theta_h+\rho^{h+1}y_{\tau-1}+u_{\tau,h}$, so
+
+$$
+\hat\beta_h=\theta_h+\Bigl(\rho^{h+1}y_{\tau-1}+u_{\tau,h}-\bar y_{\text{others}}\Bigr).
+$$
+
+The estimate is the response plus everything else that shaped that one episode,
+measured against the other dates. The data contain one number, not two, and
+nothing in them separates the response from the bracket.
+
+The twelve-period economy puts numbers in the bracket. Keep only the
+intervention at $t=5$: regress the realized outcomes on an indicator that equals one at $t=5$
+and zero elsewhere, over rows $t=2,\dots,12$ at $h=0$. The ten other outcomes
+sum to 9.636474609375, so their mean is 0.9636474609375, and
+
+$$
+\hat\beta_0=y_5-\bar y_{\text{others}}=-0.66875-0.9636474609375=-1.6323974609375.
+$$
+
+Since $y_5=0.5\,y_4+\theta_0+v_5=0.03125+1-1.7$, the estimate splits into
+$\theta_0=1$ and everything else:
+$-1.6323974609375=1+(0.03125-1.7-0.9636474609375)$. The disturbance of $-1.7$ in
+the episode itself outweighs the response. The same calculation at $h=1$ and
+$h=2$ gives $-0.984608$ and $1.512823$, against true responses of 0.5 and 0.25:
+the wrong sign twice and six times too large once.
+[Exercise 5](#exercise-l01-5) proves @eq-l01-one-episode and repeats these
+numbers.
+
+The Korean episode has the same structure, with taxes, the Accord, and price
+controls inside its bracket. More episodes help only by averaging, and averaging
+helps only if the other things are unrelated to the interventions across
+episodes. If every quarter of war news also brought tax increases, adding wars
+would not separate spending news from taxes, because the weighted sum in
+@eq-l01-estimation-error would settle on something other than zero. That is the
+identification question again, and it belongs to Lecture 3. What this section
+establishes is narrower: a local projection is an average over every date with
+variation in $s_t$, never a reading of one episode, and its precision depends on
+how many dates carry that variation.
+
+The formulas so far have treated "the rows" as given. Which rows enter a
+horizon-$h$ regression is itself a calculation, and it is worth doing once by
+hand.
+
+## Building the Rows by Hand {#sec-l01-rows-by-hand}
+
+A local projection needs the outcome $h$ periods after each date and, in this
+lecture, the outcome one period before. Near the end of a sample the first does
+not exist; at the start the second does not. The twelve-period economy is small
+enough to list its rows for $h=0,1,2$ and compute every slope by hand, and those
+slopes show why twelve periods cannot deliver the answer that @eq-l01-lp-toy
+promises.
+
+### Leads, Lags, and Regression Rows
+
+A [**lead**]{.glossary-term data-term="lead"} of a series is its value $k$
+periods later, $y_{t+k}$, and a [**lag**]{.glossary-term data-term="lag"} is its
+value $k$ periods earlier, $y_{t-k}$. In a sample of $T$ periods the lead
+$y_{t+k}$ is missing in the last $k$ rows and the lag $y_{t-k}$ in the first
+$k$. In Stata the [time-series operators]{.footnote-term
+data-index="Stata time-series operators"}^[After `tsset t`, `F2.y` is the
+second lead $y_{t+2}$ and `L.y` the first lag $y_{t-1}$. Stata returns a
+missing value whenever the requested date falls outside the data, and `regress`
+drops every row with a missing variable without comment, so a horizon's sample
+shrinks silently.] `F.` and `L.` construct them.
+
+A [**regression row**]{.glossary-term data-term="regression-row"} of the
+horizon-$h$ regression is one dated observation: the intervention $s_t$ and the
+control $y_{t-1}$ at date $t$, paired with the outcome $y_{t+h}$. The row is
+dated by the intervention, not by the outcome. Row 5 of the $h=2$ regression
+holds $s_5$, $y_4$, and $y_7$.
+
+The [**estimation sample**]{.glossary-term data-term="estimation-sample"}
+$\mathcal T_h$ is the set of rows in which every variable of the horizon-$h$
+regression is nonmissing, and $T_h$ is its size. Row $t$ needs the lag
+$y_{t-p}$, which exists only for $t\ge p+1$, and the lead $y_{t+h}$, which exists
+only for $t\le T-h$. Counting the rows between those limits gives
+
+$$
+T_h=T-h-p .
+$$ {#eq-l01-sample-size}
+
+<!-- D24: the droppable sample-by-horizon figure is replaced by this
+     paragraph and the staircase figure. -->
+
+Each additional horizon costs one row at the end of the sample, and each lag
+costs one row at the start. In the twelve-period economy $T=12$ and $p=1$, so
+$T_0=11$, $T_1=10$, and $T_2=9$, using rows $t=2,\dots,12$, then
+$2,\dots,11$, then $2,\dots,10$. The count holds only when leads and lags are the
+only source of missing values; @sec-l01-first-contact meets a case where the
+data begin earlier for one variable than another. The regression without the
+control could also use row 1, but we keep $t\ge2$ throughout so that the two
+regressions use the same rows and differ only in the control.
+
+@fig-l01-row-staircase shows the three samples.
+
+::: {#fig-l01-row-staircase}
+::: {.content-visible when-format="html"}
+![](/lectures/01-question-to-projection/figures/fig-l01-row-staircase.svg){fig-alt="Three stacked panels for horizons 0, 1, and 2, each showing twelve dated rows; the usable rows start at row 2 in every panel and end at rows 12, 11, and 10, and each usable row is linked to the outcome h periods later."}
+:::
+::: {.content-visible unless-format="html"}
+![](/lectures/01-question-to-projection/figures/fig-l01-row-staircase.pdf)
+:::
+[Which rows enter]{.smallcaps}. Row $t$ pairs $s_t$ and $y_{t-1}$ with $y_{t+h}$, so each increase in $h$ removes the last usable row, and row 1 never enters because $y_0$ is not part of the data. The regressions for $h=0$, 1, and 2 use $T_h=11$, 10, and 9 rows.
+:::
+
+The staircase also exposes a detail that the population algebra handled
+quietly. At $h=1$, row 4 has $s_4=0$, so it sits in the comparison group, yet its
+outcome is $y_5$, which contains the intervention $s_5$. That is the term
+$\theta_0s_{t+1}$ inside $u_{t,1}$ in @eq-l01-residual. In population it does no
+harm, because $s_5$ is unrelated to $s_4$; in a sample of ten rows it is one
+more source of noise in the comparison.
+
+In Stata the three regressions are a three-line loop over the hand table:
+
+```stata
+import delimited using hand_table.csv, clear asdouble   // variables t s v y
+tsset t
+forvalues h = 0/2 {
+    regress F`h'.y s if t >= 2
+}
+```
+
+### The Slope as a Difference in Means
+
+With a binary intervention, @eq-l01-ols-slope simplifies to arithmetic that can
+be done by hand. Suppose $n_1$ of the $n$ rows have $s_t=1$ and the other
+$n_0=n-n_1$ have $s_t=0$, and write $\bar y_1$ and $\bar y_0$ for the mean of
+$y_{t+h}$ in the two groups. Then $\bar s=n_1/n$, and the denominator of the
+slope is
+
+$$
+\sum_t(s_t-\bar s)^2=n_1\Bigl(1-\frac{n_1}{n}\Bigr)^2+n_0\Bigl(\frac{n_1}{n}\Bigr)^2
+=\frac{n_1n_0}{n}.
+$$
+
+For the numerator, split the sum into the two groups:
+
+$$
+\sum_t(s_t-\bar s)\,y_{t+h}
+=n_1\bar y_1-\frac{n_1}{n}\bigl(n_1\bar y_1+n_0\bar y_0\bigr)
+=\frac{n_1n_0}{n}\bigl(\bar y_1-\bar y_0\bigr).
+$$
+
+Dividing the second display by the first,
+
+$$
+\hat\beta_h=\bar y_1-\bar y_0 .
+$$ {#eq-l01-diff-means}
+
+The slope is the mean outcome $h$ periods after intervention rows minus the mean
+outcome $h$ periods after the other rows, and the intercept is $\bar y_0$.
+@eq-l01-one-episode is the special case $n_1=1$.
+
+In the hand table, @eq-l01-diff-means needs only group sums. At $h=0$ the rows
+are $t=2,\dots,12$ and the intervention rows are
+5, 10, and 12. Their outcomes sum to
+$y_5+y_{10}+y_{12}=3.792626953125$, so $\bar y_1=1.264208984375$. The eight other
+outcomes sum to 5.17509765625, so $\bar y_0=0.64688720703125$, and
+$\hat\beta_0=0.61732177734375$. At $h=1$ the last row is 11, so row 12 and its
+intervention have left the sample. The intervention rows are 5 and 10, whose
+outcomes are $y_6$ and $y_{11}$: $\bar y_1=-0.06982421875/2=-0.034912109375$,
+$\bar y_0=7.587548828125/8=0.948443603515625$, and
+$\hat\beta_1=-0.983355712890625$. At $h=2$ the rows end at 10, the intervention
+rows are again 5 and 10 with outcomes $y_7$ and $y_{12}$:
+$\bar y_1=4.565087890625/2=2.2825439453125$,
+$\bar y_0=1.62763671875/7=0.23251953125$, and
+$\hat\beta_2=2.0500244140625$. @tbl-l01-hand-slopes collects the results.
+
+```{=latex}
+% A three-row table should not split: start a page if it would not fit.
+\par\ifdim\dimexpr\pagegoal-\pagetotal\relax<0.42\textheight\newpage\fi
+```
+
+| $h$ | $T_h$ | Rows | Intervention rows | $\bar y_1$ | $\bar y_0$ | $\hat\beta_h$, no control | $\hat\beta_h$, with $y_{t-1}$ | $\theta_h$ |
+|---:|---:|:---:|:---:|---:|---:|---:|---:|---:|
+| 0 | 11 | 2–12 | 5, 10, 12 | 1.264209 | 0.646887 | 0.617322 | 0.575667 | 1 |
+| 1 | 10 | 2–11 | 5, 10 | −0.034912 | 0.948444 | −0.983356 | −1.050405 | 0.5 |
+| 2 | 9 | 2–10 | 5, 10 | 2.282544 | 0.232520 | 2.050024 | 2.153022 | 0.25 |
+
+: Slopes computed from the rows of the twelve-period economy, rounded to six decimals from exact values. Without the control each slope is the difference in means of @eq-l01-diff-means; with $y_{t-1}$ included it is no longer a difference in means. {#tbl-l01-hand-slopes}
+
+Stata's `regress` returns 0.61732179, $-0.98335569$, and 2.05002437. The
+differences in the eighth decimal come from
+[floating-point storage]{.footnote-term data-index="float storage"}^[Stata
+stores a generated variable such as `v` in its default `float` type, which keeps
+about seven significant digits, so 0.9 is held as 0.89999998. The file
+`hand_table.csv` was generated that way, and its `y` column was computed from
+the stored values, so exact decimal arithmetic and Stata's results part company
+in the eighth decimal place. Reading the file with `asdouble` keeps
+`import delimited` from rounding `y` to `float` a second time, which would
+change the eighth decimal at $h=1$. Declaring both `v` and `y` as `double` when
+the table is generated removes the gap.], not from the
+arithmetic. Adding $y_{t-1}$ changes the slopes to 0.575667, $-1.050405$, and
+2.153022, on the same rows. [Exercise 3](#exercise-l01-3) builds these rows by
+hand, and [Exercise 4](#exercise-l01-4) reproduces them in Stata with
+assertions.
+
+None of the six estimates is close to its target. The impact estimate is 0.62
+against 1, the $h=1$ estimate has the wrong sign, and the $h=2$ estimate is eight
+times too large. @eq-l01-estimation-error explains why. With two or three
+intervention rows, the weighted sum of everything else is dominated by a few
+disturbances: the $h=1$ intervention rows have outcomes $y_6$ and $y_{11}$, and
+$y_6$ carries half of $y_5$, with its disturbance of $-1.7$, while $y_{11}$
+receives $v_{11}=-0.9$. The arithmetic of a
+local projection is the same in a sample of twelve periods as in a sample of two
+hundred. What changes is how many rows vote and how much of the noise their
+votes cancel.
+
+## Reading the Response Graph {#sec-l01-response-graph}
+
+The hand table produced three numbers. A response is usually read as a curve,
+and a curve raises two new problems. It needs one regression per horizon,
+organized so that every coefficient stays attached to the rows behind it. And it
+needs labels, because a curve by itself does not say what a unit of the
+intervention is, what the vertical axis measures, or what the comparison is.
+
+### From One Regression per Horizon to a Curve
+
+Take one simulated sample from @eq-l01-toy with $\rho=0.9$ and
+$\theta_0=\sigma_s=\sigma_v=1$: 300 periods drawn with seed 2, the intervention
+drawn before the disturbance, and the first 100 periods discarded, so $T=200$.
+The same 200 observations are shipped with the browser lab and the practicum,
+so every medium works with identical rows. A loop estimates the response for
+$h=0,\dots,12$ and stores each coefficient with its sample size:
+
+```stata
+import delimited using onedraw_rho09_seed2.csv, clear   // variables t s v y
+tsset t
+tempname P
+postfile `P' h double beta_h T_h using results_onedraw, replace
+forvalues h = 0/12 {
+    quietly regress F`h'.y s L.y
+    post `P' (`h') (_b[s]) (e(N))
+}
+postclose `P'
+use results_onedraw, clear
+assert T_h == 199 - h
+```
+
+Storing `e(N)` in the same `post` as `_b[s]` is what keeps each coefficient and
+its row count together. The assertion checks @eq-l01-sample-size with
+$T=200$ and $p=1$; if a missing value had crept into the data, the loop would
+still run, and only the assertion would notice.
+[Exercise 6](#exercise-l01-6) runs this loop and draws the graph, and
+[Exercise 7](#exercise-l01-7) wraps it in a Monte Carlo experiment.
+
+<!-- D32: the seed was fixed before any estimate was computed; the draw is kept
+     although it is unusual at long horizons. -->
+
+### What a Response Graph Must Say
+
+A [**response graph**]{.glossary-term data-term="response-graph"} plots
+$\hat\beta_h$ against $h$. Four pieces of information are needed to read it, and
+the curve supplies none of them.
+
+1. *The intervention and its units.* A coefficient is a response per unit of
+   $s$, so the reader must know what one unit is. Here it is one unit of the
+   simulated intervention, which is also one standard deviation because
+   $\sigma_s=1$.
+2. *The outcome's units.* The vertical axis is in units of $y$; in data it might
+   be percent, percentage points, or points of trend GDP, and Lecture 2 shows how
+   easily those are confused.
+3. *The horizon unit.* The horizontal axis counts periods after the
+   intervention, with $h=0$ the period of the intervention itself.
+4. *The counterfactual.* The vertical axis measures the gap from the path without
+   the intervention. A value of zero means "no different from that path," not
+   "the outcome is zero" and not "the outcome is back where it started."
+
+The intercept $\mu_h$ is not on the graph and is not the counterfactual path.
+It absorbs means and says nothing about what would have happened without the
+intervention. A complete caption fills the four slots and leaves the intercept
+out; @fig-l01-one-draw is captioned that way.
+
+::: {#fig-l01-one-draw}
+::: {.content-visible when-format="html"}
+![](/lectures/01-question-to-projection/figures/fig-l01-one-draw.svg){fig-alt="Estimated responses from one simulated sample over horizons 0 to 12 lie below the true geometric response at every horizon and fall below zero after horizon 9, while a wide simulated 90 percent band surrounds the true response."}
+:::
+::: {.content-visible unless-format="html"}
+![](/lectures/01-question-to-projection/figures/fig-l01-one-draw.pdf)
+:::
+[One sample against the truth]{.smallcaps}. Response of $y$ to a one-unit (one standard deviation) intervention $s_t$, estimated by local projections with $y_{t-1}$ as the control in one simulated sample of $T=200$ periods with $\rho=0.9$ (seed 2). Horizons are periods after the intervention; the vertical axis is the gap from the path without the intervention, in units of $y$. The true response is $\theta_h=0.9^h$. The band holds the middle 90 percent of estimates across $R=500$ simulated samples (stored simulation result, seed 3). This sample's estimates lie below $\theta_h$ at every horizon.
+:::
+
+The sample gives $\hat\beta_0=0.878940$, $\hat\beta_4=0.548477$,
+$\hat\beta_8=0.240595$, and $\hat\beta_{12}=-0.293297$, against
+$\theta_h=1$, 0.6561, 0.4305, and 0.2824. Every one of the thirteen estimates
+is below its target, and from $h=8$ on the shortfall grows steadily, from 0.19
+to 0.58. Read on its own, the curve says that the response turns negative after
+ten periods. The true response is positive at every horizon.
+
+The [5–95 percent band]{.footnote-term data-index="simulation percentile band"}^[At
+each horizon, the interval between the 5th and 95th percentiles of the 500
+simulated estimates. It describes how the estimator behaves when the true
+economy is known. It is not a confidence interval, which has to be computed
+from a single sample; Lectures 5 and 6 build those.] shows how unusual this
+sample is. Across 500 simulated samples, 90 percent of the estimates at $h=8$
+lie between 0.047 and 0.793, so a sample of 200 periods can deliver almost any
+value in that range. This sample sits just below the band's lower edge at
+$h=0$, stays inside it from $h=1$ through $h=10$, and falls below it at $h=11$
+and $h=12$.
+The seed was fixed before any estimate was computed, and the draw is kept
+because its failure is informative: the errors at neighbouring horizons are not
+independent. Adjacent regressions use almost the same rows, and
+@sec-l01-residual shows that their residuals share most of their terms. When
+one horizon's estimate is too low, its neighbours tend to be too low as well.
+
+The same 500 samples also show where the estimates are centred. With
+$\rho=0.5$, the mean estimate is within 0.014 of $\theta_h$ at every horizon.
+With $\rho=0.9$ it falls systematically short: by 0.026 at $h=4$, 0.033 at $h=8$,
+and 0.049 at $h=12$. The
+[Monte Carlo standard error]{.footnote-term data-index="Monte Carlo standard error"}^[The
+standard deviation of the estimates across replications divided by $\sqrt R$.
+It measures how far a simulated mean could plausibly be from the mean that
+unlimited replications would give; at $\rho=0.9$ and $h=12$ it is
+$0.224580/\sqrt{500}=0.010$.] of those means is about 0.01, so the gap at $h=12$
+is almost five times its standard error. It is the small-sample bias already
+visible in @tbl-l01-control-precision, and Lecture 2 explains it.
+
+The graph still lacks what a published response graph normally shows: a band
+computed from the sample itself. The band in @fig-l01-one-draw used knowledge of
+the true economy that no researcher has. A band built from one sample has to
+start from the residual, and the residual has a structure of its own.
+
+## What the Residual Contains {#sec-l01-residual}
+
+The estimates in @fig-l01-one-draw erred in the same direction at every
+horizon. The source of that pattern is visible in @eq-l01-residual once the
+residuals of two rows are written side by side.
+
+### Shared Terms Between Rows
+
+Start with $h=1$. Row $t$ and the next row have residuals
+
+$$
+u_{t,1}=\rho\,v_t+v_{t+1}+\theta_0s_{t+1},
+\qquad
+u_{t+1,1}=\rho\,v_{t+1}+v_{t+2}+\theta_0s_{t+2}.
+$$
+
+The disturbance $v_{t+1}$ appears in both, with weight 1 in row $t$ and weight
+$\rho$ in row $t+1$. Every other term is distinct and independent. With
+$\theta_0=\sigma_s=\sigma_v=1$, the covariance of the two residuals is therefore
+$\rho$ and each variance is $\rho^2+1+1=2+\rho^2$, so their correlation is
+$\rho/(2+\rho^2)$.
+Rows two periods apart share nothing, and their residuals are uncorrelated.
+
+The reason is timing, not misspecification. The outcome of row $t$ is dated
+$t+1$ and the outcome of row $t+1$ is dated $t+2$, but row $t$'s residual
+reaches forward to $t+1$, into the period that row $t+1$'s residual also covers.
+A regression of outcomes $h$ periods ahead on data sampled every period builds
+overlapping windows, and overlapping windows share disturbances.
+
+The same counting works at any horizon. For $1\le k\le h$, rows $t$ and $t+k$
+share the disturbances $v_{t+k},\dots,v_{t+h}$ and the interventions
+$s_{t+k+1},\dots,s_{t+h}$. A shared disturbance $v_{t+j}$ enters row $t$ with
+weight $\rho^{h-j}$ and row $t+k$ with weight $\rho^{h-j+k}$, so it contributes
+$\rho^k\rho^{2(h-j)}\sigma_v^2$ to the covariance. Summing these geometric terms
+over $j=k,\dots,h$, and doing the same for the shared interventions over
+$j=k+1,\dots,h$, gives
+
+$$
+\operatorname{Cov}\bigl(u_{t,h},u_{t+k,h}\bigr)=
+\begin{cases}
+\rho^{k}\,\dfrac{\sigma_v^2\bigl(1-\rho^{2(h-k+1)}\bigr)+\theta_0^2\sigma_s^2\bigl(1-\rho^{2(h-k)}\bigr)}{1-\rho^2}, & 0\le k\le h,\\[2ex]
+0, & k>h.
+\end{cases}
+$$ {#eq-l01-residual-acov}
+
+At $k=0$ the first line is the variance of $u_{t,h}$. Read the formula from
+the outside in. The factor $\rho^k$ discounts for the distance between the rows;
+the fraction counts how much of the two windows overlaps, which shrinks as $k$
+approaches $h$; and beyond $k=h$ the windows no longer meet. With
+$\theta_0=\sigma_s=\sigma_v=1$ and $h=2$, the variance is $2+2\rho^2+\rho^4$ and
+the covariances at $k=1$ and $k=2$ are $2\rho+\rho^3$ and $\rho^2$.
+@tbl-l01-residual-ac turns these into correlations and checks them against the
+residuals of a long simulated sample.
+
+| Residual and lag | $\rho=0.5$, formula | $\rho=0.5$, simulated | $\rho=0.9$, formula | $\rho=0.9$, simulated |
+|---|---:|---:|---:|---:|
+| $u_{t,1}$, lag 1 | 0.2222 | 0.2213 | 0.3203 | 0.3216 |
+| $u_{t,1}$, lag 2 | 0 | 0.0019 | 0 | 0.0038 |
+| $u_{t,2}$, lag 1 | 0.4390 | 0.4375 | 0.5914 | 0.5911 |
+| $u_{t,2}$, lag 2 | 0.0976 | 0.0980 | 0.1894 | 0.1911 |
+| $u_{t,2}$, lag 3 | 0 | 0.0011 | 0 | 0.0011 |
+
+: Autocorrelations of the horizon-$h$ residual. Formula values come from @eq-l01-residual-acov with $\theta_0=\sigma_s=\sigma_v=1$; simulated values are the sample autocorrelations of least-squares residuals in one sample of $T=100{,}000$ periods (seed 4). {#tbl-l01-residual-ac}
+
+<!-- D36: the residual is described as at most MA(h). -->
+
+The residual of a horizon-$h$ regression is therefore correlated with its own
+values up to $h$ rows away and uncorrelated beyond. In the language of time
+series it is at most a
+[moving average of order $h$]{.footnote-term data-index="moving average"}^[A
+moving average of order $h$, written MA($h$), is a weighted sum of the current
+and $h$ previous values of an uncorrelated sequence. Its autocorrelations,
+the correlations of the series with its own values $k$ periods earlier, are
+zero beyond lag $h$. "At most" allows for weights that happen to be zero: with
+$\rho=0$ and $h\ge1$, for example, $u_{t,h}=v_{t+h}+\theta_0s_{t+h}$ is
+uncorrelated with its neighbours.]. The correlation grows with the horizon,
+because longer windows overlap more, and with persistence, because shared terms are
+discounted less. At $h=20$, the longest horizon used with the quarterly data
+below, the toy economy's residual is correlated with the residuals of the
+twenty rows on either side. [Exercise 8](#exercise-l01-8) derives the
+$\rho=0.5$ entries of @tbl-l01-residual-ac.
+
+### Shared Terms Across Horizons
+
+The same row's residuals at neighbouring horizons are linked even more tightly.
+Comparing @eq-l01-residual at $h$ and $h+1$,
+
+$$
+u_{t,h+1}=\rho\,u_{t,h}+v_{t+h+1}+\theta_0s_{t+h+1}.
+$$
+
+The horizon-$(h+1)$ residual is $\rho$ times the horizon-$h$ residual plus one
+new period. With $\rho=0.9$, most of what went wrong at one horizon carries into
+the next. By @eq-l01-estimation-error, the estimation errors are weighted sums
+of these residuals over nearly the same rows, so they inherit the link. That is
+why the curve in @fig-l01-one-draw sat below the truth everywhere instead of
+scattering around it: a response graph is not thirteen independent estimates,
+and a pattern across neighbouring horizons can be a single error drawn
+thirteen times.
+
+### What This Does and Does Not Imply
+
+<!-- D43: the paragraph below previews Lecture 5 in one labeled sentence. -->
+
+Serially correlated residuals usually prompt a worry about standard errors, and
+the worry is not wrong. But @eq-l01-estimation-error shows that what enters the
+estimate is the residual multiplied by the intervention, not the residual
+alone. Consider the products $s_tu_{t,h}$ and $s_{t+k}u_{t+k,h}$ for $k\ge1$.
+The intervention $s_t$ appears in neither residual and not in $s_{t+k}$, it is
+independent of all of them, and it has mean zero, so the expected product of
+the two terms is zero. The products are uncorrelated even though the residuals
+are not. Lecture 5 shows that inference on $\beta_h$ depends on the
+autocorrelation of $s_tu_{t,h}$, which in this economy is zero because $s_t$ is
+independent of everything else in both products and the control $y_{t-1}$ keeps
+earlier interventions out of the residual, and it examines what changes when
+either fails [@montieloleaplagborgmoller2021].
+
+This lecture records the structure and stops there. The toy economy has done
+its work. Beyond this point no known response is available to check an
+estimate against, and the regression meets the data the lecture began with.
+
+## First Contact with Data {#sec-l01-first-contact}
+
+The opening asked what military news did to output. We now run the local
+projection @eq-l01-lp on the quarterly data behind that question, with
+$\mathbf w_t=y_{t-1}$ exactly as in the simulations: least squares of
+$y_{t+h}$ on a constant, $s_t$, and $y_{t-1}$, one regression for each
+$h=0,\dots,20$.
+
+### The Data and Their Units
+
+The data are Ramey and Zubairy's quarterly U.S. series for 1889Q1–2015Q4, 508
+quarters, from the `rzdat` sheet of `RZDAT.xlsx` in their February 2018
+replication package [@rameyzubairy2018]. The workbook's readme sheet is dated
+November 21, 2016, and the package's `jordagk.do` describes the file as updated
+April 7, 2016. The course does not redistribute the file: Practicum 01
+downloads it from the authors' archive and verifies its checksum, and the
+browser lab displays only estimates computed from it.
+
+<!-- D5, D35: RZDAT.xlsx is acquired by script, never shipped. D33: the lab shows
+     derived estimates only. D40: the units of newsy were checked against
+     Ramey (2011, Table 2) and Ramey and Zubairy's documentation. -->
+
+The outcome is real GDP divided by trend GDP, $y_t=\texttt{rgdp}_t/\texttt{rgdp\_pott6}_t$.
+Both series are in billions of
+[chained 2009 dollars]{.footnote-term data-index="chained dollars"}^[Chained
+dollars measure real output by linking quantity changes between adjacent years
+and expressing the result at a reference year's prices, here 2009. They make
+GDP in different years comparable as quantities, though components measured
+this way do not add up exactly.] at an annual rate, so $y_t$ has no units and
+averages 0.987 over the sample. A change of 0.01 in $y_t$ is a change in GDP of
+one percent of trend GDP.
+
+The intervention variable is the military news,
+
+$$
+s_t=\frac{\texttt{news}_t}{\texttt{rgdp\_pott6}_{t-1}\times\texttt{pgdp}_{t-1}},
+$$
+
+the change in the expected present value of military spending announced in
+quarter $t$, in billions of nominal dollars, divided by the previous quarter's
+nominal trend GDP at an annual rate.
+[Military news]{.footnote-term data-index="military news"}^[@ramey2011 built the
+series from newspaper and magazine accounts of expected military spending,
+recording the present value of each change in billions of nominal dollars; the
+version used here begins in 1890 [@rameyzubairy2018]. Dividing by lagged
+nominal trend GDP makes the news comparable across a century in which the
+economy grew many times over. Lecture 2 discusses this scaling, and Lecture 4
+uses the news as an instrument for government spending itself.] is recorded by
+the quarter in which it arrived, which is why it is dated $t$ and the control
+$y_{t-1}$ one quarter earlier. The series is nonmissing from 1890Q1 to 2015Q4,
+504 quarters, and nonzero in only 108 of them. Its mean is 0.007222 and its
+standard deviation 0.059728. The two largest values are 0.691893 in 1941Q4 and
+0.600073 in 1950Q3. A unit of $s_t$ is news worth a full year of trend GDP, so
+coefficients are best read per 0.01: news worth one percent of trend GDP.
+
+Counting rows needs one adjustment to @eq-l01-sample-size. Row $t$ needs
+$s_t$, which starts in 1890Q1, and $y_{t-1}$, which exists there because GDP
+starts four quarters earlier. The lag therefore costs no row, and the
+horizon-$h$ regression has $T_h=504-h$ rows, from 1890Q1 to $h$ quarters before
+2015Q4. The formula counts a lag as a lost row only when the lagged variable
+begins where the sample does.
+
+### A Hump
+
+The estimates rise from $\hat\beta_0=0.080313$ at impact to
+$\hat\beta_4=0.259141$ and $\hat\beta_8=0.361906$, peak at
+$\hat\beta_{10}=0.404210$, and fall back to 0.0796 by $h=20$.
+@fig-l01-first-contact plots them.
+
+::: {#fig-l01-first-contact}
+::: {.content-visible when-format="html"}
+![](/lectures/01-question-to-projection/figures/fig-l01-first-contact.svg){fig-alt="Estimated response of GDP relative to trend over horizons 0 to 20 quarters rises from about 0.08 at impact to a peak of about 0.40 at quarter 10 and declines to about 0.08 by quarter 20."}
+:::
+::: {.content-visible unless-format="html"}
+![](/lectures/01-question-to-projection/figures/fig-l01-first-contact.pdf)
+:::
+[Military news and GDP, first contact]{.smallcaps}. Response of real GDP, in percent of trend GDP, to military-spending news worth one percent of the previous quarter's nominal trend GDP, from regressions of $y_{t+h}$ on a constant, the news, and $y_{t-1}$ over 1890Q1–2015Q4 ($T_h=504-h$). Numerically this is $\hat\beta_h$ per unit of the scaled news variable. Horizons are quarters after the news arrives. Read causally, the vertical axis is the gap from the path without the news, a reading this section lists as not yet argued. The response peaks at 0.404 at $h=10$. With Ramey and Zubairy's controls (four lags each of news, GDP, and government spending, both relative to trend), the $h=10$ coefficient is 0.294. No bands are shown.
+:::
+
+In words: news worth one percent of trend GDP is followed ten quarters later by
+GDP about 0.40 percent of trend GDP above what the regression otherwise predicts
+from the previous quarter's output. The shape is a hump, which @sec-l01-smallest-model
+showed an AR(1) cannot produce, and the local projection found it without being
+told what shape to expect.
+
+Changing the controls changes the numbers. With Ramey and Zubairy's own set,
+so that $\mathbf w_t$ in @eq-l01-lp holds four lags each of the news, of $y$,
+and of government spending relative to trend ($p=4$), the sample becomes $T_h=500-h$ and the coefficients are 0.0510 at
+$h=0$, 0.2938 at $h=10$, and 0.0671 at $h=20$. These equal, to the digits shown,
+the linear GDP response in Ramey and Zubairy's replication code, which Lecture
+4 reproduces. The peak falls by about a quarter. Which of the two
+specifications deserves a causal reading, if either, is not a question the
+regression can answer.
+
+### Where the Variation Comes From
+
+@eq-l01-ols-slope says that each quarter supplies the share
+$(s_t-\bar s)^2/\sum_\tau(s_\tau-\bar s)^2$ of the variation behind the slope.
+@tbl-l01-news-variation lists the six largest shares in the $h=8$ sample of 496
+quarters.
+
+<!-- D24: the droppable news-variation figure is replaced by this table. -->
+
+| Quarter | News, fraction of trend GDP | Share of variation | Cumulative share |
+|---|---:|---:|---:|
+| 1941Q4 | 0.6919 | 0.2612 | 0.2612 |
+| 1950Q3 | 0.6001 | 0.1958 | 0.4570 |
+| 1942Q3 | 0.4328 | 0.1009 | 0.5579 |
+| 1950Q4 | 0.4022 | 0.0869 | 0.6448 |
+| 1917Q2 | 0.3729 | 0.0745 | 0.7193 |
+| 1941Q2 | 0.3401 | 0.0617 | 0.7811 |
+
+: The six quarters with the largest shares of $\sum_t(s_t-\bar s)^2$ in the $h=8$ estimation sample, 1890Q1–2013Q4 ($T_8=496$). Shares use $s_t-\bar s$ as in @eq-l01-ols-slope; with $y_{t-1}$ in the regression, the exact weights use $s_t$ purged of $y_{t-1}$. Rounded to four decimals. {#tbl-l01-news-variation}
+
+The quarter of Pearl Harbor and the first full quarter of the Korean War supply
+45.7 percent of the variation in $s_t$ between them; four quarters supply 64.5
+percent and six supply 78.1 percent. Of 496 rows, a handful carry the estimate.
+The data are closer to the one-episode case of @eq-l01-one-episode than their
+length suggests.
+
+A direct test confirms it. At $h=8$ the estimate is 0.3619 on the full sample.
+Dropping the single row for 1950Q3 raises it to 0.4340, so one quarter out of
+496 moves the coefficient by 0.072. Dropping 1941Q4 instead gives 0.3443, and
+dropping both gives 0.4451. Using only rows from 1947Q1 on, 268 of them, gives
+0.0587. Removing Korea's news quarter *raises* the estimate: measured against
+the regression's average, what followed the Korean news was smaller than what
+followed the other large episodes. And most of what the full-sample coefficient
+reports comes from before 1947.
+[Exercise 9](#exercise-l01-9) reproduces the response, the shares, and the
+drop-one estimate from the data.
+
+### What Has Not Yet Been Argued
+
+@fig-l01-first-contact is a response graph, and its caption names the
+intervention, the units, and the counterfactual. It is not yet evidence about
+what military news does to output. At least five claims stand between the
+estimate and that conclusion, and each belongs to a later lecture.
+
+1. *Units and transformation.* The outcome is a level relative to a trend
+   fitted with data through 2015, and the coefficient is per unit of scaled
+   news. Whether the level, the change, or the accumulated response answers the
+   policymaker's question, and what units each carries, is Lecture 2.
+2. *Controls.* One lag of $y$ was a choice. Ramey and Zubairy's controls lower
+   the peak by a quarter, and which controls belong depends on what drives the
+   news, which is Lecture 3.
+3. *Identification.* The argument that equated the coefficient with $\theta_h$
+   required the news to be an observed shock in the sense of
+   [A2](#assumption-l01-a2) and [A3](#assumption-l01-a3): unpredictable from the
+   past and unrelated to the taxes, monetary policy, price controls, and war that
+   arrived with it. Lecture 3 argues about that, and Lecture 4 uses the news to
+   estimate the effect of spending itself.
+4. *Uncertainty.* No standard error or band has been computed. Overlapping
+   windows make the residuals serially correlated, and Lectures 5 and 6 build
+   intervals that respect what @sec-l01-residual found.
+5. *Episode dependence.* Two quarters carry 46 percent of the variation, and
+   dropping one moves the $h=8$ estimate by 0.07. Lecture 13 turns this into a
+   systematic sensitivity analysis.
+
+A sixth claim is hidden in [A1](#assumption-l01-a1). The regression treats news
+worth 69 percent of trend GDP as having 69 times the effect of news worth one
+percent, in slack and in booming economies alike; Lectures 9 and 10 ask what a
+linear coefficient means when that fails.
+
+## Handoff {#sec-l01-handoff}
+
+The policymaker of June 1950 wanted to know what the buildup would do to
+output. The lecture cannot answer that question yet, but it can now say
+precisely what a local projection offers in reply. Each coefficient compares
+what followed quarters with more news against what followed quarters with less,
+holding the previous quarter's output fixed. In an economy where the news is an
+observed shock, that comparison equals the gap between the realized path and the
+path without the news. The coefficients are estimated one horizon at a time
+from rows that shrink as the horizon grows. Their variation comes from every
+quarter with news, weighted by how unusual the news was, and in these data a few
+war quarters dominate.
+
+The opening's evidence can now be set beside the regression. The realized rise
+in output from 1950Q2 to 1953Q1 was 0.0787 of trend GDP. Scaling the $h=10$
+coefficient by Korea's news gives $0.600073\times0.404210=0.2426$, three times
+larger. Neither number is the effect of Korea's news. The first is a change
+along one realized path, which @eq-l01-change-decomposition splits into a
+response and everything else. The second applies an average over many episodes,
+led by 1941Q4, to one of them, with controls and identification unargued.
+[Exercise 10](#exercise-l01-10) asks you to take the comparison apart.
+
+We can now produce a defined estimand, a derivation showing when a regression
+recovers it, the rows of that regression listed by hand, a loop that estimates
+the curve, and a response graph whose caption says what it measures. We cannot
+yet defend a choice of the outcome's form. Every
+regression in this lecture used the level $y_{t+h}$. The opening's 7.87 points
+was a change, $y_{t+h}-y_{t-1}$, and @sec-l01-question insisted that a change
+since the date before is not a causal response. Yet $y_{t-1}$ also sits on the
+right-hand side of the regression behind every response graph we drew. If we
+regress $y_{t+h}-y_{t-1}$ instead of $y_{t+h}$, is the answer different, or the
+same answer in different clothes? Lecture 2 begins there.
+
+## Exercises {.unnumbered #sec-l01-exercises}
+
+Exercises marked **[core]** prepare material used later in the course.
+
+::: {.solutions-companion .content-visible when-format="pdf"}
+Hints and complete worked solutions are collected in the companion
+[Lecture 01 Exercise Hints & Worked Solutions](solutions.pdf). The companion
+restates every problem, so it can be read on its own.
+:::
+
+{{< include /lectures/01-question-to-projection/exercises.qmd >}}
+
+## Further Reading {.unnumbered}
+
+- @jorda2005 introduces local projections and argues for estimating each
+  horizon directly rather than iterating a fitted model forward.
+
+- @jordataylor2025 surveys local projections for applied researchers. Its first
+  example, a Monte Carlo comparison of levels and long differences, returns in
+  Lecture 2; Practicum 01 reproduces its levels curve at a reduced number of
+  draws.
+
+- @ramey2011 constructs the military-news series from narrative sources and
+  explains why the timing of news matters for estimating the effects of
+  government spending.
+
+- @rameyzubairy2018 builds quarterly U.S. data back to 1889, with the news
+  series from 1890, and supplies the data of @sec-l01-first-contact, which
+  return in Lectures 2, 4, 9, and 13.
+
+- @stockwatson2018 frames dynamic causal effects in macroeconomics and is the
+  reading for the instrument conditions of Lecture 4.
+
+- @montieloleaplagborgmollerqianwolf2026 compares local projections with vector
+  autoregressions for applied macroeconomists and prepares Lecture 7.
+
+- @inouejordakuersteiner2026 is the course's second standing reference, on
+  inference for local projections, and is read from Lecture 5 onward.
+
+## Lecture Glossary {.unnumbered #sec-l01-glossary}
+
+The glossary collects the bold technical terms introduced in this lecture.
+
+::: {.content-visible when-format="html"}
+Hover over any dotted-underlined glossary term to see the same definition in
+place.
+:::
+
+::: {.content-visible when-format="pdf"}
+Every bold glossary term in the notes is linked to its definition below. After
+following a link, use the PDF viewer's Back command to return to the passage.
+:::
+
+{{< include /lectures/01-question-to-projection/glossary.qmd >}}

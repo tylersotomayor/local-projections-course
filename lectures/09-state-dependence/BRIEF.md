@@ -274,7 +274,7 @@ measure?
 
 Symbols already in the course ledger keep their meaning. Rows marked *new* are
 this lecture's additions; none reassigns a reserved symbol. $\theta^A_0$ reuses
-the causal-response letter for the true impact effect; $\vartheta_h$ avoids JT's
+the causal-response letter for the true impact response; $\vartheta_h$ avoids JT's
 $\theta_h$ for their interaction coefficient, and the notes map it in one sentence (as D20 does for $b$).
 
 | Symbol | Meaning | Dimensions | Timing | Units | First use | Later uses |
@@ -288,7 +288,7 @@ $\theta_h$ for their interaction coefficient, and the notes map it in one senten
 | $M^A_H,M^B_H$ *(new)* | State-specific one-step cumulative multipliers | scalars | cumulation $0..H$ | dollars of GDP per dollar of spending | `#sec-l09-interacted-lp` | `#sec-l09-direct-test`, `#sec-l09-evidence`, L13 |
 | $\operatorname{Cov}(\hat M^A_H,\hat M^B_H)$ | Cross-state HAC covariance from the joint model | scalar | per $H$ | squared multiplier units | `#sec-l09-direct-test` | exercise 5, lab 4 |
 | $s^+_t,s^-_t$ | $\max(s_t,0)$, $\min(s_t,0)$ | scalars | $t$ | units of $s$ | `#sec-l09-sign-asymmetry` | exercise 8, L10 |
-| $\theta^A_0,\theta^B_0$ *(new)* | True impact effect in each state (simulation) | scalars | $h=0$ | units of $y$ per unit of $s$ | `#sec-l09-estimand` | labs 1–3 |
+| $\theta^A_0,\theta^B_0$ *(new)* | True impact response in each state (simulation) | scalars | $h=0$ | units of $y$ per unit of $s$ | `#sec-l09-estimand` | labs 1–3 |
 | $\rho_A,\rho_B$ *(new use of $\rho$)* | State-specific persistence of $y$ (simulation) | scalars | $t-1\to t$, governed by $I_{t-1}$ | none | `#sec-l09-estimand` | labs 1–3, STA09 |
 | $\theta^{A,\mathrm{fix}}_h$ *(new)* | Fixed-state response, $\theta^A_0\rho_A^h$ | scalar | state held at $A$ over $t..t+h$ | units of $y$ | `#sec-l09-estimand` | figure, labs 1, 3 |
 | $\theta^{A,\mathrm{init}}_h$ *(new)* | Initial-state response under an exogenous state chain | scalar | conditions on $I_{t-1}=1$ only | units of $y$ | `#sec-l09-estimand` | exercise 2, lab 1 |

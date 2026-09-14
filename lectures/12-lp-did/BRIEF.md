@@ -136,7 +136,7 @@ of the level and of the first difference of the outcome; and four lags of
 $N=40$ units observed for $t=1,\dots,20$. There are four cohorts,
 $g\in\{5,8,11,14\}$, with six units each; the other 16 units are never
 treated. The effects are linear ramps that differ by cohort,
-$\theta_{g,k}=\theta_{g,0}\,(k+1)$ for $k\ge0$, with impact effects $\theta_{g,0}=(1,\,0.75,\,0.5,\,0.25)$ for $g=(5,8,11,14)$. They
+$\theta_{g,k}=\theta_{g,0}\,(k+1)$ for $k\ge0$, with impact responses $\theta_{g,0}=(1,\,0.75,\,0.5,\,0.25)$ for $g=(5,8,11,14)$. They
 are measured in outcome units, and later cohorts respond more slowly. The
 outcome is
 $y_{i,t}=\eta_i+\phi_t+\theta_{g_i,t-g_i}\mathbb 1\{t\ge g_i\}+\sigma\varepsilon_{i,t}$,
@@ -564,7 +564,7 @@ group means in closed form (§6.2) and is validated against
     rows;
   - never-treated on or off;
   - effect shape: ramp (default) or constant in $k$;
-  - impact effects $\theta_{g,0}$: outcome units, 0–2, defaults 1, 0.75, 0.5,
+  - impact responses $\theta_{g,0}$: outcome units, 0–2, defaults 1, 0.75, 0.5,
     0.25.
 - *Output:* estimates by $h$ against $\theta^{\mathrm{VW}}_h$, plus a strip of
   static-TWFE weights with negative cells marked.

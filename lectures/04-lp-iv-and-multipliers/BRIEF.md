@@ -376,7 +376,7 @@ to the dependency chain.
 | $\psi$ | Contemporaneous loading of spending on $v_t$ (endogeneity) | $t$ | $s$ per unit $v$ | §1 | lab 1 |
 | $\zeta_0$, $\zeta_1$ | Loadings of $z_t$ on $v_t$ (breaks A2) and on $v_{t-1}$ (breaks A3) | $t$, $t-1$ | $z$ per unit $v$ | §2, §8 | lab 4 |
 | $\rho$, $\rho_s$ | Persistence of output and of spending | — | — | §1 | $\rho$ course-wide |
-| $\theta_0$ | Impact effect of spending on output | $t$ | $y$ per unit $s$ | §1 | L1 |
+| $\theta_0$ | Impact response of spending on output | $t$ | $y$ per unit $s$ | §1 | L1 |
 | $\theta^Y_h$, $\theta^G_h$ | Causal responses of output and spending to a unit $\varepsilon_t$ | $t+h$ | per unit $\varepsilon$ | §3 | L9 |
 | $\pi$ | Impact first stage, $\operatorname{Cov}(s_t,z_t\mid\mathbf w_t)/\operatorname{Var}(z_t\mid\mathbf w_t)$; equals $\beta^G_0$ | $t$ | $s$ per unit $z$ | §3 | — |
 | $\beta^Y_h$, $\beta^G_h$ | Reduced-form LP coefficients of $y_{t+h}$ and $s_{t+h}$ on $z_t$ | $t+h$ on $t$ | trend-GDP ratio per unit news | §3 | L9 |

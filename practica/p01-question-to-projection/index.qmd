@@ -1,0 +1,520 @@
+---
+title: "P01 · Recover the Basic LP Estimator"
+subtitle: "Replication lab REP01, Stata problem set STA01, and the Shock-to-Response Explorer handoff"
+css: [../../lectures/notes-ebook.css]
+bibliography: ../../lectures/01-question-to-projection/references.bib
+toc: true
+format:
+  html:
+    include-after-body: ../../lectures/notes-chapter.html
+---
+
+::: {.callout-tip}
+## What we are building
+
+A Stata project that rebuilds the levels curve of Jordà and Taylor's first
+Monte Carlo example one regression at a time, reproduces the published
+benchmark once the number of draws matches, and then carries the same moves from the
+twelve rows of Lecture 01's hand table to a century of quarterly data on
+military news. When it runs clean you can say what each point on a response
+graph is: which regression produced it, from which rows, averaged over what,
+and what it has not yet shown. The **[complete lab
+project](p01-question-to-projection-lab.zip)** contains the starter do-files,
+the solved problem set, the data with provenance, and automated checks. The **[instructor
+build](build/index.qmd)** is the executed version.
+:::
+
+## The question
+
+[Lecture 01](../../lectures/01-question-to-projection/notes.qmd) asked how a
+regression coefficient becomes one point on an impulse-response function, and
+answered in an economy where the answer is known. If
+$y_t=\rho\,y_{t-1}+\theta_0 s_t+v_t$ with an observed shock $s_t$, the
+regression of $y_{t+h}$ on a constant, $s_t$, and $y_{t-1}$ has population
+coefficient $\theta_0\rho^h$. A published local-projection result rests on the
+same arithmetic, but the arithmetic sits inside someone else's do-file, behind
+their variable names, their loop, and their choice of what to store. So the
+practicum asks:
+
+> **Can you rebuild a published local-projection result one regression at a
+> time, and say exactly what each number in it measures?**
+
+Part A answers the question for the smallest published target in the course
+readings, the levels curve in Figure 1a of @jordataylor2025. Its economy is
+the lecture's AR(1) with $\rho=0.95$ and $T=100$, so the true response is known
+and every gap between the curve and the truth can be read. Part B repeats the
+moves on the lecture's own anchors: the hand table, one simulated draw, a Monte
+Carlo experiment, and the military-news data of @rameyzubairy2018. Part C
+reruns in Stata what you predicted and computed in the browser.
+
+## How to use the lab project
+
+Download and unzip the **[lab project](p01-question-to-projection-lab.zip)**.
+It unzips to a folder called `lab-project`. Set Stata's working folder to it
+and run the master file:
+
+```stata
+cd "lab-project"
+do master.do          // checks, REP01, your problem set, the handoff check
+```
+
+`master.do` runs four files in order and stops at the first check that fails:
+
+1. `tests/checks.do` confirms, without a network connection, that the shipped
+   data, benchmark, and vendor files have the SHA-256 values recorded in
+   `data/PROVENANCE.md` and `vendor/jel-code/SOURCE.md`, that the simulated
+   data follow their rules, that `data/raw/make_sim_data.do` regenerates them
+   byte for byte, and that the helper programs in `helpers/lp_helpers.do`
+   behave as documented;
+2. `replication/rep01.do` rebuilds the REP01 target and compares it with three
+   references;
+3. `starter/pset.do` runs your problem set;
+4. `handoff/check_handoff.do` reruns what the Shock-to-Response Explorer
+   computed for you.
+
+Everything lands in `output/`: `master.log` and one log per step,
+`assertions.csv` with every check and its result, `rep01-benchmark.csv`, and
+the two REP01 figures. The problem set writes its deliverables to
+`output/pset/`. Two globals change the work. `global R` sets the number of
+Monte Carlo draws, 200 by default (editor decision D2), and
+`global AUTHOR_CHECK 0` skips the run of the authors' own script. With the
+defaults, the checks and REP01 take about 30 seconds in StataNow/SE 19.5, and
+a completed problem set about 30 seconds more, the download in Task 5 included;
+the instructor build, with $R=500$, took 137 seconds from start
+to `MASTER COMPLETE`. No user-written commands are needed.
+
+While you work on the problem set, run `do starter/pset.do` on its own from
+the same folder; keep the master file for the final record. The archive also
+holds the solved problem set, `solution/pset_solution.do`, and
+`do master.do solution` runs it in place of the starter. Open it after you have
+attempted every task.
+
+## Part A · Replication lab REP01
+
+### The target
+
+| Field | Value |
+|---|---|
+| Paper and version | @jordataylor2025, *Journal of Economic Literature* 63(1), 59–110. Replication package `ojorda/JEL-Code`, commit `655696c1c576b7537c5a939d2c261f0a111ae663` (CC0); the four files REP01 needs ship in `vendor/jel-code/`, with only the authors' two `cap cd` folder paths commented out |
+| Exact target | Figure 1a, the levels curve: the Monte Carlo mean of $\hat\beta_h$ from ``reg f`h'.y vy l.y``, $h=0,\dots,10$, with an intercept and without the lagged difference, in an AR(1) with $\rho=0.95$ and $T=100$ after 500 burn-in periods, seed 12345 |
+| Kind | Statistical reproduction. The published figure averages 10,000 draws; the instructor build averages 500 and the student default 200 (D2). At a matched draw count the reproduction is exact |
+| Data and vintage | None external: the script simulates its data. Package frozen on 2026-09-13 |
+| Original code | `Example1_LongDifferences/SSBias_IntcpYLagdiffN_95.do` (the authors' file, SHA-256 `07116508…4682a1e7e2`; `vendor/jel-code/SOURCE.md` records the shipped copy's): settings, lines 20–27; seed, line 39; simulated data, lines 45–63 (intervention `vy` on line 52, disturbance `e` on line 56, recursion on line 59, burn-in dropped on line 62); levels regressions, lines 84–90 (line 87); stored draws, lines 125–128; Monte Carlo means, lines 139–140; true response, lines 156–168. Driver `all-simulate.do`, lines 18–19 (`nobs 100`, `nreps 10000`) |
+| Benchmark | The course benchmark `REP01-levels-lp.csv`: the authors' script at 500 draws in Stata/SE 18.5, from 1.00175750 at $h=0$ to 0.43152007 at $h=10$. Two further references: the same script at 200 draws in StataNow/SE 19.5 (0.99686521 to 0.42771590) and the authors' shipped 10,000-draw means (0.99697095 to 0.42890212). The instructor build reproduces the 500-draw benchmark with a largest absolute difference of $4\times10^{-8}$ |
+| Tolerance | Absolute $10^{-6}$ on every mean when the draw counts match. Against the 10,000-draw means, $\lvert z\rvert<3$, where $z$ is the difference divided by $\mathrm{sd}_R\sqrt{1/R+1/10{,}000}$ |
+| Deliberate departures | Draws reduced from 10,000 (D2). The course code leaves out the authors' `$a*l.d.y` term, which is zero in this variant (line 57 sets `a` to 0.00), stores each draw as `double` where the authors store `float`, and records $T_h$ from `e(N)`, which the authors do not keep. The long-difference, cumulative-difference, and AR(1) curves of the same figure belong to REP02. The authors' `cap cd` lines, commented out in the shipped copy so that the archive holds no absolute path, and their Palatino font setting have no effect in batch |
+| Runtime | Instructor build ($R=500$): Monte Carlo 15.1 s, authors' script 46.4 s, the whole REP01 file 63.7 s. Student default ($R=200$): 26.6 s for the REP01 file, 18.6 s of it in the authors' script |
+
+### Reconstruct the specification
+
+`replication/rep01.do` rebuilds the target in five steps, and a sixth step is
+yours. The blocks below follow that file. To run them yourself, start Stata in
+the project's top folder, type `do helpers/lp_helpers.do`, which loads
+`lp_assert` and `lp_close`, and then run the blocks of Steps 2 to 5 in order in
+the same session.
+
+#### Step 1 · Read the authors' simulation
+
+The whole target comes from about twenty lines of the authors' script. Read
+them before running anything.
+
+```stata
+* SSBias_IntcpYLagdiffN_95.do, lines 39-62 (blank lines removed, indentation normalized)
+set seed 12345
+qui forvalues i = 1(1)$nreps{
+    noi disp "`i'," , _continue
+    preserve
+    clear
+    set obs  $tobs
+    gen t = _n
+    sort t, stable
+    tsset t
+    *** Generate data from the model
+    gen vy  = rnormal()
+    gen y   = 0
+        *!!! add noise and lagdiff
+        gen e=rnormal()
+        global a 0.00
+    replace y = $rho * l.y + $a * l.d.y + vy + e    if _n > 2
+    *** Drop the burn-in sample
+    drop if _n <= $burn
+
+* lines 83-90
+    *** Estimate the LP in levels
+    forvalues h = 0/$hmax{
+*       reg f`h'.y y
+*       local b_level_`h' = _b[y]
+        reg f`h'.y vy l.y /*l.d.y*/  // cons and N lag diff
+        local b_level_`h' = _b[vy]
+        }
+```
+
+**Read the result.** In the lecture's notation `vy` is the intervention $s_t$
+and `e` the disturbance $v_t$; both are standard normal, and all 600 values of
+`vy` are drawn before any value of `e`. Line 59 is
+$y_t=0.95\,y_{t-1}+s_t+v_t$, so $\theta_0=1$ and the true response is
+$\theta_h=0.95^h$, which lines 156–168 store as `rt`. The first two periods
+stay at zero, and the 500 periods dropped on line 62 make that start
+irrelevant. Line 87 is the
+[local projection of the lecture's smallest model](../../lectures/01-question-to-projection/notes.qmd#eq-l01-lp-toy)
+with $\mathbf w_t=y_{t-1}$ and $p=1$. After the burn-in the sample has $T=100$
+periods; `l.y` is missing in the first of them and `f`h'.y` in the last $h$,
+so the regression at horizon $h$ uses $T_h=99-h$ rows. The authors keep the
+coefficient and nothing else: no row count and no standard error.
+
+**Checkpoint.** Before `restore`, the loop also fits an AR(1), long
+differences, and cumulated differences. Say why none of those regressions can
+change the draws that the levels regression sees.
+
+#### Step 2 · One realization, one horizon
+
+Rebuild the first draw outside the loop and run the $h=0$ regression.
+
+```stata
+local rho  = 0.95
+local burn = 500
+local tobs = 600
+clear
+set seed 12345
+set obs `tobs'
+generate t = _n
+tsset t
+generate vy = rnormal()           // line 52: the intervention s_t, drawn first
+generate y  = 0                   // line 53: stored as float, as in the authors' code
+generate e  = rnormal()           // line 56: the disturbance v_t, drawn second
+replace y = `rho'*L.y + vy + e if _n > 2      // line 59; the term in a is zero
+drop if _n <= `burn'              // line 62: keep the last 100 periods
+replace t = _n
+tsset t
+regress F0.y vy L.y
+lp_assert "REP01 step 1: the h = 0 regression has T_0 = 99 rows" : e(N) == 99
+lp_close _b[vy] 1.06035137, tol(1e-6) label(REP01 step 1: draw 1 at h = 0)
+```
+
+**Read the result.** The first draw gives $\hat\beta_0=1.060351$ on 99 rows,
+0.06 above $\theta_0=1$. The block keeps the authors' storage of `y` as a
+`float`, so this is their first draw, not a draw like it. The check's target,
+1.06035137, is the coefficient as the authors' `float` variable holds it:
+`display %11.8f float(_b[vy])` prints it after the regression. The build's
+`double` copy, 1.06035143, differs from it by $6\times10^{-8}$.
+
+**Checkpoint.** Both checks pass. Explain the 99 without running anything:
+which row is lost, and why.
+
+#### Step 3 · The same draw at every horizon
+
+```stata
+tempfile draw1
+tempname D
+postfile `D' h double b_draw1 T_draw1 using `draw1'
+forvalues h = 0/10 {
+    quietly regress F`h'.y vy L.y
+    post `D' (`h') (_b[vy]) (e(N))
+}
+postclose `D'
+use `draw1', clear
+list, clean noobs
+lp_assert "REP01 step 2: T_h = 99 - h in draw 1" : T_draw1 == 99 - h
+```
+
+**Read the result.** Rounded to six decimals, draw 1 gives 1.060351, 0.999817,
+0.596461, 0.555731, 0.403161, 0.213559, 0.088265, −0.148038, −0.282293,
+−0.250712, and 0.243100 at $h=0,\dots,10$. The true response never falls below
+$0.95^{10}=0.599$. This sample says the response turns negative seven periods
+out and recovers by the tenth, and neither statement is true of the economy
+that produced it. Posting `e(N)` with the coefficient keeps each point attached
+to its rows, and `rep01.do` checks all eleven values against the authors'
+stored ones at $10^{-6}$.
+
+**Checkpoint.** In the second figure of the instructor build, find the
+horizons at which draw 1 lies outside the middle 90 percent of the 500 draws.
+Use [the lecture's section on the residual](../../lectures/01-question-to-projection/notes.qmd#sec-l01-residual)
+to explain why those horizons sit next to each other.
+
+#### Step 4 · The Monte Carlo
+
+```stata
+capture mkdir output
+if "$R" == "" global R 200            // the student default (D2); master.do sets it
+tempname M
+postfile `M' rep h double b T_h using "output/rep01-draws.dta", replace
+set seed 12345                        // once, before the loop, as on line 39
+quietly forvalues r = 1/$R {
+    clear
+    set obs 600
+    generate t = _n
+    tsset t
+    generate vy = rnormal()
+    generate y  = 0
+    generate e  = rnormal()
+    replace y = 0.95*L.y + vy + e if _n > 2
+    drop if _n <= 500
+    replace t = _n
+    tsset t
+    forvalues h = 0/10 {
+        regress F`h'.y vy L.y
+        post `M' (`r') (`h') (_b[vy]) (e(N))
+    }
+}
+postclose `M'
+use "output/rep01-draws.dta", clear
+lp_assert "REP01: every draw has T_h = 99 - h rows" : T_h == 99 - h
+collapse (mean) mean_R=b (sd) sd_R=b, by(h)
+```
+
+**Read the result.** With $R=500$ the instructor build reproduces the
+benchmark at every horizon. Six of the eleven rows, rounded as shown:
+
+| $h$ | $\theta_h$ | Benchmark, 500 draws, Stata 18.5 | This build, 500 draws, StataNow 19.5 | Monte Carlo SE |
+|---:|---:|---:|---:|---:|
+| 0 | 1.0000 | 1.00175750 | 1.00175746 | 0.0047 |
+| 2 | 0.9025 | 0.86787397 | 0.86787396 | 0.0103 |
+| 4 | 0.8145 | 0.73754936 | 0.73754938 | 0.0135 |
+| 6 | 0.7351 | 0.62550861 | 0.62550860 | 0.0159 |
+| 8 | 0.6634 | 0.51882571 | 0.51882570 | 0.0177 |
+| 10 | 0.5987 | 0.43152007 | 0.43152008 | 0.0178 |
+
+The benchmark column is the file as
+`import delimited using "replication/benchmark/REP01-levels-lp.csv", clear varnames(1) encoding(utf8)`
+reads it, the line `rep01.do` runs before it compares; `asdouble` returns the
+same eight decimals. The two columns never differ by as much as
+$5\times10^{-8}$, and what difference there is comes from storage: the authors
+average `float` draws and the course averages `double` draws. The mean lies
+below $\theta_h$ at every horizon from $h=1$ on, by 0.025 at $h=1$ and by
+0.167 at $h=10$, which is 9.4 Monte Carlo standard errors. That gap belongs to
+the estimator in samples of 100 periods with $\rho=0.95$, not to the
+reproduction; Lecture 2 explains it.
+
+**Checkpoint.** At the default $R=200$ your means must equal the authors' own
+200-draw run, `replication/benchmark/REP01-author-R200-v195.csv`, at
+$10^{-6}$, and `rep01.do` also checks them against the 500-draw benchmark
+within three nested Monte Carlo standard errors. If every draw returns the
+same estimate, `set seed` has moved inside the loop.
+
+#### Step 5 · Two cross-checks
+
+The first runs the authors' script itself at the same number of
+draws; the second compares the build with the 10,000 draws of the published
+figure.
+
+```stata
+tempfile summary author10000
+save `summary'                        // the means and standard deviations of Step 4
+
+* the authors' script at the same R, from a folder of its own
+local here = c(pwd)
+capture mkdir "output/rep01-author"
+quietly cd "output/rep01-author"
+global nobs = 100
+global nreps = $R
+quietly do "`here'/vendor/jel-code/SSBias_IntcpYLagdiffN_95.do"
+quietly cd "`here'"
+keep t rl                             // rl: the authors' mean of the levels estimates
+rename (t rl) (h author_R)
+merge 1:1 h using `summary', nogenerate assert(match)
+lp_assert "REP01 cross-check: the authors' script and Step 4 agree at every h (1e-6)" : abs(author_R - mean_R) < 1e-6
+
+* the published figure's means, treated as an independent stream of 10,000 draws
+preserve
+use "vendor/jel-code/SSBias_IntcpYLagdiffN_95.dta", clear
+keep t rl
+rename (t rl) (h author_10000)
+save `author10000'
+restore
+merge 1:1 h using `author10000', nogenerate assert(match)
+generate double se_10000 = sd_R*sqrt(1/$R + 1/10000)
+generate double z_10000  = (mean_R - author_10000)/se_10000
+format mean_R author_R author_10000 %11.8f
+format z_10000 %6.2f
+list h mean_R author_R author_10000 z_10000, clean noobs
+lp_assert "REP01 statistical: |z| < 3 against the 10,000-draw means at every h" : abs(z_10000) < 3
+```
+
+**Read the result.** At $R=500$ the authors' script and `rep01.do` agree at
+every horizon within $4\times10^{-8}$. The authors' shipped 10,000-draw means
+differ from the 500-draw means by at most 0.018, at $h=2$, where $z=1.71$, and
+no horizon comes near $\lvert z\rvert=3$. The published figure is reproduced
+as a statistical object; the 500-draw curve is the authors' own curve at that
+draw count.
+
+**Checkpoint.** Explain why the comparison with the 10,000-draw means cannot
+be exact, and why its standard error adds $1/10{,}000$ to $1/R$ rather than
+subtracting it.
+
+#### Step 6 · Write the construction note
+
+In about 150 words, write down what REP01 reproduces for a reader who has only
+Figure 1a: which variable is $s_t$ and how it is drawn, which rows enter the
+regression at horizon $h$ and how many, what the curve averages and over how
+many draws, and what the authors' output does not contain. Add one sentence on
+the gap between the curve and $0.95^h$ that describes it without explaining it.
+
+**Checkpoint.** Someone else should be able to rerun the target from your note
+and `vendor/jel-code/` alone.
+
+### Discrepancy guidance
+
+When your number differs, record it before you change anything. A row of the
+discrepancy log has six fields: the **object** (which mean, at which horizon,
+at which $R$), the **published** value and its source, the **reproduced**
+value, the **class** (data, specification, software, inference, or
+presentation), a **diagnosis**, and a **status** (resolved, accepted as a
+departure, or open). For this target the likely causes are few, and each
+leaves a recognizable trace.
+
+| What you see | Most likely cause | Class |
+|---|---|---|
+| Every mean within $10^{-7}$ of the reference but not identical to it | `float` versus `double` storage of the draws or of `y` | software |
+| Every mean off by more than $10^{-6}$ but by less than three Monte Carlo standard errors | a different random stream: `e` drawn before `vy`, another seed, or another `set obs` | specification |
+| A standard deviation of zero across draws | `set seed` inside the loop | specification |
+| $T_h=599-h$ | the burn-in was never dropped | specification |
+| $T_h=100-h$ | `L.y` left out of the regression, which also changes the estimate | specification |
+| Your means match the 200-draw file but not the 500-draw benchmark | a different $R$: compare with the reference for your draw count | specification |
+| A curve with a different shape or level everywhere | another variant of the script: `IntcpN` drops the intercept, `LagdiffY` adds $\Delta y_{t-1}$ (REP02) | specification |
+| A difference between Stata 18.5 and StataNow 19.5 beyond $10^{-6}$ | a software change (D1); the instructor build found none | software |
+
+## Part B · Stata problem set STA01
+
+The problem set runs the lecture's argument in the order construct, estimate,
+diagnose, interpret. `starter/pset.do` gives the data steps, the files to
+write, and the checks; the lines marked `TASK` are yours. The checks are the
+`lp_assert` and `lp_close` lines at the end of each task. Each prints `pass` or
+`FAIL`, and the first failure stops the file. They test what a machine can
+test; the captions in Tasks 4 and 5 and the paragraph in Task 5 are read by a
+person against the slots and sentences listed below. The tasks follow
+Exercises 3, 4, 6, 7, and 9 of the
+[Lecture 01 exercises](../../lectures/01-question-to-projection/notes.qmd#sec-l01-exercises),
+whose hints apply here. A worked answer ships as `solution/pset_solution.do`,
+and the [instructor build](build/index.qmd) shows it task by task with its
+output; read either after your own attempt.
+
+### Task 1 · Construct the rows for $h=0,1,2$
+
+Read the hand table (`data/raw/hand_table.csv`, or the copy that the
+Explorer's Lab 2 exports) and, for each horizon, mark the rows of the
+regression of $y_{t+h}$ on $s_t$ and $y_{t-1}$ without running it: the lead
+$y_{t+h}$, the rows with $t\ge2$ and a lead that exists, and their counts.
+
+- **Deliverable.** `output/pset/results_hand.dta` with `h`, `T_h`, `n1`
+  (intervention rows), `n0` (comparison rows), `first`, and `last`.
+- **Checks.** $T_h=11-h$; every row is an intervention row or a comparison row;
+  the rows run from $t=2$ to $t=12-h$; three intervention rows at $h=0$ and two
+  at $h=1$ and $h=2$.
+
+### Task 2 · Estimate the slopes from the rows
+
+On the same rows, compute the group means $\bar y_1$ and $\bar y_0$, compute
+the slope by hand as $\sum_t(s_t-\bar s)\,y_{t+h}/\sum_t(s_t-\bar s)^2$,
+confirm it with `regress`, and add $y_{t-1}$ on the same rows.
+
+- **Deliverable.** The means and the three slopes, added to `results_hand.dta`.
+- **Checks.** The slope by hand equals $\bar y_1-\bar y_0$ within $10^{-6}$;
+  `regress` returns the same slope; both regressions use exactly the rows of
+  Task 1; the slopes are 0.617322, −0.983356, and 2.050024 without the control
+  and 0.575667, −1.050405, and 2.153022 with it.
+
+### Task 3 · A response in a loop
+
+On `onedraw_rho09_seed2.csv`, the $T=200$ sample that Lab 3 displays, regress
+$y_{t+h}$ on a constant, $s_t$, and $y_{t-1}$ for $h=0,\dots,12$, posting each
+coefficient with its `e(N)`.
+
+- **Deliverable.** `output/pset/results_onedraw.dta` with `h`, `beta_h`, and
+  `T_h`.
+- **Checks.** $T=200$; $T_h=199-h$; $\hat\beta_0=0.878940$ and
+  $\hat\beta_{12}=-0.293297$ within $10^{-6}$; the estimate lies below
+  $\theta_h=0.9^h$ at all thirteen horizons.
+
+### Task 4 · Many draws, one graph, a caption with four slots
+
+Write the Monte Carlo loop of Exercise 7: seed 3 set once for each
+$\rho\in\{0.5,0.9\}$, 300 periods with all of $s$ drawn before any $v$, the
+first 100 dropped, and at each horizon the slope with and without $y_{t-1}$.
+The given code summarizes the first 200 samples. Then draw Task 3's estimates
+against $0.9^h$ with the simulated 5–95 percent band. Fill the caption's four
+slots before you draw: what one unit of the intervention is, the outcome's
+units, the horizon unit, and what a value of zero is compared with.
+
+- **Deliverable.** `output/pset/mc_draws.dta`, `mc_R200_summary.dta`,
+  `fig-sta01-one-draw.svg` and `.png`, and `fig-sta01-one-draw-caption.txt`.
+- **Checks.** $199-h$ rows with the control and $200-h$ without; with $R=200$,
+  at $\rho=0.9$ and $h=8$, a mean of 0.370337 and a standard deviation of
+  0.211226 within $10^{-6}$; without the control a larger spread at every
+  horizon when $\rho=0.9$; all four caption slots filled; the graph exported.
+  The caption is read for the four slots.
+
+### Task 5 · Military news: the response, its variation, one episode
+
+`data/raw/get_rz.do` downloads Ramey and Zubairy's February 2018 package from
+the authors' link and verifies its SHA-256, or prints the manual steps; the
+course does not redistribute the workbook (D5, D35). The starter reads it with
+`import excel using "data/raw/RZDAT.xlsx", sheet("rzdat") firstrow clear`.
+Trend GDP is Ramey and Zubairy's `rgdp_pott6`, the series they call potential
+GDP and estimate as a sixth-degree polynomial trend in real GDP. Build
+$y_t=\texttt{rgdp}_t/\texttt{rgdp\_pott6}_t$ and the news as a fraction of the
+previous quarter's nominal trend GDP, estimate the response for
+$h=0,\dots,20$, compute each quarter's share of $\sum_t(s_t-\bar s)^2$ in the
+$h=8$ sample, re-estimate $h=8$ without 1950Q3, and write the caption and a
+five-sentence paragraph headed "What has not yet been argued."
+
+- **Deliverable.** `output/pset/first_contact.dta`, `sta01-news-shares.csv`,
+  `fig-sta01-first-contact.svg` and `.png`, the caption file, and
+  `not-yet-argued.txt`.
+- **Checks.** 508 consecutive quarters; the news recorded in 504 of them; the
+  news in 1950Q3 equal to 0.600073; $T_h=504-h$; $\hat\beta_8=0.361906$ and
+  $\hat\beta_{10}=0.404210$, with the peak at $h=10$; 1941Q4 and 1950Q3 the two
+  largest shares, 0.261211 and 0.195838; without 1950Q3, 0.433969 on 495 rows;
+  with Ramey and Zubairy's controls, 0.29376385 at $h=10$ on 490 rows, the
+  linear GDP response in the course's REP04 benchmark. The paragraph is read
+  for one sentence each on units, controls, identification, uncertainty, and
+  dependence on a few episodes.
+
+## Part C · The browser-lab handoff
+
+The "Transfer to Stata" section of the
+[Shock-to-Response Explorer](../../interactives/01-shock-to-response-explorer.qmd)
+writes three files: `l01-explorer-handoff.json`, `hand_table.csv`, and the draw
+file chosen in Lab 3. Put them in the project's `handoff/` folder, replacing
+the sample there; `handoff/README.md` in the archive lists every key of the
+record.
+
+| Explorer lab | What the record holds | Where Stata uses it |
+|---|---|---|
+| Lab 2 | `hand_table.csv`; the chosen $h$, control, and single-episode setting; the browser's $T_h$ and slope | Tasks 1–2 read the file when its SHA-256 equals the shipped copy's; `check_handoff.do` reruns the regression |
+| Lab 3 | The draw file, $T$, the control choice, and thirteen slopes and row counts | Task 3 reads the draw when its values equal the shipped copy's; `check_handoff.do` reruns all thirteen regressions |
+| Lab 4 | Your hypothesis about the $h=8$ coefficient without 1950Q3, and the stored estimate for your settings | Task 5 prints the hypothesis beside its own estimate; `check_handoff.do` re-estimates the stored coefficient and sets the hypothesis against it |
+
+Lab 4 displays only estimates computed in Stata from the Ramey–Zubairy data,
+never data rows (D33), so its part of the check waits until Task 5 has
+downloaded the workbook. The hypothesis is read for a direction (raise, lower,
+or unchanged) and a number, and the verdict goes to
+`output/handoff-check.csv` without a grade. The sample record shipped with the
+project predicts that dropping 1950Q3 lowers the estimate to about 0.30. The
+estimate rises, from 0.361906 to 0.433969, and the check records the
+prediction as refuted.
+
+## Submission package
+
+| Deliverable | Required contents |
+|---|---|
+| Replication record | The target (Figure 1a, levels curve, $h=0,\dots,10$), the package commit, the draw count you ran, `output/rep01-benchmark.csv`, a sentence comparing your StataNow run with the Stata 18.5 benchmark at your draw count, the construction note of Step 6, and any discrepancy-log rows |
+| Stata submission | The project folder with your `starter/pset.do`; `output/master.log` ending in `MASTER COMPLETE`; `output/assertions.csv`; the `output/pset/` files listed under each task; the REP01 figures |
+| Interpretation record | For Task 5: the estimand $\theta_h$ and the assumptions under which $\beta_h=\theta_h$, the units of the news and of GDP relative to trend, the absence of standard errors, and the "not yet argued" paragraph |
+| Lab record | Your `l01-explorer-handoff.json` with its four predictions, `output/handoff-check.csv`, and one paragraph on what the chain of four labs showed you |
+
+## Mastery requirement
+
+The practicum is done when you can say, with the numbers from your own run and
+without notes:
+
+> Each point of the levels curve is the coefficient on $s_t$ in a regression of
+> $y_{t+h}$ on a constant, $s_t$, and $y_{t-1}$ over $99-h$ rows, averaged
+> over the draws; at 500 draws it reproduces the published benchmark to within
+> $10^{-6}$, and it lies below $0.95^h$ for a reason Lecture 2 explains. In the
+> military-news data the same regression averages over every quarter with news,
+> weighted by $(s_t-\bar s)^2$, so two war quarters carry 46 percent of its
+> variation and dropping one of them moves the estimate at $h=8$ by 0.07. It is
+> not yet the causal response to the news: its units, controls,
+> identification, and uncertainty are still to be argued.
+
+## References {.unnumbered}
