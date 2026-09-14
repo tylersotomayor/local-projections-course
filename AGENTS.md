@@ -51,7 +51,7 @@ sections, figures, terms, exercises, and labs must follow the material.
 5. Build figures, exercises and solutions, and the playground from the stable
    conceptual spine.
 6. Build the slides last, after notation and examples have settled.
-7. Run `python3 scripts/audit_lecture.py SESSION_DIR` (add `--playground PATH`
+7. Run `python3 scripts/audit_session.py LECTURE_DIR` (add `--playground PATH`
    when the lecture has one), render every affected format, and inspect the
    rendered output rather than relying on source review alone.
 8. Render the handbook when a lecture body, glossary term, footnote term, or

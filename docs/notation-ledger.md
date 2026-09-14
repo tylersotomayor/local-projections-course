@@ -22,7 +22,7 @@ so students can move between the notes and the readings without translation.
 | $s_t$ | Intervention variable dated $t$ | Generic name for the right-hand-side variable whose response we want: an observed shock, a policy action, a treatment switch. It is called a *shock* only once identification has been argued. Follows the blueprint's $s_t$. |
 | $\mathbf w_t$ | Vector of predetermined controls dated $t$ or earlier | Contains lags of $y$, lags of $s$, and other pre-shock variables. Written as a column vector; individual controls $w_{j,t}$. |
 | $p$ | Number of lags in $\mathbf w_t$ | "Lag length." Lag augmentation adds one more lag of $y$ beyond the lags needed for identification. |
-| $\beta_h$ | Population local-projection coefficient on $s_t$ at horizon $h$ | The LP estimand: the coefficient on $s_t$ in the population linear projection of $y_{t+h}$ on $(1, s_t, \mathbf w_t)$. |
+| $\beta_h$ | Population local-projection coefficient on $s_t$ at horizon $h$ | What a local projection targets: the coefficient on $s_t$ in the population linear projection of $y_{t+h}$ on $(1, s_t, \mathbf w_t)$. The causal estimand is $\theta_h$; the two coincide under the identifying assumptions (D56). |
 | $\hat\beta_h$ | OLS (or 2SLS) estimate of $\beta_h$ | Always distinguished from $\beta_h$ in prose and figures. |
 | $\theta_h$ | Causal (structural) impulse response at horizon $h$ | The difference between the outcome path with and without the intervention. $\beta_h=\theta_h$ only under the identifying assumptions stated in Lecture 3. In nonlinear settings (Lecture 10) $\theta_h$ is a function of the shock size. |
 | $\mu_h$ | Intercept of the horizon-$h$ regression | The blueprint's $\alpha_h$; renamed so that $\alpha$ can denote a significance level. |

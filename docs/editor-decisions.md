@@ -343,3 +343,33 @@ sets, and answer keys, including the REP14 flaw key. Nothing is held in a
 private repository. Datasets still follow D5: a package without a
 redistribution license is fetched from its authors by a checksummed script,
 which D35 makes automatic.
+
+## Third round, after the Lecture 1 build
+
+Recorded September 14, 2026, from the open issues of the first complete lecture
+build.
+
+**D55. Two terms.** θ₀ is the *impact response* everywhere, matching the
+glossary key, including lab labels and reactive sentences. "Trend GDP" stays
+the course term for Ramey and Zubairy's scaling series; at its first use in a
+lecture, one sentence says that the authors call it potential GDP and estimate
+it as a sixth-degree polynomial trend in real GDP.
+
+**D56. Estimand.** The causal estimand is θ_h. β_h is the population projection
+coefficient that a local projection targets; the two coincide under the
+lecture's identifying assumptions. A lecture's notation table may state its own
+case of the ledger's timing rule, as Lecture 1 does with controls dated t−1 or
+earlier.
+
+**D57. Reproducible decimals.** A number quoted to more than six decimals must
+reproduce from the shipped files with the import command shown on the page.
+Where float storage changes a quoted digit, the code imports with `asdouble` or
+the page quotes six decimals. Monte Carlo row counts may differ between two
+specifications when the notes say so; Lecture 1 keeps its note.
+
+**D58. Shared files during parallel builds.** A lecture's build agents do not
+edit shared files: `filters/`, `lectures/notes-chapter.html`,
+`lectures/notes-ebook.css`, `lectures/_pdf/`, `docs/`, `scripts/`,
+`_quarto.yml`, and the overview pages. They report a needed change as an open
+issue, and the editor applies it and marks lectures live. Agents render into
+their own scratch output folder, never the shared `_site/`.
